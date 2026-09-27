@@ -14,3 +14,4 @@ def require(name: str) -> str:
 ANTHROPIC_API_KEY = require("ANTHROPIC_API_KEY")
 OPENAI_API_KEY = require("OPENAI_API_KEY")
 GEMINI_API_KEY = require("GEMINI_API_KEY")
+DATABASE_URL = require("DATABASE_URL")
