@@ -67,6 +67,12 @@ data "aws_iam_policy_document" "host" {
     actions   = ["s3:ListBucket"]
     resources = [aws_s3_bucket.backups.arn]
   }
+
+  statement {
+    sid       = "ReadDeployBundle"
+    actions   = ["s3:GetObject"]
+    resources = ["${aws_s3_bucket.backups.arn}/deploy/*"]
+  }
 }
 
 resource "aws_iam_role_policy" "host" {
