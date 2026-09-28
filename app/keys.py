@@ -1,11 +1,12 @@
 import hashlib
 import secrets
 
-PREFIX = "gk_"
+TENANT_PREFIX = "gk_"
+AGENT_PREFIX = "ga_"
 
 
-def generate_key() -> str:
-    return PREFIX + secrets.token_urlsafe(32)
+def generate_key(prefix: str = TENANT_PREFIX) -> str:
+    return prefix + secrets.token_urlsafe(32)
 
 
 def hash_key(key: str) -> str:

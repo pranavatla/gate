@@ -49,7 +49,7 @@ async def lookup(tenant, req: ChatRequest) -> CacheLookup:
     cfg = _settings(tenant)
     if not cfg.get("enabled"):
         return CacheLookup("off")
-    if len(req.messages) != 1:
+    if len(req.messages) != 1 or req.tools:
         return CacheLookup("skip")
 
     try:

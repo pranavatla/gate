@@ -18,6 +18,9 @@ class Tenant:
     soft_limit_pct: int
     downgrade_model: str | None
     policy: dict
+    agent_id: int | None
+    agent_name: str | None
+    agent_policy: dict | None
 
 
 async def get_tenant(authorization: str | None = Header(default=None)) -> Tenant:
@@ -29,12 +32,15 @@ async def get_tenant(authorization: str | None = Header(default=None)) -> Tenant
     row = await db.pool.fetchrow(
         """
         SELECT t.id, t.name, k.key_prefix, t.rpm_limit, t.tpm_limit,
-               t.monthly_budget_usd, t.soft_limit_pct, t.downgrade_model, t.policy
+               t.monthly_budget_usd, t.soft_limit_pct, t.downgrade_model, t.policy,
+               a.id AS agent_id, a.name AS agent_name, a.policy AS agent_policy
         FROM api_keys k
         JOIN tenants t ON t.id = k.tenant_id
+        LEFT JOIN agents a ON a.id = k.agent_id
         WHERE k.key_hash = $1
           AND k.revoked_at IS NULL
           AND t.is_active
+          AND (a.id IS NULL OR a.is_active)
         """,
         hash_key(key),
     )

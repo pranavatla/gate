@@ -4,6 +4,16 @@ from app.schemas import ChatRequest, ChatResponse, Usage
 
 BASE_URL = "https://generativelanguage.googleapis.com/v1beta/models"
 
+STOP_REASONS = {
+    "STOP": "end",
+    "MAX_TOKENS": "max_tokens",
+    "SAFETY": "filtered",
+    "RECITATION": "filtered",
+    "BLOCKLIST": "filtered",
+    "PROHIBITED_CONTENT": "filtered",
+    "SPII": "filtered",
+}
+
 
 async def complete(req: ChatRequest, model: str) -> ChatResponse:
     contents = [
@@ -40,4 +50,5 @@ async def complete(req: ChatRequest, model: str) -> ChatResponse:
             input_tokens=meta.get("promptTokenCount", 0),
             output_tokens=meta.get("candidatesTokenCount", 0) + meta.get("thoughtsTokenCount", 0),
         ),
+        stop_reason=STOP_REASONS.get(candidate.get("finishReason"), "other"),
     )
