@@ -1,0 +1,13 @@
+.env
+.env.*
+!.env.example
+.venv/
+.git/
+__pycache__/
+*.pyc
+infra/
+tests/
+tools/
+docs/
+.terraform/
+*.tfstate*
