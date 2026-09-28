@@ -29,3 +29,11 @@ output "host_role_arn" {
 output "host_instance_profile" {
   value = aws_iam_instance_profile.host.name
 }
+
+output "instance_id" {
+  value = aws_instance.host.id
+}
+
+output "public_ip" {
+  value = aws_eip.host.public_ip
+}

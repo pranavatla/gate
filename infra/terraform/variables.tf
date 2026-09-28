@@ -32,3 +32,15 @@ variable "backup_retention_days" {
   type        = number
   default     = 30
 }
+
+variable "instance_type" {
+  description = "EC2 instance size (ARM/Graviton)"
+  type        = string
+  default     = "t4g.small"
+}
+
+variable "root_volume_gb" {
+  description = "Root disk size in GB"
+  type        = number
+  default     = 20
+}
