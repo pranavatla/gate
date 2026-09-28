@@ -1,3 +1,9 @@
 .venv/
 .env
 __pycache__/
+
+.terraform/
+*.tfstate
+*.tfstate.*
+*.tfvars
+tfplan
