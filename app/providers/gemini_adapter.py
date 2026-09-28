@@ -47,6 +47,6 @@ async def complete(req: ChatRequest, model: str) -> ChatResponse:
         content=text,
         usage=Usage(
             input_tokens=meta.get("promptTokenCount", 0),
-            output_tokens=meta.get("candidatesTokenCount", 0),
+            output_tokens=meta.get("candidatesTokenCount", 0) + meta.get("thoughtsTokenCount", 0),
         ),
     )

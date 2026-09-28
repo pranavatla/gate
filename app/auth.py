@@ -1,9 +1,11 @@
 from dataclasses import dataclass
+from decimal import Decimal
 
 from fastapi import Header, HTTPException
 
 from app import db
 from app.keys import hash_key
+
 
 @dataclass
 class Tenant:
@@ -12,6 +14,10 @@ class Tenant:
     key_prefix: str
     rpm_limit: int
     tpm_limit: int
+    monthly_budget_usd: Decimal
+    soft_limit_pct: int
+    downgrade_model: str | None
+
 
 async def get_tenant(authorization: str | None = Header(default=None)) -> Tenant:
     if not authorization or not authorization.startswith("Bearer "):
@@ -21,7 +27,8 @@ async def get_tenant(authorization: str | None = Header(default=None)) -> Tenant
 
     row = await db.pool.fetchrow(
         """
-        SELECT t.id, t.name, k.key_prefix, t.rpm_limit, t.tpm_limit
+        SELECT t.id, t.name, k.key_prefix, t.rpm_limit, t.tpm_limit,
+               t.monthly_budget_usd, t.soft_limit_pct, t.downgrade_model
         FROM api_keys k
         JOIN tenants t ON t.id = k.tenant_id
         WHERE k.key_hash = $1
