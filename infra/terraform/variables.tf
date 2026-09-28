@@ -26,3 +26,9 @@ variable "public_subnet_cidr" {
   type        = string
   default     = "10.40.1.0/24"
 }
+
+variable "backup_retention_days" {
+  description = "How long database backups are kept in S3"
+  type        = number
+  default     = 30
+}
