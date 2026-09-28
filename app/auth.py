@@ -17,6 +17,7 @@ class Tenant:
     monthly_budget_usd: Decimal
     soft_limit_pct: int
     downgrade_model: str | None
+    policy: dict
 
 
 async def get_tenant(authorization: str | None = Header(default=None)) -> Tenant:
@@ -28,7 +29,7 @@ async def get_tenant(authorization: str | None = Header(default=None)) -> Tenant
     row = await db.pool.fetchrow(
         """
         SELECT t.id, t.name, k.key_prefix, t.rpm_limit, t.tpm_limit,
-               t.monthly_budget_usd, t.soft_limit_pct, t.downgrade_model
+               t.monthly_budget_usd, t.soft_limit_pct, t.downgrade_model, t.policy
         FROM api_keys k
         JOIN tenants t ON t.id = k.tenant_id
         WHERE k.key_hash = $1

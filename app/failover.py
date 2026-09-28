@@ -28,11 +28,17 @@ async def chain_for(model: str) -> list[str]:
     return [model] + [r["fallback_model"] for r in rows]
 
 
-async def call_with_failover(req: ChatRequest, attempted: list[str]) -> Outcome:
+async def call_with_failover(
+    req: ChatRequest, attempted: list[str], allowed: set[str] | None = None
+) -> Outcome:
     last_error = None
 
     for model in await chain_for(req.model):
         provider = model.partition("/")[0]
+
+        if allowed is not None and model not in allowed:
+            attempted.append(f"denied:{model}")
+            continue
 
         if not await breaker.allow(provider):
             attempted.append(f"skipped:{model}")

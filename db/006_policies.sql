@@ -1,0 +1,5 @@
+ALTER TABLE tenants
+    ADD COLUMN IF NOT EXISTS policy JSONB NOT NULL DEFAULT '{}';
+
+ALTER TABLE usage_events
+    ADD COLUMN IF NOT EXISTS policy_actions TEXT[];
