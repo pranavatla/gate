@@ -1,0 +1,13 @@
+apiVersion: 1
+
+datasources:
+  - name: gate-postgres
+    uid: gate-postgres
+    type: grafana-postgresql-datasource
+    url: gate-postgres:5432
+    user: gate_readonly
+    jsonData:
+      database: gate
+      sslmode: disable
+    secureJsonData:
+      password: ${GATE_READONLY_PW}

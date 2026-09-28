@@ -115,7 +115,8 @@ async def chat(
             pol.allowed_models,
         )
         resp = outcome.response
-        log.info("timing provider_ms=%d", (time.perf_counter() - t0) * 1000)
+        ev.provider_ms = int((time.perf_counter() - t0) * 1000)
+        log.info("timing provider_ms=%d", ev.provider_ms)
 
         review_tool_calls(tenant, pol.request, resp, policy_actions)
 

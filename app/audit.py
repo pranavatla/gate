@@ -31,6 +31,7 @@ class UsageEvent:
     run_id: str | None = None
     tool_calls: list[str] | None = None
     stop_reason: str | None = None
+    provider_ms: int | None = None
 
 
 INSERT = """
@@ -38,9 +39,9 @@ INSERT INTO usage_events
     (request_id, tenant_id, key_prefix, requested_model, provider, resolved_model,
      status, http_status, input_tokens, output_tokens, latency_ms, error,
      routed_model, cost_usd, attempted_models, policy_actions, cache_status,
-     agent_id, run_id, tool_calls, stop_reason)
+     agent_id, run_id, tool_calls, stop_reason, provider_ms)
 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17,
-        $18, $19, $20, $21)
+        $18, $19, $20, $21, $22)
 """
 
 
@@ -52,7 +53,7 @@ async def record(e: UsageEvent):
             e.resolved_model, e.status, e.http_status, e.input_tokens,
             e.output_tokens, e.latency_ms, e.error, e.routed_model, e.cost_usd,
             e.attempted_models, e.policy_actions, e.cache_status,
-            e.agent_id, e.run_id, e.tool_calls, e.stop_reason,
+            e.agent_id, e.run_id, e.tool_calls, e.stop_reason, e.provider_ms,
         )
     except Exception:
         log.exception("audit write failed for request %s", e.request_id)
