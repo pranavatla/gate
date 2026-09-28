@@ -25,12 +25,10 @@ WHERE tenant_id = $1 AND created_at >= date_trunc('month', now())
 class BudgetDecision:
     model: str
     downgraded: bool
-    price_in: Decimal
-    price_out: Decimal
     used_pct: int
 
 
-async def _price(full_model: str):
+async def price_of(full_model: str):
     provider, _, model = full_model.partition("/")
     row = await db.pool.fetchrow(PRICE_SQL, provider, model)
     if row is None:
@@ -39,7 +37,7 @@ async def _price(full_model: str):
 
 
 async def decide(tenant, req: ChatRequest) -> BudgetDecision:
-    price = await _price(req.model)
+    await price_of(req.model)
     spent = await db.pool.fetchval(SPENT_SQL, tenant.id)
     budget = tenant.monthly_budget_usd
 
@@ -55,16 +53,13 @@ async def decide(tenant, req: ChatRequest) -> BudgetDecision:
         and tenant.downgrade_model
         and req.model != tenant.downgrade_model
     ):
-        cheap = await _price(tenant.downgrade_model)
-        return BudgetDecision(
-            tenant.downgrade_model, True,
-            cheap["input_per_mtok"], cheap["output_per_mtok"], used_pct,
-        )
+        await price_of(tenant.downgrade_model)
+        return BudgetDecision(tenant.downgrade_model, True, used_pct)
 
-    return BudgetDecision(
-        req.model, False, price["input_per_mtok"], price["output_per_mtok"], used_pct
-    )
+    return BudgetDecision(req.model, False, used_pct)
 
 
-def cost_usd(d: BudgetDecision, input_tokens: int, output_tokens: int) -> Decimal:
-    return (input_tokens * d.price_in + output_tokens * d.price_out) / 1_000_000
+def cost_usd(price, input_tokens: int, output_tokens: int) -> Decimal:
+    return (
+        input_tokens * price["input_per_mtok"] + output_tokens * price["output_per_mtok"]
+    ) / 1_000_000

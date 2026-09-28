@@ -16,3 +16,5 @@ OPENAI_API_KEY = require("OPENAI_API_KEY")
 GEMINI_API_KEY = require("GEMINI_API_KEY")
 DATABASE_URL = require("DATABASE_URL")
 REDIS_URL= require("REDIS_URL")
+CHAOS_ENABLED = os.getenv("CHAOS_ENABLED", "false") == "true"
+RATELIMIT_FAIL_OPEN = os.getenv("RATELIMIT_FAIL_OPEN", "true") == "true"

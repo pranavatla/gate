@@ -1,7 +1,5 @@
-import httpx
-from fastapi import HTTPException
-
 from app.config import OPENAI_API_KEY
+from app.providers.http import post_json
 from app.schemas import ChatRequest, ChatResponse, Usage
 
 URL = "https://api.openai.com/v1/chat/completions"
@@ -24,13 +22,7 @@ async def complete(req: ChatRequest, model: str) -> ChatResponse:
         "content-type": "application/json",
     }
 
-    async with httpx.AsyncClient(timeout=60) as client:
-        r = await client.post(URL, json=payload, headers=headers)
-
-    if r.status_code >= 400:
-        raise HTTPException(status_code=r.status_code, detail=r.text)
-
-    data = r.json()
+    data = await post_json("openai", URL, payload, headers)
     text = data["choices"][0]["message"].get("content") or ""
 
     return ChatResponse(

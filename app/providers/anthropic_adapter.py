@@ -1,7 +1,5 @@
-import httpx
-from fastapi import HTTPException
-
 from app.config import ANTHROPIC_API_KEY
+from app.providers.http import post_json
 from app.schemas import ChatRequest, ChatResponse, Usage
 
 URL = "https://api.anthropic.com/v1/messages"
@@ -22,13 +20,7 @@ async def complete(req: ChatRequest, model: str) -> ChatResponse:
         "content-type": "application/json",
     }
 
-    async with httpx.AsyncClient(timeout=60) as client:
-        r = await client.post(URL, json=payload, headers=headers)
-
-    if r.status_code >= 400:
-        raise HTTPException(status_code=r.status_code, detail=r.text)
-
-    data = r.json()
+    data = await post_json("anthropic", URL, payload, headers)
     text = "".join(b["text"] for b in data["content"] if b["type"] == "text")
 
     return ChatResponse(

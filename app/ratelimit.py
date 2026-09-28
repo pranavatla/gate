@@ -1,11 +1,14 @@
+import logging
 from pathlib import Path
 
-import redis.asyncio as redis
 from fastapi import HTTPException
+from redis.exceptions import RedisError
 
-from app.config import REDIS_URL
+from app.config import RATELIMIT_FAIL_OPEN
+from app.redis_conn import client
 
-client = redis.from_url(REDIS_URL, decode_responses=True)
+log = logging.getLogger("gate.ratelimit")
+
 _script = client.register_script(Path(__file__).with_name("token_bucket.lua").read_text())
 
 
@@ -27,14 +30,24 @@ def _limited(what: str, retry_ms: int):
 
 
 async def check_before_call(tenant):
-    ok, _, retry_ms = await _take(f"rl:{tenant.id}:tok", tenant.tpm_limit, need=1, cost=0)
-    if not ok:
-        _limited("tokens per minute", retry_ms)
+    try:
+        ok, _, retry_ms = await _take(f"rl:{tenant.id}:tok", tenant.tpm_limit, need=1, cost=0)
+        if not ok:
+            _limited("tokens per minute", retry_ms)
 
-    ok, _, retry_ms = await _take(f"rl:{tenant.id}:req", tenant.rpm_limit, need=1, cost=1)
-    if not ok:
-        _limited("requests per minute", retry_ms)
+        ok, _, retry_ms = await _take(f"rl:{tenant.id}:req", tenant.rpm_limit, need=1, cost=1)
+        if not ok:
+            _limited("requests per minute", retry_ms)
+
+    except RedisError:
+        if RATELIMIT_FAIL_OPEN:
+            log.warning("Redis unavailable: rate limits SKIPPED (fail-open) for %s", tenant.name)
+            return
+        raise HTTPException(503, "Rate limiter unavailable")
 
 
 async def charge_tokens(tenant, used: int):
-    await _take(f"rl:{tenant.id}:tok", tenant.tpm_limit, need=0, cost=used, force=1)
+    try:
+        await _take(f"rl:{tenant.id}:tok", tenant.tpm_limit, need=0, cost=used, force=1)
+    except RedisError:
+        log.warning("Redis unavailable: could not charge %s tokens to %s", used, tenant.name)
