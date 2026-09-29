@@ -9,7 +9,7 @@
 - Cloud and AI infrastructure architect based in Bengaluru, India.
 - About 10 years in IT, including roughly 6 years in cloud.
 - Builds and deploys cloud and AI projects on his own AWS infrastructure.
-- Accenture, January 2021 to 15 April 2026 (his last working day): Senior Cloud and Infrastructure Architect.
+- Accenture, January 2021 to 15 April 2026 (his last working day): Cloud & Platform Infrastructure Specialist.
   - Led a 16-member cloud and service operations team for the SAP Industries & Customer Experience (I&CX) portfolio.
   - Was the main contact between SAP and Accenture for scope changes, new product inclusions, effort calculations, RFP responses and annual contract quotations.
   - Built an automated reporting and SLA/KPI signalling platform recognised in Accenture’s Top 25 Global AI Programme.
