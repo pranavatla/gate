@@ -7,3 +7,5 @@ __pycache__/
 *.tfstate.*
 *.tfvars
 tfplan
+examples/atla-chatbot/terraform/build/
+examples/atla-chatbot/terraform/.terraform/
