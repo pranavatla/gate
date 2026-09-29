@@ -29,6 +29,12 @@ variable "reserved_concurrency" {
   default     = -1
 }
 
+variable "extra_origins" {
+  description = "Extra browser origins allowed temporarily, e.g. localhost for testing"
+  type        = list(string)
+  default     = []
+}
+
 data "aws_caller_identity" "me" {}
 
 locals {
@@ -117,7 +123,7 @@ resource "aws_lambda_function_url" "fn" {
   authorization_type = "NONE"
 
   cors {
-    allow_origins = ["https://atla.in", "https://www.atla.in"]
+    allow_origins = concat(["https://atla.in", "https://www.atla.in"], var.extra_origins)
     allow_methods = ["POST"]
     allow_headers = ["content-type"]
     max_age       = 86400
