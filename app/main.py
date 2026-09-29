@@ -41,6 +41,17 @@ async def embedding_cost(tokens: int) -> Decimal:
     return cost_usd(await price_of(EMBED_MODEL), tokens, 0)
 
 
+@app.get("/")
+async def root():
+    return {
+        "service": "gate.atla.in",
+        "description": "Enterprise LLM gateway: one API in front of Anthropic, OpenAI, Gemini and Amazon Bedrock, with tenant keys, rate limits, budgets, failover, policy and audit.",
+        "status": "ok",
+        "endpoints": {"health": "GET /health", "chat": "POST /v1/chat (tenant key required)"},
+        "source": "https://github.com/pranavatla/gate",
+    }
+
+
 @app.get("/health")
 async def health():
     return {"status": "ok"}
