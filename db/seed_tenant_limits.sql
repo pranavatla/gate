@@ -1,5 +1,5 @@
 UPDATE tenants
-SET rpm_limit = 60, tpm_limit = 20000,
+SET rpm_limit = 120, tpm_limit = 150000,
     monthly_budget_usd = 5, downgrade_model = NULL
 WHERE name = 'gita';
 
