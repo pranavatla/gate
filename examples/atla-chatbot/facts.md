@@ -32,3 +32,10 @@
 - Pranav’s last working day at Accenture was 15 April 2026. Do not describe him as currently employed there.
 - LinkedIn: https://www.linkedin.com/in/saipranavatla (the best way to contact him).
 - When a detail is unavailable, say so plainly.
+
+## Awards
+- SAP Hero Award (Innovator), from SAP, for the automated operational reporting platform.
+- Selected into Accenture's Top 25 Global AI Programs.
+- ACE (Accenture Celebrates Excellence) award.
+- 9 times SAP Best Performer of the Month (at TCS).
+- TCS Delivery Excellence Award 2019.
