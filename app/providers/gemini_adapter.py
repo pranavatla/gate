@@ -30,6 +30,8 @@ async def complete(req: ChatRequest, model: str) -> ChatResponse:
     }
     if req.system:
         payload["systemInstruction"] = {"parts": [{"text": req.system}]}
+    if req.temperature is not None:
+        payload["generationConfig"]["temperature"] = req.temperature
 
     headers = {
         "x-goog-api-key": GEMINI_API_KEY,

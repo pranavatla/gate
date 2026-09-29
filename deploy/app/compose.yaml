@@ -43,6 +43,8 @@ services:
       ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY}
       OPENAI_API_KEY: ${OPENAI_API_KEY}
       GEMINI_API_KEY: ${GEMINI_API_KEY}
+      BEDROCK_API_KEY: ${BEDROCK_API_KEY}
+      BEDROCK_REGION: ap-south-1
       DATABASE_URL: postgresql://gate:${POSTGRES_PASSWORD}@gate-postgres:5432/gate
       REDIS_URL: redis://gate-redis:6379/0
       CHAOS_ENABLED: "false"

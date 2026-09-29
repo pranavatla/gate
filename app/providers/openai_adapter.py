@@ -51,6 +51,8 @@ async def complete(req: ChatRequest, model: str) -> ChatResponse:
         "messages": messages,
         "max_completion_tokens": req.max_tokens,
     }
+    if req.temperature is not None:
+        payload["temperature"] = req.temperature
     if req.tools:
         payload["tools"] = [
             {

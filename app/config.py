@@ -18,3 +18,5 @@ DATABASE_URL = require("DATABASE_URL")
 REDIS_URL= require("REDIS_URL")
 CHAOS_ENABLED = os.getenv("CHAOS_ENABLED", "false") == "true"
 RATELIMIT_FAIL_OPEN = os.getenv("RATELIMIT_FAIL_OPEN", "true") == "true"
+BEDROCK_API_KEY = os.getenv("BEDROCK_API_KEY", "")
+BEDROCK_REGION = os.getenv("BEDROCK_REGION", "ap-south-1")

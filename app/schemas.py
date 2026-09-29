@@ -28,6 +28,7 @@ class ChatRequest(BaseModel):
     messages: list[Message]
     system: str | None = None
     max_tokens: int = Field(default=512, ge=1, le=4096)
+    temperature: float | None = Field(default=None, ge=0, le=1)
     tools: list[Tool] = []
 
 

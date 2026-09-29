@@ -37,6 +37,8 @@ async def complete(req: ChatRequest, model: str) -> ChatResponse:
     }
     if req.system:
         payload["system"] = req.system
+    if req.temperature is not None:
+        payload["temperature"] = req.temperature
     if req.tools:
         payload["tools"] = [
             {"name": t.name, "description": t.description, "input_schema": t.parameters}

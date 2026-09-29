@@ -13,5 +13,5 @@ UPDATE tenants SET policy = '{
 }' WHERE name = 'atla-chatbot';
 
 UPDATE tenants
-SET policy = policy || '{"cache": {"enabled": true, "threshold": 0.95, "ttl_s": 86400}}'
+SET policy = policy || '{"cache": {"enabled": false, "threshold": 0.95, "ttl_s": 86400}}'
 WHERE name = 'atla-chatbot';

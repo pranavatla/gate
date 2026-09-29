@@ -1,12 +1,13 @@
 from fastapi import HTTPException
 
-from app.providers import anthropic_adapter, gemini_adapter, openai_adapter
+from app.providers import anthropic_adapter, bedrock_adapter, gemini_adapter, openai_adapter
 from app.schemas import ChatRequest, ChatResponse
 
 ADAPTERS = {
     "anthropic": anthropic_adapter.complete,
     "openai": openai_adapter.complete,
     "gemini": gemini_adapter.complete,
+    "bedrock": bedrock_adapter.complete,
 }
 
 

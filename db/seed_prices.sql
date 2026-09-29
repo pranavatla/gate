@@ -5,3 +5,6 @@ INSERT INTO model_prices (provider, model, input_per_mtok, output_per_mtok) VALU
 
 INSERT INTO model_prices (provider, model, input_per_mtok, output_per_mtok)
 VALUES ('openai', 'text-embedding-3-small', 0.02, 0);
+
+INSERT INTO model_prices (provider, model, input_per_mtok, output_per_mtok)
+VALUES ('bedrock', 'global.amazon.nova-2-lite-v1:0', 0.33, 2.75);

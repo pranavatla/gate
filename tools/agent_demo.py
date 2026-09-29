@@ -5,7 +5,7 @@ import uuid
 
 import httpx
 
-GATEWAY = "http://127.0.0.1:8000/v1/chat"
+GATEWAY = os.environ.get("GATEWAY_URL", "http://127.0.0.1:8000") + "/v1/chat"
 KEY = os.environ["AGENT_KEY"]
 QUESTION = sys.argv[1]
 MODEL = sys.argv[2] if len(sys.argv) > 2 else "anthropic/claude-haiku-4-5-20251001"
