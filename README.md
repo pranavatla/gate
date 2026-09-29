@@ -1,0 +1,153 @@
+# gate.atla.in: an enterprise LLM gateway
+
+One API in front of **Anthropic, OpenAI, Google Gemini and Amazon Bedrock**, with the controls a platform team needs before letting applications near a model: per-tenant keys, rate limits, monthly budgets, failover, policy (PII, allow-lists, enforced instructions), agent governance, a semantic cache and a complete audit trail.
+
+It runs in production at **https://gate.atla.in** on AWS, deployed with Terraform, and serves two real tenants:
+
+| Tenant | What it is | How it uses the gateway |
+|---|---|---|
+| [gita.atla.in](https://gita.atla.in) | RAG app on Amazon EKS answering life questions with Bhagavad Gita verses | 3 model calls per question on Bedrock (Nova 2 Lite), strict JSON, 25-case evaluation in CI |
+| [atla.in](https://atla.in) chatbot | Public portfolio assistant | Browser → Lambda → gateway; grounded in approved facts, PII blocked, $1/month hard stop, cached |
+
+---
+
+## Why a gateway
+
+Without one, every application holds its own provider keys, picks its own models, has no spending ceiling, and leaves no central record of what was sent where. The gateway moves all of that to one place:
+
+| Problem | What the gateway does |
+|---|---|
+| Provider keys scattered across apps | Apps hold a **virtual key** (`gk_…`); provider keys live only in the gateway (AWS SSM) |
+| Four different APIs | One request and response shape for all providers |
+| Runaway spend | Per-tenant **RPM/TPM limits** and **monthly budgets**, with automatic downgrade or a hard stop |
+| Provider outages | **Fallback chains** with **circuit breakers** |
+| Personal data leaving the organisation | **PII redaction or blocking** before any provider sees the request |
+| A public bot used as a free general LLM | **Model allow-lists**, size caps and gateway-enforced instructions |
+| Agents calling tools unchecked | **Agent identities**, tool allow-lists, human approval, step and cost limits per run |
+| No record of what happened | An **append-only audit log** of every call: model, tokens, cost, latency, rules fired. Never message content |
+
+---
+
+## Architecture
+
+```mermaid
+flowchart LR
+    A[Tenant app] -->|Bearer gk_ key| C[Caddy<br/>TLS, 1 MB cap]
+    C --> G[Gateway<br/>FastAPI]
+    G --> R[(Redis<br/>rate limits, breakers)]
+    G --> P[(Postgres + pgvector<br/>tenants, keys, policy,<br/>audit, cache)]
+    G --> AN[Anthropic]
+    G --> OA[OpenAI]
+    G --> GE[Gemini]
+    G --> BR[Amazon Bedrock]
+    P --> GR[Grafana<br/>read-only views]
+```
+
+**Every request passes the same pipeline:**
+
+```
+contract → key → rate limit → policy → cache → budget → circuit breaker → provider (with fallback) → audit
+```
+
+Measured overhead of the whole pipeline in production: **p50 23 ms** (the rest of each request is the provider generating).
+
+---
+
+## Features
+
+| Area | Details |
+|---|---|
+| **Unified API** | `POST /v1/chat` with `model: "provider/model-id"`. Adapters translate to each provider's format and back, including tool calls (Anthropic, OpenAI) |
+| **Identity** | Tenants and agents with hashed virtual keys (SHA-256; keys are never stored). Revoking one tenant never affects another |
+| **Rate limiting** | Requests and tokens per minute, as a token bucket in an atomic Redis Lua script. Fails open if Redis is down |
+| **Budgets** | Monthly budget per tenant. At a soft limit the tenant can be downgraded to a cheaper model; at 100%, `402` |
+| **Failover** | Cost-ordered fallback chains. Breakers open after repeated failures and probe before closing. Failover never escapes a tenant's allow-list |
+| **Policy** | Per-tenant JSON: model allow-list, size cap, blocked phrases, PII mode (`redact`/`block`; email, card with Luhn check, Aadhaar, phone, PAN), token cap, enforced system instructions |
+| **Semantic cache** | pgvector cosine similarity, scoped by tenant, model and full system text (editing instructions invalidates old answers). Threshold 0.95 after a real false hit at 0.92 |
+| **Agents** | `ga_` keys, required run IDs, tool allow-lists, hallucinated tools dropped, human approval flags, per-run step and cost limits (fail closed) |
+| **Audit** | Append-only `usage_events` table (a trigger blocks updates and deletes). Every call, including failures and blocks, with a request ID returned to the caller |
+| **Observability** | Grafana dashboard provisioned from Git: calls, spend, error rate, governance blocks, latency split into provider time and gateway overhead, budgets, model mix, agent runs |
+
+---
+
+## Results from production
+
+| Test | Result |
+|---|---|
+| Acceptance suite (health, three providers, PII, allow-list, topic enforcement, burst, agent approval, oversized request) | 8/8 passed on the live deployment |
+| gita migrated onto the gateway | **25/25** on its RAG evaluation, the same as before migration |
+| Chatbot abuse tests (oversized input, PII, fake system role, model swap, invalid JSON, wrong method, other-origin browsers, bursts) | All refused by the intended layer |
+| Semantic cache, repeated question | 3.5 s and $0.00052 → **0.4 s and $0.00000014** |
+| Backup restore into a scratch database | Row counts identical to production |
+| Gateway overhead | p50 23 ms |
+
+---
+
+## Deployment (AWS, `ap-south-1`)
+
+| Component | Choice |
+|---|---|
+| Compute | One `t4g.small` (Graviton) running Docker Compose: gateway, Postgres + pgvector, Redis, Grafana, Caddy |
+| Network | Own VPC; inbound 443/80 only; **no SSH** (admin through SSM Session Manager); instance metadata blocked from containers |
+| TLS | Caddy with automatic Let's Encrypt, HSTS, request size cap |
+| Secrets | SSM Parameter Store SecureStrings, rendered per container at start; each container receives only what it needs |
+| Images | ECR with immutable tags and scan-on-push |
+| IAM | Least-privilege instance role (its own SSM path, its own ECR repo, backups write-only) |
+| Backups | Nightly `pg_dump` to S3 (the host cannot delete backups), 30-day lifecycle, tested restores |
+| Infrastructure as code | Terraform with remote state in S3 and native locking |
+| Cost | About **$15/month**, under a $20 budget alarm |
+
+---
+
+## Repository layout
+
+```
+app/                  Gateway (FastAPI)
+  providers/          Anthropic, OpenAI, Gemini and Bedrock adapters, shared HTTP client
+  main.py             The request pipeline
+  policy.py           PII, allow-lists, caps, enforced instructions
+  budget.py           Spend tracking, downgrade, cost
+  failover.py         Fallback chains, allow-list enforcement
+  breaker.py          Circuit breakers
+  ratelimit.py        Token buckets (with token_bucket.lua)
+  cache.py            Semantic cache
+  agents.py           Agent governance
+  admin.py            Admin CLI: tenants, keys, agents
+db/                   Numbered migrations and seed files (limits, policies, prices)
+deploy/               Production Compose stack, Caddy, secrets rendering, backups, publish script
+infra/terraform/      AWS infrastructure
+infra/grafana/        Dashboard and provisioning
+examples/atla-chatbot Reference tenant: grounded chatbot (Lambda + Terraform + facts file)
+tools/agent_demo.py   A real agent loop with human approval
+docs/                 Onboarding guide, secrets runbook
+```
+
+---
+
+## Using it
+
+A tenant call:
+
+```bash
+curl https://gate.atla.in/v1/chat \
+  -H "Authorization: Bearer $GATE_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"model": "bedrock/global.amazon.nova-2-lite-v1:0", "max_tokens": 200, "temperature": 0,
+       "messages": [{"role": "user", "content": "Hello"}]}'
+```
+
+See **[docs/onboarding.md](docs/onboarding.md)** for the full API, error codes, sizing worksheet and the admin runbook.
+
+---
+
+## Known limits (deliberate trade-offs)
+
+| Limit | Why, and what production-scale would change |
+|---|---|
+| **Single node** | Right-sized for two tenants. At scale: containers on ECS/EKS behind a load balancer, managed Postgres and Redis |
+| **Regex PII detection** | Catches formats, not meaning. A named-entity model (e.g. Presidio) can replace the scanner without changing the pipeline |
+| **Blocked phrases are easy to rephrase around** | A cheap first layer; enforced instructions, allow-lists and budgets sit behind it |
+| **Rate-limit state is in memory** | A Redis restart resets counters (fails open by design). Acceptable here; persistent or clustered Redis at scale |
+| **Tenant secrets copied from SSM to Kubernetes by hand** | The External Secrets Operator would sync them automatically |
+| **Cache embeddings use OpenAI** | Titan embeddings on Bedrock would keep cache lookups on AWS |
+| **Tool calls through Anthropic and OpenAI only** | Gemini and Bedrock tool calling are not yet translated |
