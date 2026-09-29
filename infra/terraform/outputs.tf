@@ -37,3 +37,7 @@ output "instance_id" {
 output "public_ip" {
   value = aws_eip.host.public_ip
 }
+
+output "gate_url" {
+  value = "https://${aws_route53_record.gate.fqdn}"
+}
