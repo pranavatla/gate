@@ -7,7 +7,7 @@ DEST="s3://$BUCKET/deploy"
 
 aws s3 sync deploy/app/    "$DEST/app/"     --delete
 aws s3 sync infra/grafana/ "$DEST/grafana/" --delete
-aws s3 sync db/            "$DEST/db-init/" --delete --exclude "*" --include "00*.sql" --include "seed_prices.sql"
+aws s3 sync db/            "$DEST/db-init/" --delete --exclude "*" --include "[0-9][0-9][0-9]_*.sql" --include "seed_prices.sql"
 aws s3 cp   deploy/db-init/zz_readonly_password.sh "$DEST/db-init/zz_readonly_password.sh"
 aws s3 sync db/            "$DEST/seeds/"   --delete --exclude "*" --include "seed_tenant_limits.sql" --include "seed_policies.sql" --include "seed_agents.sql"
 
