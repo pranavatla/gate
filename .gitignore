@@ -9,3 +9,4 @@ __pycache__/
 tfplan
 examples/atla-chatbot/terraform/build/
 examples/atla-chatbot/terraform/.terraform/
+.DS_Store
