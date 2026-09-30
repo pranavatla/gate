@@ -24,7 +24,7 @@ Without one, every application holds its own provider keys, picks its own models
 | Personal data leaving the organisation | **PII redaction or blocking** before any provider sees the request |
 | A public bot used as a free general LLM | **Model allow-lists**, size caps and gateway-enforced instructions |
 | Agents calling tools unchecked | **Agent identities**, tool allow-lists, human approval, step and cost limits per run |
-| No record of what happened | An **append-only audit log** of every call: model, tokens, cost, latency, rules fired. Never message content |
+| No record of what happened | An **append-only audit log** of every call that passes the key and contract checks: model, tokens, cost, latency, rules fired. Never message content |
 
 ---
 
@@ -46,10 +46,10 @@ flowchart LR
 **Every request passes the same pipeline:**
 
 ```
-contract → key → rate limit → policy → cache → budget → circuit breaker → provider (with fallback) → audit
+key → contract → rate limit → policy → cache → budget → circuit breaker → provider (with fallback) → audit
 ```
 
-Measured overhead of the whole pipeline in production: **p50 23 ms** (the rest of each request is the provider generating).
+Measured overhead of the whole pipeline in production: **p50 4 ms** over the 7 days to 30 September 2026, from `GET /v1/stats` (the rest of each request is the provider generating).
 
 ---
 
@@ -61,11 +61,11 @@ Measured overhead of the whole pipeline in production: **p50 23 ms** (the rest o
 | **Identity** | Tenants and agents with hashed virtual keys (SHA-256; keys are never stored). Revoking one tenant never affects another |
 | **Rate limiting** | Requests and tokens per minute, as a token bucket in an atomic Redis Lua script. Fails open if Redis is down |
 | **Budgets** | Monthly budget per tenant. At a soft limit the tenant can be downgraded to a cheaper model; at 100%, `402` |
-| **Failover** | Cost-ordered fallback chains. Breakers open after repeated failures and probe before closing. Failover never escapes a tenant's allow-list |
+| **Failover** | Per-model fallback chains in priority order. Breakers open after repeated failures and probe before closing. Failover never escapes a tenant's allow-list |
 | **Policy** | Per-tenant JSON: model allow-list, size cap, blocked phrases, PII mode (`redact`/`block`; email, card with Luhn check, Aadhaar, phone, PAN), token cap, enforced system instructions |
 | **Semantic cache** | pgvector cosine similarity, scoped by tenant, model and full system text (editing instructions invalidates old answers). Threshold 0.95 after a real false hit at 0.92 |
 | **Agents** | `ga_` keys, required run IDs, tool allow-lists, hallucinated tools dropped, human approval flags, per-run step and cost limits (fail closed) |
-| **Audit** | Append-only `usage_events` table (a trigger blocks updates and deletes). Every call, including failures and blocks, with a request ID returned to the caller |
+| **Audit** | Append-only `usage_events` table (a trigger blocks updates and deletes). Every call that passes the key and contract checks, including blocks and failures, with a request ID returned to the caller. A bad key (401) or an invalid body (422) is refused before the pipeline and is not recorded |
 | **Observability** | Grafana dashboard provisioned from Git: calls, spend, error rate, governance blocks, latency split into provider time and gateway overhead, budgets, model mix, agent runs. Public aggregate totals at `GET /v1/stats` feed the [obs.atla.in](https://obs.atla.in) status page |
 
 ---
@@ -79,7 +79,7 @@ Measured overhead of the whole pipeline in production: **p50 23 ms** (the rest o
 | Chatbot abuse tests (oversized input, PII, fake system role, model swap, invalid JSON, wrong method, other-origin browsers, bursts) | All refused by the intended layer |
 | Semantic cache, repeated question | 3.5 s and $0.00052 → **0.4 s and $0.00000014** |
 | Backup restore into a scratch database | Row counts identical to production |
-| Gateway overhead | p50 23 ms |
+| Gateway overhead | p50 4 ms (7 days to 30 September 2026) |
 
 ---
 
@@ -90,11 +90,12 @@ Measured overhead of the whole pipeline in production: **p50 23 ms** (the rest o
 | Compute | One `t4g.small` (Graviton) running Docker Compose: gateway, Postgres + pgvector, Redis, Grafana, Caddy |
 | Network | Own VPC; inbound 443/80 only; **no SSH** (admin through SSM Session Manager); instance metadata blocked from containers |
 | TLS | Caddy with automatic Let's Encrypt, HSTS, request size cap |
-| Secrets | SSM Parameter Store SecureStrings, rendered per container at start; each container receives only what it needs |
+| Secrets | SSM Parameter Store SecureStrings, rendered onto the host at start; each container receives only the ones it needs |
 | Images | ECR with immutable tags and scan-on-push |
-| IAM | Least-privilege instance role (its own SSM path, its own ECR repo, backups write-only) |
+| IAM | Least-privilege instance role (its own SSM path, its own ECR repo, backups read and write but never delete) |
 | Backups | Nightly `pg_dump` to S3 (the host cannot delete backups), 30-day lifecycle, tested restores |
 | Infrastructure as code | Terraform with remote state in S3 and native locking |
+| Releases | Every push to `main` deploys through GitHub Actions: arm64 image build, ECR push, release tag committed to `compose.yaml`, gateway restart over SSM, health check. AWS access by OIDC, no stored keys |
 | Cost | About **$15/month**, under a $20 budget alarm |
 
 ---
@@ -115,7 +116,8 @@ app/                  Gateway (FastAPI)
   admin.py            Admin CLI: tenants, keys, agents
 db/                   Numbered migrations and seed files (limits, policies, prices)
 deploy/               Production Compose stack, Caddy, secrets rendering, backups, publish script
-infra/terraform/      AWS infrastructure
+infra/terraform/      AWS infrastructure, including the GitHub Actions deploy role
+.github/workflows/    Push-to-deploy pipeline
 infra/grafana/        Dashboard and provisioning
 examples/atla-chatbot Reference tenant: grounded chatbot (Lambda + Terraform + facts file)
 tools/agent_demo.py   A real agent loop with human approval
