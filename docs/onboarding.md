@@ -127,10 +127,36 @@ PII detection covers email addresses, card numbers (Luhn-checked), Aadhaar, Indi
 | `model` | Always `provider/model-id`. Must be in the catalogue and your allow-list |
 | `messages` | Alternating `user` / `assistant`, ending with `user`. Plain-text `content` |
 | `system` | Optional. Counts toward size limits and is scanned by policy |
+| `okf_bundle` | Optional tenant-owned OKF bundle ID uploaded through `POST /v1/okf/{bundle_id}` |
+| `okf_concepts` | Optional list of concept IDs (bundle-relative paths without `.md`); omit to attach every concept |
 | `max_tokens` | 1 to 4,096 (then clamped by your policy's cap) |
 | `temperature` | Optional, 0 to 1. Use **0** for structured output and repeatable evaluations |
 
 **Headers:** `Authorization: Bearer <your key>` and `Content-Type: application/json`.
+
+### OKF knowledge bundles
+
+Gate accepts Google Open Knowledge Format v0.2 bundles as ZIP files. Upload uses the normal tenant API key; each tenant can only use its own bundle IDs. Agent keys cannot upload or replace bundles. A bundle must contain concept Markdown files with YAML frontmatter and a non-empty `type`. Optional `index.md` and `log.md` files are accepted. Unknown metadata and concept types are preserved. Uploads are limited to 1 MB compressed, 1 MB expanded, 500 files, and 100 KB per file. Chat requests can attach up to 20 selected concepts and 4,000 characters of OKF context. Existing input-size and PII policies still apply after context is attached. After publishing, apply `db/011_okf.sql` to an existing database; a fresh database applies it automatically.
+
+```bash
+curl -X POST https://gate.atla.in/v1/okf/my-knowledge \\
+  -H "Authorization: Bearer $GATE_API_KEY" \\
+  -H "Content-Type: application/zip" \\
+  --data-binary @knowledge.zip
+```
+
+Then select concepts in a normal chat request:
+
+```json
+{
+  "model": "bedrock/global.amazon.nova-2-lite-v1:0",
+  "okf_bundle": "my-knowledge",
+  "okf_concepts": ["runbooks/incident-response"],
+  "messages": [{"role": "user", "content": "How do I triage this alert?"}]
+}
+```
+
+The concept IDs are relative paths without `.md`. If `okf_concepts` is omitted, Gate tries to attach all bundle concepts and rejects the request if the attached context is too large. Gate does not execute files from a bundle; it currently uses the selected Markdown as reference context, so keep bundles small and use the normal tenant size and PII policies.
 
 **Response:**
 

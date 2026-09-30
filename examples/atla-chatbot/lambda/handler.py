@@ -1,6 +1,7 @@
 import base64
 import json
 import os
+import re
 import urllib.error
 import urllib.request
 
@@ -15,7 +16,7 @@ MAX_TURNS = 6
 MAX_HISTORY_CHARS = 2500
 
 with open(os.path.join(os.path.dirname(__file__), "facts.md"), encoding="utf-8") as f:
-    FACTS = f.read()
+    FACTS = re.sub(r"\A---\r?\n.*?\r?\n---\r?\n", "", f.read(), count=1, flags=re.S)
 
 FRIENDLY = {
     400: (400, "That message can't be processed. Please leave out personal details such as emails or phone numbers, and try again."),

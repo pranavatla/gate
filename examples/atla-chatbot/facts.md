@@ -1,3 +1,9 @@
+---
+type: Reference
+title: Pranav Atla portfolio chatbot knowledge
+description: Approved facts and response guidance for the atla.in portfolio chatbot.
+---
+
 - Name: Sai Pranav Atla (goes by Pranav).
 
 ## How to answer
@@ -27,7 +33,7 @@
 - games.atla.in: A subdomain in Pranav’s portfolio. Its purpose and implementation have not been established in this file.
 - obs.atla.in: A subdomain in Pranav’s portfolio. Its purpose and implementation have not been established in this file.
 - Open to AI infrastructure, cloud architecture and platform engineering roles.
-- Direct visitors to atla.in for Pranav’s current contact details. No specific email address, LinkedIn URL or contact form is established in this file.
+- Direct visitors to LinkedIn for Pranav's current contact details. No specific email address or contact form is established in this file.
 - Use only the facts in this file when making claims about Pranav.
 - Pranav’s last working day at Accenture was 15 April 2026. Do not describe him as currently employed there.
 - LinkedIn: https://www.linkedin.com/in/saipranavatla (the best way to contact him).

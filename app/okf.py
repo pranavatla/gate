@@ -4,31 +4,33 @@ import re
 import zipfile
 
 import yaml
-from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi import APIRouter, Depends, Header, HTTPException, Request
 
 router = APIRouter(prefix="/v1/okf", tags=["OKF"])
-MAX_BUNDLE_BYTES = 5 * 1024 * 1024
+MAX_BUNDLE_BYTES = 1 * 1024 * 1024
+MAX_EXPANDED_BYTES = 1 * 1024 * 1024
 MAX_FILES = 500
 MAX_CONCEPT_CHARS = 100_000
+MAX_CONTEXT_CHARS = 4_000
 _FRONTMATTER = re.compile(r"\A---\r?\n(.*?)\r?\n---(?:\r?\n|\Z)(.*)\Z", re.S)
 
 
-async def _tenant():
+async def _tenant(authorization: str | None = Header(default=None)):
     from app.auth import get_tenant
 
-    return await get_tenant()
+    return await get_tenant(authorization)
 
 
 def parse_bundle(raw: bytes) -> dict[str, str]:
     if len(raw) > MAX_BUNDLE_BYTES:
-        raise HTTPException(413, "OKF bundle exceeds 5 MB")
+        raise HTTPException(413, "OKF bundle exceeds 1 MB")
     try:
         archive = zipfile.ZipFile(io.BytesIO(raw))
         files = [item for item in archive.infolist() if not item.is_dir()]
         if not files or len(files) > MAX_FILES:
             raise ValueError("bundle must contain 1 to 500 files")
-        if sum(item.file_size for item in files) > MAX_FILES * MAX_CONCEPT_CHARS:
-            raise ValueError("expanded bundle exceeds 50 MB")
+        if sum(item.file_size for item in files) > MAX_EXPANDED_BYTES:
+            raise ValueError("expanded bundle exceeds 1 MB")
         docs = {}
         seen_paths = set()
         for item in files:
@@ -64,8 +66,13 @@ async def upload_bundle(
     tenant=Depends(_tenant),
 ):
     from app import db
+    from app.ratelimit import check_before_call
+
     if not re.fullmatch(r"[a-zA-Z0-9_-]{1,64}", bundle_id):
         raise HTTPException(400, "Bundle ID must be 1-64 letters, numbers, underscores or hyphens")
+    if tenant.agent_id is not None:
+        raise HTTPException(403, "Agent keys cannot manage OKF bundles")
+    await check_before_call(tenant)
     raw = await request.body()
     documents = parse_bundle(raw)
     await db.pool.execute(
@@ -73,7 +80,7 @@ async def upload_bundle(
            VALUES ($1, $2, $3::jsonb)
            ON CONFLICT (tenant_id, bundle_id) DO UPDATE SET documents = EXCLUDED.documents,
              created_at = now()""",
-        tenant.id, bundle_id, json.dumps(documents),
+        tenant.id, bundle_id, documents,
     )
     return {"bundle_id": bundle_id, "concepts": len(documents)}
 
@@ -87,8 +94,6 @@ async def get_context(tenant_id: int, bundle_id: str, concept_ids: list[str]) ->
     if row is None:
         raise HTTPException(404, "OKF bundle not found")
     docs = row["documents"]
-    if isinstance(docs, str):
-        docs = json.loads(docs)
     if concept_ids:
         missing = set(concept_ids) - docs.keys()
         if missing:
@@ -96,9 +101,12 @@ async def get_context(tenant_id: int, bundle_id: str, concept_ids: list[str]) ->
         selected = concept_ids
     else:
         selected = sorted(docs)
-    return bundle_id + ":" + json.dumps(selected) + "\n\n" + "\n\n---\n\n".join(
+    context = bundle_id + ":" + json.dumps(selected) + "\n\n" + "\n\n---\n\n".join(
         docs[key] for key in selected
     )
+    if len(context) > MAX_CONTEXT_CHARS:
+        raise HTTPException(413, "OKF context too large; choose fewer concepts")
+    return context
 
 
 if __name__ == "__main__":

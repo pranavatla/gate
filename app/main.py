@@ -3,8 +3,10 @@ import time
 import uuid
 from contextlib import asynccontextmanager
 from decimal import Decimal
+from pathlib import Path
 
-from fastapi import Depends, FastAPI, Header, HTTPException, Response
+from fastapi import Depends, FastAPI, Header, HTTPException, Request, Response
+from fastapi.responses import HTMLResponse, JSONResponse
 
 from app import cache, db
 from app.agents import add_run_cost, check_tools, review_tool_calls, start_step
@@ -36,6 +38,15 @@ async def lifespan(app: FastAPI):
 app = FastAPI(title="gate.atla.in", lifespan=lifespan)
 app.include_router(okf_router)
 
+LANDING_HTML = (Path(__file__).parent / "static" / "landing.html").read_text(encoding="utf-8")
+ROOT_INFO = {
+    "service": "gate.atla.in",
+    "description": "Enterprise LLM gateway: one API in front of Anthropic, OpenAI, Gemini and Amazon Bedrock, with tenant keys, rate limits, budgets, failover, policy and audit.",
+    "status": "ok",
+    "endpoints": {"health": "GET /health", "chat": "POST /v1/chat (tenant key required)"},
+    "source": "https://github.com/pranavatla/gate",
+}
+
 
 async def embedding_cost(tokens: int) -> Decimal:
     if not tokens:
@@ -43,15 +54,11 @@ async def embedding_cost(tokens: int) -> Decimal:
     return cost_usd(await price_of(EMBED_MODEL), tokens, 0)
 
 
-@app.get("/")
-async def root():
-    return {
-        "service": "gate.atla.in",
-        "description": "Enterprise LLM gateway: one API in front of Anthropic, OpenAI, Gemini and Amazon Bedrock, with tenant keys, rate limits, budgets, failover, policy and audit.",
-        "status": "ok",
-        "endpoints": {"health": "GET /health", "chat": "POST /v1/chat (tenant key required)"},
-        "source": "https://github.com/pranavatla/gate",
-    }
+@app.get("/", include_in_schema=False)
+async def root(request: Request):
+    if "text/html" in request.headers.get("accept", "") and request.query_params.get("format") != "json":
+        return HTMLResponse(LANDING_HTML, headers={"Cache-Control": "public, max-age=300", "Vary": "Accept"})
+    return JSONResponse(ROOT_INFO, headers={"Vary": "Accept"})
 
 
 @app.get("/health")
