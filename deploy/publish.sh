@@ -2,7 +2,7 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
-BUCKET=$(terraform -chdir=infra/terraform output -raw backup_bucket)
+BUCKET=${BUCKET:-$(terraform -chdir=infra/terraform output -raw backup_bucket)}
 DEST="s3://$BUCKET/deploy"
 
 aws s3 sync deploy/app/    "$DEST/app/"     --delete
