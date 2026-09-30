@@ -20,7 +20,7 @@ One API in front of four providers, with governance applied to every call:
 | **Rate limits and budgets** | Your spend can't run away, and one tenant can't starve another |
 | **Failover** | If your model's provider fails, the gateway can try an approved fallback |
 | **Policy** | Model allow-lists, PII redaction or blocking, size caps and enforced instructions, applied before anything reaches a provider |
-| **Audit** | Every call is recorded (model, tokens, cost, latency, which rules fired), never the message content |
+| **Audit** | Every call that passes the key and contract checks is recorded (model, tokens, cost, latency, which rules fired), never the message content |
 | **Semantic cache** (optional) | Repeated questions answered from cache in milliseconds, at almost no cost |
 
 ---
@@ -172,19 +172,20 @@ The concept IDs are relative paths without `.md`. If `okf_concepts` is omitted, 
 }
 ```
 
-`stop_reason` is `end`, `max_tokens` (the answer was cut off at the cap), `tool_use` or `filtered`.
+`stop_reason` is `end`, `max_tokens` (the answer was cut off at the cap), `tool_use`, `filtered`, or `other` (a provider reason the gateway doesn't map).
 
 **Response headers worth logging:**
 
 | Header | Meaning |
 |---|---|
-| `X-Request-ID` | The ID of this call in the gateway's audit log. **Log it on every error** |
+| `X-Request-ID` | The ID of this call in the gateway's audit log. **Log it on every error.** A bad key (401) or an invalid body (422) is refused before the pipeline, so those errors carry none |
 | `X-Gate-Routed-Model` | The model that actually answered |
 | `X-Gate-Fallback` | `true` if failover used a different model |
 | `X-Gate-Downgraded` | `true` if the budget autopilot switched models |
 | `X-Gate-Budget-Used-Pct` | Your spend so far this month |
 | `X-Gate-Policy` | Rules that acted, e.g. `pii_redacted:email,max_tokens_clamped:1000->300` |
-| `X-Gate-Cache` | `hit`, `miss` or `skip` |
+| `X-Gate-Cache` | `hit`, `miss`, `skip` (conversation or tools), `off` (cache disabled) or `error` (lookup failed; the call continues) |
+| `X-Gate-Cache-Similarity` | Similarity of the closest cached question, when there is one |
 
 **Current catalogue** (prices per million tokens, input / output):
 
@@ -201,14 +202,15 @@ The concept IDs are relative paths without `.md`. If `okf_concepts` is omitted, 
 
 | Code | Meaning | Your app should |
 |---|---|---|
-| **400** | Bad request, blocked content or personal data (block mode) | Show the user a helpful message. **Don't retry** |
+| **400** | Bad request, blocked content, personal data (block mode), a model not in the catalogue, or an agent call without `X-Agent-Run-ID` | Show the user a helpful message. **Don't retry** |
 | **401** | Missing, invalid or revoked key | Check key configuration. Don't retry |
-| **402** | Monthly budget exhausted | Degrade gracefully (e.g. "try again next month" or a contact link). Don't retry |
+| **402** | Monthly budget exhausted, or an agent run reached its cost limit | Degrade gracefully (e.g. "try again next month" or a contact link). Don't retry |
 | **403** | Model not allowed for this tenant, or agent rules violated | Fix the request. Don't retry |
+| **404** | OKF bundle or concepts not found | Fix the bundle ID or concept IDs. Don't retry |
 | **413** | Input too long (gateway policy, or over 1 MB at the edge) | Shorten input. Don't retry |
 | **422** | Request doesn't match the schema (e.g. `temperature` above 1) | Fix the request. Don't retry |
 | **429** | Rate limit (requests or tokens per minute). The message says how long to wait | **Retry with backoff**, honouring the wait |
-| **502 / 503 / 504** | Provider failure, or no healthy provider | **Retry with backoff** a small number of times |
+| **502 / 503 / 504** | No healthy provider after failover (503), or the gateway unreachable at the edge (502/504) | **Retry with backoff** a small number of times |
 
 **Recommended client behaviour** (as implemented in gita's `bedrock_client.py`):
 
@@ -226,8 +228,8 @@ Apps that let a model call tools need an **agent identity**, not a plain tenant 
 | Rule | Detail |
 |---|---|
 | Agent key | Prefix `ga_`, issued per agent (`python -m app.admin --help` lists the commands) |
-| `Run-Id` header | Required on every call; groups the steps of one agent run |
-| `allowed_tools` | Tools the agent may declare; undeclared or hallucinated tools are dropped |
+| `X-Agent-Run-ID` header | Required on every agent call (400 without it); groups the steps of one agent run |
+| `allowed_tools` | Tools the agent may declare; declaring any other tool returns 403. Tool calls the model makes for undeclared tools are dropped from the response |
 | `approval_required_tools` | The gateway flags these (`requires_approval: true`); **your app must pause for a human** |
 | `max_steps_per_run`, `max_cost_per_run_usd` | Hard limits per run |
 | Tool-capable models | Anthropic and OpenAI only. Gemini and Bedrock requests with tools are skipped during failover |
@@ -251,7 +253,7 @@ cd /opt/gate/app
 sudo docker compose exec gateway python -m app.admin create-tenant <tenant-name>
 ```
 
-**2. Set limits, budget and policy as code.** Add the tenant to `db/seed_tenant_limits.sql` and `db/seed_policies.sql` in the repo (use `jsonb_set` for changes to existing tenants), commit, run `./deploy/publish.sh`, then apply on the host:
+**2. Set limits, budget and policy as code.** Add the tenant to `db/seed_tenant_limits.sql` and `db/seed_policies.sql` in the repo (use `jsonb_set` for changes to existing tenants), commit and push to `main` (the deploy workflow publishes the bundle and syncs the host), then apply on the host:
 
 ```
 sudo aws s3 sync s3://<bucket>/deploy/ /opt/gate/ --exact-timestamps
@@ -307,7 +309,7 @@ sudo docker compose exec gateway python -m app.admin revoke-key <key-prefix>
 | Task | How |
 |---|---|
 | **Rotate a key** | Issue a new key into the tenant's SSM path (`--overwrite`), update the runtime (re-create the Kubernetes Secret, or let the Lambda pick it up on its next cold start), confirm traffic, then revoke the old prefix |
-| **Change limits or policy** | Edit the seed files, commit, publish, apply. Changes take effect on the next request, with no restart |
+| **Change limits or policy** | Edit the seed files, commit and push to `main` (published automatically), then apply on the host. Changes take effect on the next request, with no restart |
 | **Suspend a tenant** | Revoke its keys, or set the tenant inactive. Other tenants are unaffected |
 | **Offboard** | Revoke all keys, delete the tenant's SSM parameters, and keep its audit history (the audit log is append-only by design) |
 
