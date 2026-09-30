@@ -66,7 +66,7 @@ Measured overhead of the whole pipeline in production: **p50 23 ms** (the rest o
 | **Semantic cache** | pgvector cosine similarity, scoped by tenant, model and full system text (editing instructions invalidates old answers). Threshold 0.95 after a real false hit at 0.92 |
 | **Agents** | `ga_` keys, required run IDs, tool allow-lists, hallucinated tools dropped, human approval flags, per-run step and cost limits (fail closed) |
 | **Audit** | Append-only `usage_events` table (a trigger blocks updates and deletes). Every call, including failures and blocks, with a request ID returned to the caller |
-| **Observability** | Grafana dashboard provisioned from Git: calls, spend, error rate, governance blocks, latency split into provider time and gateway overhead, budgets, model mix, agent runs |
+| **Observability** | Grafana dashboard provisioned from Git: calls, spend, error rate, governance blocks, latency split into provider time and gateway overhead, budgets, model mix, agent runs. Public aggregate totals at `GET /v1/stats` feed the [obs.atla.in](https://obs.atla.in) status page |
 
 ---
 
