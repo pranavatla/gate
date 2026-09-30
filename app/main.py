@@ -19,6 +19,7 @@ from app.policy import apply_policy
 from app.providers import http as provider_http
 from app.okf import get_context, router as okf_router
 from app.ratelimit import charge_tokens, check_before_call
+from app.stats import router as stats_router
 from app.redis_conn import client as redis_client
 from app.schemas import ChatRequest, ChatResponse, Usage
 
@@ -37,13 +38,15 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(title="gate.atla.in", lifespan=lifespan)
 app.include_router(okf_router)
+app.include_router(stats_router)
 
 LANDING_HTML = (Path(__file__).parent / "static" / "landing.html").read_text(encoding="utf-8")
 ROOT_INFO = {
     "service": "gate.atla.in",
     "description": "Enterprise LLM gateway: one API in front of Anthropic, OpenAI, Gemini and Amazon Bedrock, with tenant keys, rate limits, budgets, failover, policy and audit.",
     "status": "ok",
-    "endpoints": {"health": "GET /health", "chat": "POST /v1/chat (tenant key required)"},
+    "endpoints": {"health": "GET /health", "stats": "GET /v1/stats (aggregate usage, public)",
+                  "chat": "POST /v1/chat (tenant key required)"},
     "source": "https://github.com/pranavatla/gate",
 }
 
