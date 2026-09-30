@@ -30,6 +30,8 @@ class ChatRequest(BaseModel):
     max_tokens: int = Field(default=512, ge=1, le=4096)
     temperature: float | None = Field(default=None, ge=0, le=1)
     tools: list[Tool] = []
+    okf_bundle: str | None = Field(default=None, pattern=r"^[a-zA-Z0-9_-]{1,64}$")
+    okf_concepts: list[str] = Field(default=[], max_length=20)
 
 
 class Usage(BaseModel):

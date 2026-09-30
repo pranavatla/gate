@@ -1,0 +1,609 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>gate.atla.in · Enterprise LLM gateway</title>
+<meta name="description" content="One API in front of Anthropic, OpenAI, Gemini and Amazon Bedrock, with tenant keys, rate limits, budgets, failover, policy, agent governance and audit. Live in production on AWS.">
+<meta property="og:title" content="gate.atla.in · Enterprise LLM gateway">
+<meta property="og:description" content="One front door for every AI model: keys, limits, budgets, failover, PII policy, agent governance and a full audit trail.">
+<meta name="theme-color" content="#070b14">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23070b14'/%3E%3Cpath d='M9 24V13a7 7 0 0 1 14 0v11' fill='none' stroke='%2338bdf8' stroke-width='3' stroke-linecap='round'/%3E%3Ccircle cx='16' cy='20' r='2.4' fill='%2334d399'/%3E%3C/svg%3E">
+<style>
+:root{
+  --bg:#070b14; --panel:#0d1424; --panel2:#111a2e; --line:#1c2740; --text:#e6ecf7; --muted:#8b98b5;
+  --cyan:#38bdf8; --violet:#a78bfa; --green:#34d399; --amber:#fbbf24; --red:#f87171;
+  --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,"DejaVu Sans Mono",monospace;
+  --sans:system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--text);font-family:var(--sans);line-height:1.55;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+a{color:inherit}
+.wrap{max-width:1140px;margin:0 auto;padding:0 22px}
+.grid-bg{position:fixed;inset:0;z-index:-2;background:
+  radial-gradient(900px 500px at 15% -5%,rgba(56,189,248,.16),transparent 60%),
+  radial-gradient(800px 500px at 90% 5%,rgba(167,139,250,.14),transparent 60%),
+  radial-gradient(700px 500px at 50% 110%,rgba(52,211,153,.08),transparent 60%);}
+.grid-bg::after{content:"";position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,.035) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.035) 1px,transparent 1px);background-size:44px 44px;mask-image:radial-gradient(ellipse at 50% 0%,#000 30%,transparent 75%);-webkit-mask-image:radial-gradient(ellipse at 50% 0%,#000 30%,transparent 75%)}
+
+/* nav */
+nav{position:sticky;top:0;z-index:20;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);background:rgba(7,11,20,.72);border-bottom:1px solid var(--line)}
+nav .wrap{display:flex;align-items:center;gap:22px;height:58px}
+.brand{display:flex;align-items:center;gap:10px;font-weight:700;letter-spacing:.2px;text-decoration:none}
+.brand svg{width:26px;height:26px}
+.brand small{color:var(--muted);font-weight:500}
+nav .links{margin-left:auto;display:flex;gap:20px;font-size:14px;color:var(--muted)}
+nav .links a{text-decoration:none}
+nav .links a:hover{color:var(--text)}
+.status{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted);padding:5px 11px;border:1px solid var(--line);border-radius:999px;background:var(--panel)}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--muted)}
+.dot.ok{background:var(--green);box-shadow:0 0 0 0 rgba(52,211,153,.6);animation:pulse 2s infinite}
+.dot.bad{background:var(--red)}
+@keyframes pulse{70%{box-shadow:0 0 0 8px rgba(52,211,153,0)}100%{box-shadow:0 0 0 0 rgba(52,211,153,0)}}
+@media(max-width:820px){nav .links{display:none}.status{margin-left:auto}}
+
+/* hero */
+.hero{padding:76px 0 40px;text-align:center}
+.eyebrow{display:inline-block;font-family:var(--mono);font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--cyan);border:1px solid rgba(56,189,248,.35);background:rgba(56,189,248,.08);padding:6px 12px;border-radius:999px}
+h1{font-size:clamp(38px,6.4vw,72px);line-height:1.04;margin:22px 0 18px;letter-spacing:-.03em;text-wrap:balance}
+.grad{background:linear-gradient(100deg,var(--cyan),var(--violet) 55%,var(--green));-webkit-background-clip:text;background-clip:text;color:transparent}
+.lead{max-width:720px;margin:0 auto;color:var(--muted);font-size:clamp(16px,2vw,19px)}
+.cta{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin:30px 0 8px}
+.btn{display:inline-flex;align-items:center;gap:8px;padding:11px 18px;border-radius:10px;font-weight:600;font-size:15px;text-decoration:none;border:1px solid var(--line);background:var(--panel);transition:.18s}
+.btn:hover{border-color:var(--cyan);transform:translateY(-1px)}
+.btn.primary{background:linear-gradient(100deg,#0ea5e9,#8b5cf6);border-color:transparent;color:#fff}
+.btn.primary:hover{filter:brightness(1.1)}
+.providers{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin-top:34px}
+.chip{font-size:13px;font-weight:600;padding:7px 14px;border-radius:999px;border:1px solid var(--line);background:var(--panel);display:inline-flex;gap:8px;align-items:center}
+.chip i{width:8px;height:8px;border-radius:50%;display:inline-block}
+
+/* stats */
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:14px;margin:34px 0 10px}
+.stat{background:linear-gradient(180deg,var(--panel2),var(--panel));border:1px solid var(--line);border-radius:14px;padding:18px 16px;text-align:center}
+.stat b{display:block;font-size:34px;letter-spacing:-.02em;font-family:var(--mono)}
+.stat>span{color:var(--muted);font-size:13px}
+.stat b span{color:inherit;font-size:inherit}
+.note{color:var(--muted);font-size:12px;text-align:center;margin-top:8px}
+
+/* sections */
+section{padding:70px 0 10px}
+.sec-head{max-width:760px;margin-bottom:26px}
+.sec-head h2{font-size:clamp(26px,3.6vw,38px);line-height:1.15;letter-spacing:-.02em;margin:10px 0 10px;text-wrap:balance}
+.sec-head p{color:var(--muted);margin:0}
+.kicker{font-family:var(--mono);font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--violet)}
+
+/* pipeline */
+.panel{background:linear-gradient(180deg,var(--panel2),var(--panel));border:1px solid var(--line);border-radius:18px;padding:20px}
+.controls{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:16px}
+.controls label{font-size:13px;color:var(--muted);margin-right:4px}
+.sc{font:inherit;font-size:13px;padding:7px 12px;border-radius:999px;border:1px solid var(--line);background:var(--bg);color:var(--text);cursor:pointer;transition:.15s}
+.sc:hover{border-color:var(--cyan)}
+.sc[aria-pressed="true"]{background:rgba(56,189,248,.14);border-color:var(--cyan);color:#fff}
+.run{margin-left:auto;font:inherit;font-weight:700;font-size:14px;padding:8px 16px;border-radius:10px;border:0;cursor:pointer;color:#fff;background:linear-gradient(100deg,#0ea5e9,#8b5cf6)}
+.run:hover{filter:brightness(1.12)}
+.pipe{display:grid;grid-template-columns:repeat(9,1fr);gap:10px;position:relative}
+.node{position:relative;background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:12px 8px 10px;text-align:center;cursor:pointer;transition:.25s;min-height:96px;font:inherit;color:inherit}
+.node:hover{border-color:var(--cyan)}
+.node .n{font-family:var(--mono);font-size:11px;color:var(--muted)}
+.node .t{display:block;font-weight:700;font-size:13px;margin:4px 0 2px}
+.node .s{display:block;font-size:11px;color:var(--muted);line-height:1.25}
+.node::after{content:"";position:absolute;right:-11px;top:50%;width:11px;height:2px;background:var(--line)}
+.node:last-child::after{display:none}
+.node.pass{border-color:rgba(52,211,153,.7);background:rgba(52,211,153,.09);box-shadow:0 0 22px -6px rgba(52,211,153,.55)}
+.node.act{border-color:rgba(251,191,36,.8);background:rgba(251,191,36,.10);box-shadow:0 0 22px -6px rgba(251,191,36,.6)}
+.node.hit{border-color:rgba(56,189,248,.85);background:rgba(56,189,248,.12);box-shadow:0 0 22px -6px rgba(56,189,248,.65)}
+.node.block{border-color:rgba(248,113,113,.9);background:rgba(248,113,113,.12);box-shadow:0 0 22px -6px rgba(248,113,113,.7)}
+.node.skip{opacity:.35}
+.node.sel{outline:2px solid var(--violet);outline-offset:2px}
+.legend{display:flex;gap:16px;flex-wrap:wrap;font-size:12px;color:var(--muted);margin:14px 0 0}
+.legend span::before{content:"";display:inline-block;width:9px;height:9px;border-radius:3px;margin-right:6px;vertical-align:-1px}
+.legend .g::before{background:var(--green)}.legend .a::before{background:var(--amber)}.legend .c::before{background:var(--cyan)}.legend .r::before{background:var(--red)}.legend .s::before{background:#4b5570}
+.split{display:grid;grid-template-columns:1.1fr 1fr;gap:16px;margin-top:16px}
+.term{background:#050810;border:1px solid var(--line);border-radius:12px;padding:14px 16px;font-family:var(--mono);font-size:12.5px;min-height:190px;overflow:hidden}
+.term .ln{opacity:0;transform:translateY(4px);animation:in .3s forwards;white-space:pre-wrap}
+@keyframes in{to{opacity:1;transform:none}}
+.term .ok{color:var(--green)}.term .warn{color:var(--amber)}.term .bad{color:var(--red)}.term .info{color:var(--cyan)}.term .dim{color:var(--muted)}
+.detail{border:1px solid var(--line);border-radius:12px;padding:16px 18px;background:var(--bg)}
+.detail h3{margin:0 0 6px;font-size:17px}
+.detail p{margin:0 0 10px;color:var(--muted);font-size:14px}
+.detail ul{margin:0;padding-left:18px;color:var(--text);font-size:13.5px}
+.detail li{margin:3px 0}
+.tag{font-family:var(--mono);font-size:11.5px;padding:2px 8px;border-radius:6px;border:1px solid var(--line);color:var(--muted);margin-right:6px}
+.result{display:inline-flex;align-items:center;gap:8px;font-family:var(--mono);font-size:13px;margin-top:10px;padding:5px 12px;border-radius:8px;border:1px solid var(--line)}
+@media(max-width:980px){.pipe{grid-template-columns:repeat(3,1fr)}.node::after{display:none}.split{grid-template-columns:1fr}.run{margin-left:0}}
+
+/* cards */
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px}
+.card{background:linear-gradient(180deg,var(--panel2),var(--panel));border:1px solid var(--line);border-radius:16px;padding:20px;transition:.2s;position:relative;overflow:hidden}
+.card:hover{transform:translateY(-3px);border-color:rgba(56,189,248,.55)}
+.card::before{content:"";position:absolute;inset:0;background:radial-gradient(300px 120px at 0% 0%,rgba(56,189,248,.10),transparent 70%);opacity:0;transition:.3s}
+.card:hover::before{opacity:1}
+.ico{width:42px;height:42px;border-radius:11px;display:grid;place-items:center;background:rgba(56,189,248,.10);border:1px solid rgba(56,189,248,.28);color:var(--cyan);margin-bottom:12px}
+.ico svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+.card h3{margin:0 0 6px;font-size:16.5px}
+.card p{margin:0;color:var(--muted);font-size:14px}
+.card .proof{margin-top:12px;font-family:var(--mono);font-size:11.5px;color:var(--green)}
+
+/* architecture */
+.arch{width:100%;height:auto}
+.arch text{font-family:var(--sans);fill:var(--text)}
+.arch .sub{fill:var(--muted);font-size:11px}
+.arch .flow{stroke-dasharray:6 6;animation:dash 1.2s linear infinite}
+@keyframes dash{to{stroke-dashoffset:-24}}
+
+/* tenants + infra */
+.two{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media(max-width:820px){.two{grid-template-columns:1fr}}
+.tenant h3{display:flex;align-items:center;gap:10px}
+.tenant ul{margin:10px 0 0;padding-left:18px;color:var(--muted);font-size:14px}
+.tenant li{margin:4px 0}
+.tenant a.lnk{display:inline-block;margin-top:12px;color:var(--cyan);font-weight:600;text-decoration:none;font-size:14px}
+.pills{display:flex;flex-wrap:wrap;gap:8px}
+.pill{font-size:13px;padding:7px 12px;border-radius:10px;background:var(--panel);border:1px solid var(--line)}
+.pill b{color:var(--cyan);font-weight:600}
+
+/* try it */
+.code{position:relative;background:#050810;border:1px solid var(--line);border-radius:12px;padding:16px 18px;font-family:var(--mono);font-size:12.5px;overflow-x:auto;white-space:pre;line-height:1.6}
+.code .k{color:var(--violet)}.code .s{color:var(--green)}.code .c{color:var(--muted)}
+.copy{position:absolute;top:10px;right:10px;font:inherit;font-size:12px;padding:5px 10px;border-radius:8px;border:1px solid var(--line);background:var(--panel);color:var(--muted);cursor:pointer}
+.copy:hover{color:var(--text);border-color:var(--cyan)}
+.codes{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+.cd{font-family:var(--mono);font-size:12.5px;padding:6px 11px;border-radius:8px;border:1px solid var(--line);background:var(--panel);cursor:default}
+.cd b{margin-right:6px}
+.cd.g b{color:var(--green)}.cd.a b{color:var(--amber)}.cd.r b{color:var(--red)}
+.cd span{color:var(--muted)}
+
+footer{margin-top:80px;border-top:1px solid var(--line);padding:30px 0 50px;color:var(--muted);font-size:14px}
+footer .wrap{display:flex;gap:18px;flex-wrap:wrap;align-items:center;justify-content:space-between}
+footer a{color:var(--text);text-decoration:none;border-bottom:1px solid var(--line)}
+footer a:hover{border-color:var(--cyan)}
+
+.reveal{opacity:0;transform:translateY(16px);transition:opacity .7s,transform .7s}
+.reveal.in{opacity:1;transform:none}
+@media(prefers-reduced-motion:reduce){
+  *{animation:none!important;transition:none!important}
+  .reveal{opacity:1;transform:none}
+  html{scroll-behavior:auto}
+}
+</style>
+</head>
+<body>
+<div class="grid-bg" aria-hidden="true"></div>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="i-api" viewBox="0 0 24 24"><path d="M12 3 3 8l9 5 9-5-9-5Z"/><path d="m3 13 9 5 9-5"/></symbol>
+    <symbol id="i-key" viewBox="0 0 24 24"><circle cx="8" cy="15" r="4"/><path d="m11 12 8-8m-3 3 3 3"/></symbol>
+    <symbol id="i-gauge" viewBox="0 0 24 24"><path d="M4 16a8 8 0 1 1 16 0"/><path d="m12 16 4-5"/></symbol>
+    <symbol id="i-wallet" viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="13" rx="2"/><path d="M3 10h18"/><circle cx="16.5" cy="14.5" r="1"/></symbol>
+    <symbol id="i-swap" viewBox="0 0 24 24"><path d="M4 8h13"/><path d="m14 4 4 4-4 4"/><path d="M20 16H7"/><path d="m10 12-4 4 4 4"/></symbol>
+    <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 3 5 6v6c0 4.5 3 7.5 7 9 4-1.5 7-4.5 7-9V6l-7-3Z"/><path d="m9 12 2 2 4-4"/></symbol>
+    <symbol id="i-db" viewBox="0 0 24 24"><ellipse cx="12" cy="6" rx="7" ry="3"/><path d="M5 6v6c0 1.7 3.1 3 7 3s7-1.3 7-3V6"/><path d="M5 12v6c0 1.7 3.1 3 7 3s7-1.3 7-3v-6"/></symbol>
+    <symbol id="i-bot" viewBox="0 0 24 24"><rect x="5" y="8" width="14" height="10" rx="3"/><path d="M12 8V4"/><circle cx="9.5" cy="13" r="1"/><circle cx="14.5" cy="13" r="1"/></symbol>
+    <symbol id="i-log" viewBox="0 0 24 24"><path d="M6 3h9l3 3v15H6Z"/><path d="M9 11h6M9 15h6"/></symbol>
+    <symbol id="i-chart" viewBox="0 0 24 24"><path d="M4 20V4"/><path d="M4 20h16"/><path d="m7 15 4-4 3 3 5-6"/></symbol>
+    <symbol id="i-cloud" viewBox="0 0 24 24"><path d="M7 18a4 4 0 0 1-.5-8A5.5 5.5 0 0 1 17 8.5 4 4 0 0 1 17 18H7Z"/></symbol>
+    <symbol id="i-lock" viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></symbol>
+    <symbol id="i-restore" viewBox="0 0 24 24"><path d="M4 12a8 8 0 1 0 3-6.2"/><path d="M4 4v4h4"/><path d="M12 8v4l3 2"/></symbol>
+  </defs>
+</svg>
+
+<nav>
+  <div class="wrap">
+    <a class="brand" href="#top">
+      <svg viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="8" fill="#0d1424" stroke="#1c2740"/><path d="M9 24V13a7 7 0 0 1 14 0v11" fill="none" stroke="#38bdf8" stroke-width="3" stroke-linecap="round"/><circle cx="16" cy="20" r="2.4" fill="#34d399"/></svg>
+      gate<small>.atla.in</small>
+    </a>
+    <div class="links">
+      <a href="#pipeline">Pipeline</a><a href="#services">Services</a><a href="#architecture">Architecture</a><a href="#tenants">Tenants</a><a href="#try">Try it</a>
+      <a href="https://github.com/pranavatla/gate" target="_blank" rel="noopener">GitHub</a>
+    </div>
+    <div class="status" id="status" title="Live check of /health"><span class="dot" id="dot"></span><span id="stxt">checking…</span></div>
+  </div>
+</nav>
+
+<main id="top">
+<div class="wrap">
+
+  <header class="hero">
+    <span class="eyebrow">Enterprise LLM gateway · live in production</span>
+    <h1>One front door for <span class="grad">every AI model</span></h1>
+    <p class="lead">Applications talk to one API. The gateway handles keys, limits, budgets, failover, privacy policy, agent governance and audit across Anthropic, OpenAI, Gemini and Amazon Bedrock, so no app ever holds a provider key.</p>
+    <div class="cta">
+      <a class="btn primary" href="#pipeline">Watch a request travel through it ↓</a>
+      <a class="btn" href="https://github.com/pranavatla/gate" target="_blank" rel="noopener">View the source on GitHub</a>
+    </div>
+    <div class="providers" aria-label="Supported providers">
+      <span class="chip"><i style="background:#d97757"></i>Anthropic Claude</span>
+      <span class="chip"><i style="background:#10a37f"></i>OpenAI GPT</span>
+      <span class="chip"><i style="background:#4285f4"></i>Google Gemini</span>
+      <span class="chip"><i style="background:#ff9900"></i>Amazon Bedrock</span>
+    </div>
+    <div class="stats">
+      <div class="stat"><b><span data-count="23">23</span> ms</b><span>median gateway overhead (p50)</span></div>
+      <div class="stat"><b><span data-count="4">4</span></b><span>AI providers behind one API</span></div>
+      <div class="stat"><b><span data-count="9">9</span></b><span>governance layers per request</span></div>
+      <div class="stat"><b><span data-count="25">25</span>/25</b><span>quality checks passed after migrating a real app</span></div>
+      <div class="stat"><b>≈ $15</b><span>per month to run on AWS</span></div>
+    </div>
+    <p class="note">Numbers measured on the production deployment, September 2026.</p>
+  </header>
+
+  <section id="pipeline" class="reveal">
+    <div class="sec-head">
+      <span class="kicker">How it works</span>
+      <h2>Every request walks the same nine-layer corridor</h2>
+      <p>Pick a scenario and press <b>Send request</b>. This is a simulation of the real pipeline: each layer is a real check in the gateway's code, ordered cheapest first. Click any layer to see what it does.</p>
+    </div>
+    <div class="panel">
+      <div class="controls" id="controls"><label>Scenario:</label></div>
+      <div class="pipe" id="pipe"></div>
+      <div class="legend"><span class="g">passed</span><span class="a">acted on the request</span><span class="c">answered from cache</span><span class="r">blocked</span><span class="s">skipped</span></div>
+      <div class="split">
+        <div class="term" id="term" aria-live="polite"><div class="dim">Press “Send request” to trace a call.</div></div>
+        <div class="detail" id="detail"></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="services" class="reveal">
+    <div class="sec-head">
+      <span class="kicker">What it provides</span>
+      <h2>Twelve services, one control plane</h2>
+      <p>Everything a platform team needs before letting applications near a model, each one tested in production.</p>
+    </div>
+    <div class="cards" id="cards"></div>
+  </section>
+
+  <section id="architecture" class="reveal">
+    <div class="sec-head">
+      <span class="kicker">Architecture</span>
+      <h2>How the pieces fit</h2>
+      <p>Tenants call the gateway with a virtual key. The gateway holds the real provider credentials, keeps state in Postgres and Redis, and reports to Grafana.</p>
+    </div>
+    <div class="panel">
+      <svg class="arch" viewBox="0 0 960 400" role="img" aria-label="Architecture: tenants call the gateway, which calls four AI providers and uses Postgres, Redis and Grafana">
+        <defs><marker id="ar" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0 10 5 0 10z" fill="#38bdf8"/></marker></defs>
+        <!-- tenants -->
+        <g>
+          <rect x="10" y="40" width="190" height="66" rx="12" fill="#0d1424" stroke="#1c2740"/>
+          <text x="105" y="70" text-anchor="middle" font-weight="700" font-size="15">gita.atla.in</text>
+          <text x="105" y="90" text-anchor="middle" class="sub">RAG app on EKS · Bedrock</text>
+          <rect x="10" y="130" width="190" height="66" rx="12" fill="#0d1424" stroke="#1c2740"/>
+          <text x="105" y="160" text-anchor="middle" font-weight="700" font-size="15">atla.in chatbot</text>
+          <text x="105" y="180" text-anchor="middle" class="sub">Lambda · grounded · public</text>
+          <rect x="10" y="220" width="190" height="66" rx="12" fill="#0d1424" stroke="#1c2740" stroke-dasharray="5 5"/>
+          <text x="105" y="250" text-anchor="middle" font-weight="700" font-size="15">your app</text>
+          <text x="105" y="270" text-anchor="middle" class="sub">see the onboarding guide</text>
+          <text x="105" y="22" text-anchor="middle" class="sub" letter-spacing="2">TENANTS</text>
+        </g>
+        <!-- gateway -->
+        <g>
+          <rect x="300" y="30" width="330" height="270" rx="16" fill="#0f1a30" stroke="#38bdf8" stroke-opacity=".7"/>
+          <text x="465" y="58" text-anchor="middle" font-weight="800" font-size="17">gate.atla.in</text>
+          <text x="465" y="76" text-anchor="middle" class="sub">Caddy (TLS) → FastAPI gateway</text>
+          <g font-size="12">
+            <rect x="320" y="92" width="130" height="30" rx="7" fill="#0d1424" stroke="#1c2740"/><text x="385" y="112" text-anchor="middle">contract · keys</text>
+            <rect x="480" y="92" width="130" height="30" rx="7" fill="#0d1424" stroke="#1c2740"/><text x="545" y="112" text-anchor="middle">rate limits</text>
+            <rect x="320" y="130" width="130" height="30" rx="7" fill="#0d1424" stroke="#1c2740"/><text x="385" y="150" text-anchor="middle">PII · policy</text>
+            <rect x="480" y="130" width="130" height="30" rx="7" fill="#0d1424" stroke="#1c2740"/><text x="545" y="150" text-anchor="middle">semantic cache</text>
+            <rect x="320" y="168" width="130" height="30" rx="7" fill="#0d1424" stroke="#1c2740"/><text x="385" y="188" text-anchor="middle">budgets</text>
+            <rect x="480" y="168" width="130" height="30" rx="7" fill="#0d1424" stroke="#1c2740"/><text x="545" y="188" text-anchor="middle">breakers · failover</text>
+            <rect x="320" y="206" width="130" height="30" rx="7" fill="#0d1424" stroke="#1c2740"/><text x="385" y="226" text-anchor="middle">agent governance</text>
+            <rect x="480" y="206" width="130" height="30" rx="7" fill="#0d1424" stroke="#1c2740"/><text x="545" y="226" text-anchor="middle">audit log</text>
+          </g>
+          <text x="465" y="266" text-anchor="middle" class="sub">EC2 Graviton · Docker Compose · Terraform</text>
+          <text x="465" y="284" text-anchor="middle" class="sub">no SSH · secrets in SSM · nightly backups</text>
+        </g>
+        <!-- providers -->
+        <g>
+          <text x="850" y="22" text-anchor="middle" class="sub" letter-spacing="2">PROVIDERS</text>
+          <rect x="740" y="40" width="200" height="50" rx="12" fill="#0d1424" stroke="#1c2740"/><text x="840" y="70" text-anchor="middle" font-weight="700">Anthropic</text>
+          <rect x="740" y="104" width="200" height="50" rx="12" fill="#0d1424" stroke="#1c2740"/><text x="840" y="134" text-anchor="middle" font-weight="700">OpenAI</text>
+          <rect x="740" y="168" width="200" height="50" rx="12" fill="#0d1424" stroke="#1c2740"/><text x="840" y="198" text-anchor="middle" font-weight="700">Google Gemini</text>
+          <rect x="740" y="232" width="200" height="50" rx="12" fill="#0d1424" stroke="#1c2740"/><text x="840" y="262" text-anchor="middle" font-weight="700">Amazon Bedrock</text>
+        </g>
+        <!-- arrows -->
+        <g stroke="#38bdf8" stroke-width="1.6" fill="none" marker-end="url(#ar)" class="flow">
+          <path d="M200 73 C250 73 250 110 298 110"/><path d="M200 163 L298 163"/><path d="M200 253 C250 253 250 216 298 216"/>
+          <path d="M630 110 C690 110 690 65 738 65"/><path d="M630 150 C690 150 690 129 738 129"/><path d="M630 190 C690 190 690 193 738 193"/><path d="M630 230 C690 230 690 257 738 257"/>
+        </g>
+        <!-- data plane -->
+        <g>
+          <rect x="300" y="330" width="100" height="52" rx="10" fill="#0d1424" stroke="#1c2740"/><text x="350" y="353" text-anchor="middle" font-weight="700" font-size="13">Postgres</text><text x="350" y="370" text-anchor="middle" class="sub">+ pgvector</text>
+          <rect x="415" y="330" width="100" height="52" rx="10" fill="#0d1424" stroke="#1c2740"/><text x="465" y="353" text-anchor="middle" font-weight="700" font-size="13">Redis</text><text x="465" y="370" text-anchor="middle" class="sub">limits · breakers</text>
+          <rect x="530" y="330" width="100" height="52" rx="10" fill="#0d1424" stroke="#1c2740"/><text x="580" y="353" text-anchor="middle" font-weight="700" font-size="13">Grafana</text><text x="580" y="370" text-anchor="middle" class="sub">read-only views</text>
+          <path d="M350 300v30M465 300v30M580 300v30" stroke="#1c2740" stroke-width="2"/>
+        </g>
+      </svg>
+    </div>
+  </section>
+
+  <section id="tenants" class="reveal">
+    <div class="sec-head">
+      <span class="kicker">In production</span>
+      <h2>Two real tenants, two very different trust levels</h2>
+      <p>The same gateway applies different rules to each, expressed as a JSON policy document, like an IAM policy for AI traffic.</p>
+    </div>
+    <div class="two">
+      <div class="card tenant">
+        <h3><span class="ico" style="margin:0"><svg><use href="#i-bot"/></svg></span>gita.atla.in</h3>
+        <p>A retrieval-augmented app on Amazon EKS that answers life questions with grounded Bhagavad Gita verses.</p>
+        <ul>
+          <li>3 model calls per question on Bedrock (Nova 2 Lite), strict JSON</li>
+          <li>Personal data is <b>redacted</b>, not refused</li>
+          <li>Migrated by changing <b>one function</b> behind a switch</li>
+          <li>Its own 25-case evaluation: <b>25/25 before and after</b></li>
+        </ul>
+        <a class="lnk" href="https://gita.atla.in" target="_blank" rel="noopener">Open gita.atla.in →</a>
+      </div>
+      <div class="card tenant">
+        <h3><span class="ico" style="margin:0"><svg><use href="#i-shield"/></svg></span>atla.in chatbot</h3>
+        <p>A public assistant on the portfolio site. The browser never holds a key: a small Lambda adds it.</p>
+        <ul>
+          <li>Personal data is <b>blocked</b>; two cheap models only</li>
+          <li><b>Grounded</b> in approved facts, refuses to invent</li>
+          <li>$1 / month hard stop, 10 requests / minute</li>
+          <li>Semantic cache: <b>3.5 s → 0.4 s</b> on repeat questions</li>
+        </ul>
+        <a class="lnk" href="https://atla.in" target="_blank" rel="noopener">Ask it on atla.in →</a>
+      </div>
+    </div>
+    <div class="panel" style="margin-top:14px">
+      <div class="pills">
+        <span class="pill"><b>AWS</b> Mumbai · EC2 Graviton</span>
+        <span class="pill"><b>Terraform</b> remote state, locked</span>
+        <span class="pill"><b>Docker Compose</b> 5 containers</span>
+        <span class="pill"><b>Caddy</b> auto TLS · HSTS</span>
+        <span class="pill"><b>SSM</b> secrets, no SSH</span>
+        <span class="pill"><b>ECR</b> immutable, scanned images</span>
+        <span class="pill"><b>S3</b> nightly backups, restore-tested</span>
+        <span class="pill"><b>IAM</b> least privilege</span>
+      </div>
+    </div>
+  </section>
+
+  <section id="try" class="reveal">
+    <div class="sec-head">
+      <span class="kicker">Use it</span>
+      <h2>One call, whichever model</h2>
+      <p>Tenants send a virtual key and a <code>provider/model</code> name. Switching providers is changing one string.</p>
+    </div>
+    <div class="code" id="snippet"><button class="copy" id="copy" type="button">Copy</button><span class="c"># any tenant, any provider</span>
+<span class="k">curl</span> https://gate.atla.in/v1/chat \
+  -H <span class="s">"Authorization: Bearer $GATE_API_KEY"</span> \
+  -H <span class="s">"Content-Type: application/json"</span> \
+  -d <span class="s">'{
+    "model": "bedrock/global.amazon.nova-2-lite-v1:0",
+    "messages": [{"role": "user", "content": "Hello"}],
+    "max_tokens": 200,
+    "temperature": 0
+  }'</span></div>
+    <div class="codes" aria-label="Status codes the gateway returns">
+      <span class="cd g"><b>200</b><span>answered</span></span>
+      <span class="cd a"><b>400</b><span>blocked content / personal data</span></span>
+      <span class="cd r"><b>401</b><span>bad or revoked key</span></span>
+      <span class="cd a"><b>402</b><span>budget used up</span></span>
+      <span class="cd r"><b>403</b><span>model or tool not allowed</span></span>
+      <span class="cd a"><b>413</b><span>input too large</span></span>
+      <span class="cd a"><b>422</b><span>malformed request</span></span>
+      <span class="cd a"><b>429</b><span>slow down, retry later</span></span>
+      <span class="cd r"><b>503</b><span>no healthy provider</span></span>
+    </div>
+    <p class="note" style="text-align:left;margin-top:14px">Calls require a tenant key, so this page can't send real requests. Every response includes an <code>X-Request-ID</code> that maps to a row in the audit log. Prefer JSON? <a href="/?format=json" style="color:var(--cyan)">/?format=json</a> or use <code>curl</code>.</p>
+  </section>
+
+</div>
+</main>
+
+<footer>
+  <div class="wrap">
+    <span>Built and operated by <b>Sai Pranav Atla</b> · Bengaluru</span>
+    <span><a href="https://github.com/pranavatla/gate" target="_blank" rel="noopener">Source</a> · <a href="https://github.com/pranavatla/gate/blob/main/docs/onboarding.md" target="_blank" rel="noopener">Onboarding guide</a> · <a href="https://atla.in" target="_blank" rel="noopener">atla.in</a></span>
+  </div>
+</footer>
+
+<script>
+(function(){
+  "use strict";
+  var reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  var $ = function(s,r){return (r||document).querySelector(s)};
+
+  /* ---------- live status ---------- */
+  (function(){
+    var dot=$("#dot"), txt=$("#stxt");
+    var t0=performance.now();
+    fetch("/health",{cache:"no-store"}).then(function(r){return r.json()}).then(function(j){
+      var ms=Math.round(performance.now()-t0);
+      if(j && j.status==="ok"){dot.className="dot ok";txt.textContent="Operational · "+ms+" ms";}
+      else{dot.className="dot bad";txt.textContent="Degraded";}
+    }).catch(function(){
+      dot.className="dot";txt.textContent = location.protocol==="file:" ? "Preview mode" : "Status unavailable";
+    });
+  })();
+
+  /* ---------- pipeline data ---------- */
+  var LAYERS=[
+    {id:"contract",t:"Contract",s:"shape check",code:"422",
+     d:"Every request is validated against one written contract (Pydantic). Wrong roles, oversized max_tokens or a bad temperature are rejected here, before anything is spent.",
+     b:["Unified request/response for all four providers","max_tokens 1–4096, temperature 0–1","Costs nothing when it fails"]},
+    {id:"key",t:"Key",s:"who is calling",code:"401",
+     d:"Each app is a tenant with its own virtual key (gk_…). Only a SHA-256 hash is stored, so a database leak reveals no usable key. Revoking one tenant never touches another.",
+     b:["46-character keys from a secure random source","Same 401 for wrong and revoked: nothing to probe","Agent keys (ga_…) for tool-using agents"]},
+    {id:"rate",t:"Rate limit",s:"how fast",code:"429",
+     d:"A token bucket per tenant for requests and for tokens per minute, run atomically inside Redis so many gateway copies share one truth. A noisy tenant can't starve a quiet one.",
+     b:["RPM and TPM, sized per user action","Retry-After header tells clients when to come back","Fails open if Redis is down (budgets still protect)"]},
+    {id:"policy",t:"Policy",s:"what is sent",code:"403 / 413 / 400",
+     d:"A JSON policy per tenant, like IAM for AI traffic: model allow-list, size caps, blocked phrases, PII redaction or blocking (email, card with Luhn check, Aadhaar, phone, PAN) and gateway-enforced instructions.",
+     b:["Provider never sees the original personal data","Allow-list holds even during failover","Every rule that fires is recorded by name, never the data"]},
+    {id:"cache",t:"Cache",s:"seen before?",code:"—",
+     d:"A semantic cache in Postgres (pgvector) matches questions by meaning, not exact words. A repeated question is answered from memory in about 0.4 s for a fraction of a cent.",
+     b:["Isolated per tenant, scoped by model and instructions","Editing a tenant's instructions invalidates old answers","Skips conversations and tool calls; fails open"]},
+    {id:"budget",t:"Budget",s:"how much",code:"402",
+     d:"Each tenant has a monthly budget in dollars. At the soft limit (80%) it can be switched to a cheaper model, at 100% it stops, and every response says so in headers. Other tenants are unaffected.",
+     b:["Exact costs from a versioned price catalogue","Downgrade is opt-in: strict-JSON apps just stop","Cache hits still work when the budget is gone"]},
+    {id:"breaker",t:"Failover",s:"is it healthy",code:"503",
+     d:"If a provider fails, the gateway tries the next model in a cost-ordered chain. A circuit breaker stops calling a provider after repeated failures, then probes it with a single request before trusting it again.",
+     b:["3 failures in 60 s opens the breaker for 30 s","Bad requests are never failed over","Chaos flags let failures be tested on demand"]},
+    {id:"provider",t:"Provider",s:"the model",code:"—",
+     d:"Four adapters translate the one contract into Anthropic, OpenAI, Gemini and Amazon Bedrock formats and back, including tool calls where supported. Adding a fifth provider means writing one adapter.",
+     b:["Provider keys live only here (AWS SSM)","Shared HTTP client with per-phase timeouts","Normalised token counts and stop reasons"]},
+    {id:"audit",t:"Audit",s:"the record",code:"—",
+     d:"Every call, including failures and blocks, becomes an append-only row: tenant, models tried, tokens, cost, latency, cache status and policy actions, never the message text. The request ID is returned to the caller.",
+     b:["A trigger blocks UPDATE and DELETE","Feeds the Grafana dashboard through read-only views","Support desk: one ID finds the exact call"]}
+  ];
+
+  var P="pass",A="act",H="hit",B="block",S="skip";
+  var SCEN=[
+    {k:"normal",label:"Normal request",
+     st:[[P,"valid shape"],[P,"key is active"],[P,"within limits"],[P,"model allowed, no personal data"],[P,"miss: nothing similar stored"],[P,"within monthly budget"],[P,"Bedrock breaker closed"],[P,"Nova 2 Lite answered"],[P,"row written, X-Request-ID returned"]],
+     res:[200,"answer returned"],hd:["x-gate-routed-model: bedrock/global.amazon.nova-2-lite-v1:0","x-gate-cache: miss"]},
+    {k:"pii",label:"Contains an email",
+     st:[[P,"valid shape"],[P,"key is active"],[P,"within limits"],[A,"email → [EMAIL] (redacted)"],[P,"miss"],[P,"within monthly budget"],[P,"breaker closed"],[P,"provider saw [EMAIL], never the address"],[P,"policy action recorded by name only"]],
+     res:[200,"answered, data protected"],hd:["x-gate-policy: pii_redacted:email"]},
+    {k:"model",label:"Forbidden model",
+     st:[[P,"valid shape"],[P,"key is active"],[P,"within limits"],[B,"model not allowed for this tenant"],[S,""],[S,""],[S,""],[S,""],[P,"status blocked recorded"]],
+     res:[403,"no provider was called, nothing spent"],hd:["detail: Model 'anthropic/…' is not allowed for this tenant"]},
+    {k:"rate",label:"Too many requests",
+     st:[[P,"valid shape"],[P,"key is active"],[B,"10 requests/minute reached"],[S,""],[S,""],[S,""],[S,""],[S,""],[P,"status rate_limited recorded"]],
+     res:[429,"come back in a few seconds"],hd:["retry-after: 7"]},
+    {k:"cache",label:"Repeated question",
+     st:[[P,"valid shape"],[P,"key is active"],[P,"within limits"],[P,"allowed"],[H,"similarity ≥ 0.95: served from memory"],[S,""],[S,""],[S,""],[P,"cost ≈ $0.00000014"]],
+     res:[200,"≈ 0.4 s instead of ≈ 3.5 s"],hd:["x-gate-cache: hit"]},
+    {k:"budget",label:"Budget used up",
+     st:[[P,"valid shape"],[P,"key is active"],[P,"within limits"],[P,"allowed"],[P,"miss"],[B,"monthly budget exhausted"],[S,""],[S,""],[P,"status blocked recorded"]],
+     res:[402,"retrying won't help until the budget changes"],hd:["detail: Monthly budget … exhausted"]},
+    {k:"failover",label:"Provider outage",
+     st:[[P,"valid shape"],[P,"key is active"],[P,"within limits"],[P,"allowed"],[P,"miss"],[P,"within monthly budget"],[A,"Anthropic failing → fallback chain"],[P,"gpt-4.1-nano answered"],[P,"attempted_models shows every hop"]],
+     res:[200,"user never noticed the outage"],hd:["x-gate-fallback: true","x-gate-routed-model: openai/gpt-4.1-nano"]}
+  ];
+
+  var pipe=$("#pipe"), term=$("#term"), detail=$("#detail"), controls=$("#controls");
+  var nodes=[], cur=SCEN[0], timers=[], selected=null;
+
+  LAYERS.forEach(function(L,i){
+    var b=document.createElement("button");
+    b.type="button"; b.className="node"; b.setAttribute("aria-label",L.t+": "+L.s);
+    b.innerHTML='<span class="n">'+String(i+1).padStart(2,"0")+'</span><span class="t">'+L.t+'</span><span class="s">'+L.s+'</span>';
+    b.addEventListener("click",function(){show(i)});
+    pipe.appendChild(b); nodes.push(b);
+  });
+
+  function esc(s){return s.replace(/[&<>]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;"}[c]})}
+
+  function show(i){
+    selected=i;
+    nodes.forEach(function(n,j){n.classList.toggle("sel",j===i)});
+    var L=LAYERS[i];
+    detail.innerHTML='<h3>'+String(i+1).padStart(2,"0")+' · '+L.t+'</h3><p>'+esc(L.d)+'</p><ul>'+L.b.map(function(x){return '<li>'+esc(x)+'</li>'}).join("")+'</ul>'+
+      (L.code!=="—"?'<p style="margin:12px 0 0"><span class="tag">fails with '+L.code+'</span></p>':'');
+  }
+  show(0);
+
+  SCEN.forEach(function(sc,i){
+    var b=document.createElement("button");
+    b.type="button"; b.className="sc"; b.textContent=sc.label; b.setAttribute("aria-pressed",i===0?"true":"false");
+    b.addEventListener("click",function(){
+      cur=sc;
+      Array.prototype.forEach.call(controls.querySelectorAll(".sc"),function(x){x.setAttribute("aria-pressed","false")});
+      b.setAttribute("aria-pressed","true"); run();
+    });
+    controls.appendChild(b);
+  });
+  var runBtn=document.createElement("button");
+  runBtn.type="button"; runBtn.className="run"; runBtn.textContent="Send request ▶";
+  runBtn.addEventListener("click",run); controls.appendChild(runBtn);
+
+  function clear(){
+    timers.forEach(clearTimeout); timers=[];
+    nodes.forEach(function(n){n.classList.remove("pass","act","hit","block","skip")});
+    term.innerHTML="";
+  }
+  function line(cls,txt){
+    var d=document.createElement("div"); d.className="ln "+cls; d.textContent=txt; term.appendChild(d);
+  }
+  function run(){
+    clear();
+    var sc=cur, step=reduce?0:420;
+    line("dim","POST /v1/chat   model=\""+(sc.k==="model"?"anthropic/claude-haiku-4-5":sc.k==="failover"?"anthropic/claude-haiku-4-5":"bedrock/global.amazon.nova-2-lite-v1:0")+"\"");
+    var rid="req "+Math.random().toString(16).slice(2,10);
+    line("dim","X-Request-ID: "+rid+"…");
+    sc.st.forEach(function(x,i){
+      var fn=function(){
+        var state=x[0], note=x[1], L=LAYERS[i];
+        nodes[i].classList.add(state);
+        var n=String(i+1).padStart(2,"0");
+        if(state===S){ line("dim",n+"  "+L.t.toLowerCase().padEnd(12)+"skipped"); }
+        else{
+          var tag={pass:"ok",act:"warn",hit:"info",block:"bad"}[state];
+          var mark={pass:"✓",act:"◆",hit:"⚡",block:"✕"}[state];
+          line(tag,n+"  "+L.t.toLowerCase().padEnd(12)+mark+" "+note);
+        }
+        if(i===sc.st.length-1){
+          var r=sc.res, ok=r[0]===200;
+          line(ok?"ok":"bad","");
+          line(ok?"ok":"bad","→ HTTP "+r[0]+"  "+r[1]);
+          sc.hd.forEach(function(h){line("dim","   "+h)});
+        }
+      };
+      if(step===0) fn(); else timers.push(setTimeout(fn,(i+1)*step));
+    });
+  }
+  run();
+
+  /* ---------- service cards ---------- */
+  var SERVICES=[
+    ["i-api","One unified API","Anthropic, OpenAI, Gemini and Bedrock behind one request and response shape. Switch provider by changing one string.","4 adapters · tool calls · stop reasons"],
+    ["i-key","Virtual keys and tenants","Every app gets its own hashed, revocable key. Provider credentials never leave the gateway.","revoke one tenant, others unaffected"],
+    ["i-gauge","Rate limiting","Token-bucket RPM and TPM per tenant, atomic in Redis, with Retry-After for well-behaved clients.","10 × 200 and 5 × 429 in a 15-call burst"],
+    ["i-wallet","Budgets and cost autopilot","Monthly dollar budgets, exact costs from a price catalogue, automatic downgrade or hard stop.","402 when spent, with headers explaining why"],
+    ["i-swap","Failover and circuit breakers","Cost-ordered fallback chains, breakers shared across copies, half-open probing and on-demand fault injection.","an outage nobody noticed"],
+    ["i-shield","PII redaction and policy","Model allow-lists, size caps, blocked phrases, PII redact or block, and enforced instructions per tenant.","0 personal values in the audit log"],
+    ["i-db","Semantic cache","Answers repeated questions by meaning using pgvector. Isolated per tenant, self-invalidating, fails open.","3.5 s → 0.4 s · ≈ 3,700× cheaper"],
+    ["i-bot","Agent governance","Agent identities, tool allow-lists, human-approval flags, and per-run step and cost limits that fail closed.","a runaway loop stopped at step 3"],
+    ["i-log","Append-only audit log","Every call is recorded with a request ID: tenant, models tried, tokens, cost, latency, rules fired. Never message text.","UPDATE and DELETE are blocked by trigger"],
+    ["i-chart","Live dashboards","Grafana provisioned from Git over least-privilege views: spend, errors, blocks, p50/p95 latency, budgets, agent runs.","gateway overhead p50 ≈ 23 ms"],
+    ["i-cloud","Infrastructure as code","VPC, IAM, ECR, EC2, DNS and budget alarm in Terraform with locked remote state. No SSH; admin through Session Manager.","≈ $15 / month all-in"],
+    ["i-restore","Backups you have restored","Nightly database dumps to S3 that the server can write but not delete, plus a scripted restore test.","restored copy matched row for row"]
+  ];
+  var cards=$("#cards");
+  SERVICES.forEach(function(s){
+    var c=document.createElement("article"); c.className="card";
+    c.innerHTML='<div class="ico"><svg aria-hidden="true"><use href="#'+s[0]+'"/></svg></div><h3>'+s[1]+'</h3><p>'+s[2]+'</p><div class="proof">✓ '+s[3]+'</div>';
+    cards.appendChild(c);
+  });
+
+  /* ---------- copy button ---------- */
+  var cp=$("#copy");
+  cp.addEventListener("click",function(){
+    var text=$("#snippet").innerText.replace(/^Copy\s*/,"");
+    var done=function(){cp.textContent="Copied ✓";setTimeout(function(){cp.textContent="Copy"},1600)};
+    if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(text).then(done,done);}else{done();}
+  });
+
+  /* ---------- scroll reveal + count-up ---------- */
+  var reveals=document.querySelectorAll(".reveal");
+  if("IntersectionObserver" in window && !reduce){
+    var io=new IntersectionObserver(function(es){
+      es.forEach(function(e){if(e.isIntersecting){e.target.classList.add("in");io.unobserve(e.target)}});
+    },{threshold:.08});
+    reveals.forEach(function(r){io.observe(r)});
+    var counters=document.querySelectorAll("[data-count]");
+    var io2=new IntersectionObserver(function(es){
+      es.forEach(function(e){
+        if(!e.isIntersecting)return;
+        var el=e.target, end=+el.dataset.count, t0=performance.now(), dur=900;
+        (function tick(t){
+          var p=Math.min(1,(t-t0)/dur); el.textContent=Math.round(end*(1-Math.pow(1-p,3)));
+          if(p<1)requestAnimationFrame(tick);
+        })(t0);
+        io2.unobserve(el);
+      });
+    },{threshold:.6});
+    counters.forEach(function(c){c.textContent="0";io2.observe(c)});
+  }else{reveals.forEach(function(r){r.classList.add("in")})}
+})();
+</script>
+</body>
+</html>
