@@ -267,7 +267,7 @@ footer a:hover{border-color:var(--cyan)}
           <source src="/static/gate-explained-vertical.mp4" type="video/mp4" media="(max-width: 900px)">
           <source src="/static/gate-explained.mp4" type="video/mp4">
         </video>
-        <div class="explainer-caption"><b>What this gateway does</b><span>Two-minute walkthrough for first-time visitors</span></div>
+        <div class="explainer-caption"><b>What this gateway does</b><span>A one-minute walkthrough for first-time visitors</span></div>
       </div>
     </div>
     <div class="stats">
@@ -283,7 +283,7 @@ footer a:hover{border-color:var(--cyan)}
   <section id="pipeline" class="reveal">
     <div class="sec-head">
       <h2>Every request walks the same nine-layer corridor</h2>
-      <p>Pick a scenario and press <b>Send request</b>. This is a simulation of the real pipeline: each layer is a real check in the gateway's code, ordered cheapest first. Click any layer to see what it does.</p>
+      <p>Pick a scenario and press <b>Send request</b>. This is a simulation of the real pipeline: each layer is a real check in the gateway's code, and every refusal happens before a model is called. Click any layer to see what it does.</p>
     </div>
     <div class="panel">
       <div class="controls" id="controls"><label>Scenario:</label></div>
@@ -332,7 +332,7 @@ footer a:hover{border-color:var(--cyan)}
           <text x="465" y="58" text-anchor="middle" font-weight="800" font-size="17">gate.atla.in</text>
           <text x="465" y="76" text-anchor="middle" class="sub">Caddy (TLS) → FastAPI gateway</text>
           <g font-size="12">
-            <rect x="320" y="92" width="130" height="30" rx="7" fill="#0d1815" stroke="#21342f"/><text x="385" y="112" text-anchor="middle">contract · keys</text>
+            <rect x="320" y="92" width="130" height="30" rx="7" fill="#0d1815" stroke="#21342f"/><text x="385" y="112" text-anchor="middle">keys · contract</text>
             <rect x="480" y="92" width="130" height="30" rx="7" fill="#0d1815" stroke="#21342f"/><text x="545" y="112" text-anchor="middle">rate limits</text>
             <rect x="320" y="130" width="130" height="30" rx="7" fill="#0d1815" stroke="#21342f"/><text x="385" y="150" text-anchor="middle">PII · policy</text>
             <rect x="480" y="130" width="130" height="30" rx="7" fill="#0d1815" stroke="#21342f"/><text x="545" y="150" text-anchor="middle">semantic cache</text>
@@ -429,7 +429,7 @@ footer a:hover{border-color:var(--cyan)}
     <p class="codes-hint">Every answer carries a status code. Press 200, 402, 403 or 429 to watch the gateway produce it.</p>
     <div class="codes" aria-label="Status codes the gateway returns">
       <button class="cd g" type="button" data-scen="normal"><b>200</b><span>answered</span></button>
-      <span class="cd a"><b>400</b><span>blocked content / personal data</span></span>
+      <span class="cd a"><b>400</b><span>blocked content, personal data or unknown model</span></span>
       <span class="cd r"><b>401</b><span>bad or revoked key</span></span>
       <button class="cd a" type="button" data-scen="budget"><b>402</b><span>budget used up</span></button>
       <button class="cd r" type="button" data-scen="model"><b>403</b><span>model or tool not allowed</span></button>
@@ -438,7 +438,7 @@ footer a:hover{border-color:var(--cyan)}
       <button class="cd a" type="button" data-scen="rate"><b>429</b><span>slow down, retry later</span></button>
       <span class="cd r"><b>503</b><span>no healthy provider</span></span>
     </div>
-    <p class="note" style="text-align:left;margin-top:14px">Calls require a tenant key, so this page can't send real requests. Every response includes an <code>X-Request-ID</code> that maps to a row in the audit log. Prefer JSON? <a href="/?format=json" style="color:var(--cyan)">/?format=json</a> or use <code>curl</code>.</p>
+    <p class="note" style="text-align:left;margin-top:14px">Calls require a tenant key, so this page can't send real requests. Every call that passes the key and contract checks returns an <code>X-Request-ID</code> that maps to a row in the audit log. Prefer JSON? <a href="/?format=json" style="color:var(--cyan)">/?format=json</a> or use <code>curl</code>.</p>
   </section>
 
 </div>
@@ -475,12 +475,12 @@ footer a:hover{border-color:var(--cyan)}
 
   /* ---------- pipeline data ---------- */
   var LAYERS=[
-    {id:"contract",t:"Contract",s:"shape check",code:"422",
-     d:"Every request is validated against one written contract (Pydantic). Wrong roles, oversized max_tokens or a bad temperature are rejected here, before anything is spent.",
-     b:["Unified request/response for all four providers","max_tokens 1–4096, temperature 0–1","Costs nothing when it fails"]},
     {id:"key",t:"Key",s:"who is calling",code:"401",
      d:"Each app is a tenant with its own virtual key (gk_…). Only a SHA-256 hash is stored, so a database leak reveals no usable key. Revoking one tenant never touches another.",
      b:["46-character keys from a secure random source","Same 401 for wrong and revoked: nothing to probe","Agent keys (ga_…) for tool-using agents"]},
+    {id:"contract",t:"Contract",s:"shape check",code:"422",
+     d:"Every request is validated against one written contract (Pydantic). Wrong roles, oversized max_tokens or a bad temperature are rejected here, before anything is spent.",
+     b:["Unified request/response for all four providers","max_tokens 1–4096, temperature 0–1","Costs nothing when it fails"]},
     {id:"rate",t:"Rate limit",s:"how fast",code:"429",
      d:"A token bucket per tenant for requests and for tokens per minute, run atomically inside Redis so many gateway copies share one truth. A noisy tenant can't starve a quiet one.",
      b:["RPM and TPM, sized per user action","Retry-After header tells clients when to come back","Fails open if Redis is down (budgets still protect)"]},
@@ -491,41 +491,41 @@ footer a:hover{border-color:var(--cyan)}
      d:"A semantic cache in Postgres (pgvector) matches questions by meaning, not exact words. A repeated question is answered from memory in about 0.4 s for a fraction of a cent.",
      b:["Isolated per tenant, scoped by model and instructions","Editing a tenant's instructions invalidates old answers","Skips conversations and tool calls; fails open"]},
     {id:"budget",t:"Budget",s:"how much",code:"402",
-     d:"Each tenant has a monthly budget in dollars. At the soft limit (80%) it can be switched to a cheaper model, at 100% it stops, and every response says so in headers. Other tenants are unaffected.",
+     d:"Each tenant has a monthly budget in dollars. At the soft limit (80%) it can be switched to a cheaper model, at 100% it stops with a 402. Answered calls report budget use and any downgrade in headers. Other tenants are unaffected.",
      b:["Exact costs from a versioned price catalogue","Downgrade is opt-in: strict-JSON apps just stop","Cache hits still work when the budget is gone"]},
     {id:"breaker",t:"Failover",s:"is it healthy",code:"503",
-     d:"If a provider fails, the gateway tries the next model in a cost-ordered chain. A circuit breaker stops calling a provider after repeated failures, then probes it with a single request before trusting it again.",
+     d:"If a provider fails, the gateway tries the next model in that model's fallback chain. A circuit breaker stops calling a provider after repeated failures, then probes it with a single request before trusting it again.",
      b:["3 failures in 60 s opens the breaker for 30 s","Bad requests are never failed over","Chaos flags let failures be tested on demand"]},
     {id:"provider",t:"Provider",s:"the model",code:"—",
      d:"Four adapters translate the one contract into Anthropic, OpenAI, Gemini and Amazon Bedrock formats and back, including tool calls where supported. Adding a fifth provider means writing one adapter.",
      b:["Provider keys live only here (AWS SSM)","Shared HTTP client with per-phase timeouts","Normalised token counts and stop reasons"]},
     {id:"audit",t:"Audit",s:"the record",code:"—",
-     d:"Every call, including failures and blocks, becomes an append-only row: tenant, models tried, tokens, cost, latency, cache status and policy actions, never the message text. The request ID is returned to the caller.",
+     d:"Every call that passes the key and contract checks, including blocks and failures, becomes an append-only row: tenant, models tried, tokens, cost, latency, cache status and policy actions, never the message text. The request ID is returned to the caller.",
      b:["A trigger blocks UPDATE and DELETE","Feeds the Grafana dashboard through read-only views","Support desk: one ID finds the exact call"]}
   ];
 
   var P="pass",A="act",H="hit",B="block",S="skip";
   var SCEN=[
     {k:"normal",label:"Normal request",
-     st:[[P,"valid shape"],[P,"key is active"],[P,"within limits"],[P,"model allowed, no personal data"],[P,"miss: nothing similar stored"],[P,"within monthly budget"],[P,"Bedrock breaker closed"],[P,"Nova 2 Lite answered"],[P,"row written, X-Request-ID returned"]],
+     st:[[P,"key is active"],[P,"valid shape"],[P,"within limits"],[P,"model allowed, no personal data"],[P,"miss: nothing similar stored"],[P,"within monthly budget"],[P,"Bedrock breaker closed"],[P,"Nova 2 Lite answered"],[P,"row written, X-Request-ID returned"]],
      res:[200,"answer returned"],hd:["x-gate-routed-model: bedrock/global.amazon.nova-2-lite-v1:0","x-gate-cache: miss"]},
     {k:"pii",label:"Contains an email",
-     st:[[P,"valid shape"],[P,"key is active"],[P,"within limits"],[A,"email → [EMAIL] (redacted)"],[P,"miss"],[P,"within monthly budget"],[P,"breaker closed"],[P,"provider saw [EMAIL], never the address"],[P,"policy action recorded by name only"]],
+     st:[[P,"key is active"],[P,"valid shape"],[P,"within limits"],[A,"email → [EMAIL] (redacted)"],[P,"miss"],[P,"within monthly budget"],[P,"breaker closed"],[P,"provider saw [EMAIL], never the address"],[P,"policy action recorded by name only"]],
      res:[200,"answered, data protected"],hd:["x-gate-policy: pii_redacted:email"]},
     {k:"model",label:"Forbidden model",
-     st:[[P,"valid shape"],[P,"key is active"],[P,"within limits"],[B,"model not allowed for this tenant"],[S,""],[S,""],[S,""],[S,""],[P,"status blocked recorded"]],
+     st:[[P,"key is active"],[P,"valid shape"],[P,"within limits"],[B,"model not allowed for this tenant"],[S,""],[S,""],[S,""],[S,""],[P,"status blocked recorded"]],
      res:[403,"no provider was called, nothing spent"],hd:["detail: Model 'anthropic/…' is not allowed for this tenant"]},
     {k:"rate",label:"Too many requests",
-     st:[[P,"valid shape"],[P,"key is active"],[B,"10 requests/minute reached"],[S,""],[S,""],[S,""],[S,""],[S,""],[P,"status rate_limited recorded"]],
+     st:[[P,"key is active"],[P,"valid shape"],[B,"10 requests/minute reached"],[S,""],[S,""],[S,""],[S,""],[S,""],[P,"status rate_limited recorded"]],
      res:[429,"come back in a few seconds"],hd:["retry-after: 7"]},
     {k:"cache",label:"Repeated question",
-     st:[[P,"valid shape"],[P,"key is active"],[P,"within limits"],[P,"allowed"],[H,"similarity ≥ 0.95: served from memory"],[S,""],[S,""],[S,""],[P,"cost ≈ $0.00000014"]],
+     st:[[P,"key is active"],[P,"valid shape"],[P,"within limits"],[P,"allowed"],[H,"similarity ≥ 0.95: served from memory"],[S,""],[S,""],[S,""],[P,"cost ≈ $0.00000014"]],
      res:[200,"≈ 0.4 s instead of ≈ 3.5 s"],hd:["x-gate-cache: hit"]},
     {k:"budget",label:"Budget used up",
-     st:[[P,"valid shape"],[P,"key is active"],[P,"within limits"],[P,"allowed"],[P,"miss"],[B,"monthly budget exhausted"],[S,""],[S,""],[P,"status blocked recorded"]],
+     st:[[P,"key is active"],[P,"valid shape"],[P,"within limits"],[P,"allowed"],[P,"miss"],[B,"monthly budget exhausted"],[S,""],[S,""],[P,"status blocked recorded"]],
      res:[402,"retrying won't help until the budget changes"],hd:["detail: Monthly budget … exhausted"]},
     {k:"failover",label:"Provider outage",
-     st:[[P,"valid shape"],[P,"key is active"],[P,"within limits"],[P,"allowed"],[P,"miss"],[P,"within monthly budget"],[A,"Anthropic failing → fallback chain"],[P,"gpt-4.1-nano answered"],[P,"attempted_models shows every hop"]],
+     st:[[P,"key is active"],[P,"valid shape"],[P,"within limits"],[P,"allowed"],[P,"miss"],[P,"within monthly budget"],[A,"Anthropic failing → fallback chain"],[P,"gpt-4.1-nano answered"],[P,"attempted_models shows every hop"]],
      res:[200,"user never noticed the outage"],hd:["x-gate-fallback: true","x-gate-routed-model: openai/gpt-4.1-nano"]}
   ];
 
@@ -581,7 +581,7 @@ footer a:hover{border-color:var(--cyan)}
     if(pio) pio.disconnect();
     clear(); show(0);
     var sc=cur, step=reduce?0:420;
-    line("dim","POST /v1/chat   model=\""+(sc.k==="model"?"anthropic/claude-haiku-4-5":sc.k==="failover"?"anthropic/claude-haiku-4-5":"bedrock/global.amazon.nova-2-lite-v1:0")+"\"");
+    line("dim","POST /v1/chat   model=\""+(sc.k==="model"||sc.k==="failover"?"anthropic/claude-haiku-4-5-20251001":"bedrock/global.amazon.nova-2-lite-v1:0")+"\"");
     var rid="req "+Math.random().toString(16).slice(2,10);
     line("dim","X-Request-ID: "+rid+"…");
     // Each live layer scans, then resolves; after a block the skipped layers dim quickly
@@ -661,12 +661,12 @@ footer a:hover{border-color:var(--cyan)}
     ["i-api","One unified API","Anthropic, OpenAI, Gemini and Bedrock behind one request and response shape. Switch provider by changing one string.","4 adapters · tool calls · stop reasons"],
     ["i-key","Virtual keys and tenants","Every app gets its own hashed, revocable key. Provider credentials never leave the gateway.","revoke one tenant, others unaffected"],
     ["i-gauge","Rate limiting","Token-bucket RPM and TPM per tenant, atomic in Redis, with Retry-After for well-behaved clients.","10 × 200 and 5 × 429 in a 15-call burst"],
-    ["i-wallet","Budgets and cost autopilot","Monthly dollar budgets, exact costs from a price catalogue, automatic downgrade or hard stop.","402 when spent, with headers explaining why"],
-    ["i-swap","Failover and circuit breakers","Cost-ordered fallback chains, breakers shared across copies, half-open probing and on-demand fault injection.","an outage nobody noticed"],
-    ["i-shield","PII redaction and policy","Model allow-lists, size caps, blocked phrases, PII redact or block, and enforced instructions per tenant.","0 personal values in the audit log"],
+    ["i-wallet","Budgets and cost autopilot","Monthly dollar budgets, exact costs from a price catalogue, automatic downgrade or hard stop.","402 when spent, with the amount in the error"],
+    ["i-swap","Failover and circuit breakers","Per-model fallback chains, breakers shared across copies, half-open probing and on-demand fault injection.","one failing provider, answers keep coming"],
+    ["i-shield","PII redaction and policy","Model allow-lists, size caps, blocked phrases, PII redact or block, and enforced instructions per tenant.","rule names reach the audit log, never the data"],
     ["i-db","Semantic cache","Answers repeated questions by meaning using pgvector. Isolated per tenant, self-invalidating, fails open.","3.5 s → 0.4 s · ≈ 3,700× cheaper"],
-    ["i-bot","Agent governance","Agent identities, tool allow-lists, human-approval flags, and per-run step and cost limits that fail closed.","a runaway loop stopped at step 3"],
-    ["i-log","Append-only audit log","Every call is recorded with a request ID: tenant, models tried, tokens, cost, latency, rules fired. Never message text.","UPDATE and DELETE are blocked by trigger"],
+    ["i-bot","Agent governance","Agent identities, tool allow-lists, human-approval flags, and per-run step and cost limits that fail closed.","a looping agent is stopped after 5 steps"],
+    ["i-log","Append-only audit log","Every call past the key and contract checks is recorded with a request ID: tenant, models tried, tokens, cost, latency, rules fired. Never message text.","UPDATE and DELETE are blocked by trigger"],
     ["i-chart","Live dashboards","Grafana provisioned from Git over least-privilege views: spend, errors, blocks, p50/p95 latency, budgets, agent runs.","gateway overhead p50 ≈ 4 ms"],
     ["i-cloud","Infrastructure as code","VPC, IAM, ECR, EC2, DNS and budget alarm in Terraform with locked remote state. No SSH; admin through Session Manager.","≈ $15 / month all-in"],
     ["i-restore","Backups you have restored","Nightly database dumps to S3 that the server can write but not delete, plus a scripted restore test.","restored copy matched row for row"]
