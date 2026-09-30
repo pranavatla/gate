@@ -22,7 +22,7 @@ data "aws_iam_policy_document" "github_trust" {
     condition {
       test     = "StringEquals"
       variable = "token.actions.githubusercontent.com:sub"
-      values   = ["repo:pranavatla/gate:ref:refs/heads/main"]
+      values   = ["repo:pranavatla@40049243/gate@1395108469:ref:refs/heads/main"]
     }
   }
 }
