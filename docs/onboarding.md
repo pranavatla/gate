@@ -106,6 +106,7 @@ PII detection covers email addresses, card numbers (Luhn-checked), Aadhaar, Indi
 | Endpoint | Purpose |
 |---|---|
 | `GET /health` | Liveness: `{"status": "ok"}` |
+| `GET /v1/stats` | Public, aggregate-only usage over the last 24 hours and 7 days (calls, errors, blocks, cache hits, cost, latency, model mix, hourly calls). No tenant, key or content data; cached for 60 s. Read by [obs.atla.in](https://obs.atla.in) |
 | `POST /v1/chat` | Every model call |
 
 **Request:**
