@@ -7,6 +7,7 @@ from pathlib import Path
 
 from fastapi import Depends, FastAPI, Header, HTTPException, Request, Response
 from fastapi.responses import HTMLResponse, JSONResponse
+from fastapi.staticfiles import StaticFiles
 
 from app import cache, db
 from app.agents import add_run_cost, check_tools, review_tool_calls, start_step
@@ -39,6 +40,7 @@ async def lifespan(app: FastAPI):
 app = FastAPI(title="gate.atla.in", lifespan=lifespan)
 app.include_router(okf_router)
 app.include_router(stats_router)
+app.mount("/static", StaticFiles(directory=Path(__file__).parent / "static"), name="static")
 
 LANDING_HTML = (Path(__file__).parent / "static" / "landing.html").read_text(encoding="utf-8")
 ROOT_INFO = {
