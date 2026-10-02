@@ -247,9 +247,9 @@ footer a:hover{border-color:var(--cyan)}
     <div class="hero-grid">
       <div class="hero-copy">
         <h1>One front door for every AI model</h1>
-        <p class="lead">A live enterprise LLM gateway: one API for provider routing, tenant keys, rate limits, budgets, failover, privacy policy, agent governance and audit.</p>
+        <p class="lead">A live gateway in front of four AI providers: keys, limits, budgets, failover, privacy policy, agent governance and audit.</p>
         <div class="cta">
-          <a class="btn primary" href="#pipeline">Watch a request travel through it ↓</a>
+          <a class="btn primary" href="#pipeline">Watch a request travel through it</a>
           <a class="btn" href="https://github.com/pranavatla/gate" target="_blank" rel="noopener">View the source on GitHub</a>
         </div>
         <div class="providers" aria-label="Supported providers">
@@ -317,7 +317,7 @@ footer a:hover{border-color:var(--cyan)}
           <text x="105" y="90" text-anchor="middle" class="sub">RAG app on EKS · Bedrock</text>
           <rect x="10" y="130" width="190" height="66" rx="12" fill="#0d1815" stroke="#21342f"/>
           <text x="105" y="160" text-anchor="middle" font-weight="700" font-size="15">atla.in chatbot</text>
-          <text x="105" y="180" text-anchor="middle" class="sub">Lambda · grounded · public</text>
+          <text x="105" y="180" text-anchor="middle" class="sub">Lambda, grounded · public</text>
           <rect x="10" y="220" width="190" height="66" rx="12" fill="#0d1815" stroke="#21342f" stroke-dasharray="5 5"/>
           <text x="105" y="250" text-anchor="middle" font-weight="700" font-size="15">your app</text>
           <text x="105" y="270" text-anchor="middle" class="sub">see the onboarding guide</text>
@@ -338,8 +338,8 @@ footer a:hover{border-color:var(--cyan)}
             <rect x="320" y="206" width="130" height="30" rx="7" fill="#0d1815" stroke="#21342f"/><text x="385" y="226" text-anchor="middle">agent governance</text>
             <rect x="480" y="206" width="130" height="30" rx="7" fill="#0d1815" stroke="#21342f"/><text x="545" y="226" text-anchor="middle">audit log</text>
           </g>
-          <text x="465" y="266" text-anchor="middle" class="sub">EC2 Graviton · Docker Compose · Terraform</text>
-          <text x="465" y="284" text-anchor="middle" class="sub">no SSH · secrets in SSM · nightly backups</text>
+          <text x="465" y="266" text-anchor="middle" class="sub">EC2 Graviton, Docker Compose · Terraform</text>
+          <text x="465" y="284" text-anchor="middle" class="sub">no SSH, secrets in SSM · nightly backups</text>
         </g>
         <!-- providers -->
         <g>
@@ -444,7 +444,7 @@ footer a:hover{border-color:var(--cyan)}
 <footer>
   <div class="wrap">
     <span>Built and operated by <b>Sai Pranav Atla</b> · Bengaluru</span>
-    <span><a href="https://github.com/pranavatla/gate" target="_blank" rel="noopener">Source</a> · <a href="https://github.com/pranavatla/gate/blob/main/docs/onboarding.md" target="_blank" rel="noopener">Onboarding guide</a> · <a href="https://atla.in" target="_blank" rel="noopener">atla.in</a></span>
+    <span><a href="https://github.com/pranavatla/gate" target="_blank" rel="noopener">Source</a>, <a href="https://github.com/pranavatla/gate/blob/main/docs/onboarding.md" target="_blank" rel="noopener">Onboarding guide</a> · <a href="https://atla.in" target="_blank" rel="noopener">atla.in</a></span>
   </div>
 </footer>
 
@@ -477,14 +477,14 @@ footer a:hover{border-color:var(--cyan)}
      b:["46-character keys from a secure random source","Same 401 for wrong and revoked: nothing to probe","Agent keys (ga_…) for tool-using agents"]},
     {id:"contract",t:"Contract",s:"shape check",code:"422",
      d:"Every request is validated against one written contract (Pydantic). Wrong roles, oversized max_tokens or a bad temperature are rejected here, before anything is spent.",
-     b:["Unified request/response for all four providers","max_tokens 1–4096, temperature 0–1","Costs nothing when it fails"]},
+     b:["Unified request/response for all four providers","max_tokens 1-4096, temperature 0-1","Costs nothing when it fails"]},
     {id:"rate",t:"Rate limit",s:"how fast",code:"429",
      d:"A token bucket per tenant for requests and for tokens per minute, run atomically inside Redis so many gateway copies share one truth. A noisy tenant can't starve a quiet one.",
      b:["RPM and TPM, sized per user action","Retry-After header tells clients when to come back","Fails open if Redis is down (budgets still protect)"]},
     {id:"policy",t:"Policy",s:"what is sent",code:"403 / 413 / 400",
      d:"A JSON policy per tenant, like IAM for AI traffic: model allow-list, size caps, blocked phrases, PII redaction or blocking (email, card with Luhn check, Aadhaar, phone, PAN) and gateway-enforced instructions.",
      b:["Provider never sees the original personal data","Allow-list holds even during failover","Every rule that fires is recorded by name, never the data"]},
-    {id:"cache",t:"Cache",s:"seen before?",code:"—",
+    {id:"cache",t:"Cache",s:"seen before?",code:"",
      d:"A semantic cache in Postgres (pgvector) matches questions by meaning, not exact words. A repeated question is answered from memory in about 0.4 s for a fraction of a cent.",
      b:["Isolated per tenant, scoped by model and instructions","Editing a tenant's instructions invalidates old answers","Skips conversations and tool calls; fails open"]},
     {id:"budget",t:"Budget",s:"how much",code:"402",
@@ -493,10 +493,10 @@ footer a:hover{border-color:var(--cyan)}
     {id:"breaker",t:"Failover",s:"is it healthy",code:"503",
      d:"If a provider fails, the gateway tries the next model in that model's fallback chain. A circuit breaker stops calling a provider after repeated failures, then probes it with a single request before trusting it again.",
      b:["3 failures in 60 s opens the breaker for 30 s","Bad requests are never failed over","Chaos flags let failures be tested on demand"]},
-    {id:"provider",t:"Provider",s:"the model",code:"—",
+    {id:"provider",t:"Provider",s:"the model",code:"",
      d:"Four adapters translate the one contract into Anthropic, OpenAI, Gemini and Amazon Bedrock formats and back, including tool calls where supported. Adding a fifth provider means writing one adapter.",
      b:["Provider keys live only here (AWS SSM)","Shared HTTP client with per-phase timeouts","Normalised token counts and stop reasons"]},
-    {id:"audit",t:"Audit",s:"the record",code:"—",
+    {id:"audit",t:"Audit",s:"the record",code:"",
      d:"Every call that passes the key and contract checks, including blocks and failures, becomes an append-only row: tenant, models tried, tokens, cost, latency, cache status and policy actions, never the message text. The request ID is returned to the caller.",
      b:["A trigger blocks UPDATE and DELETE","Feeds the Grafana dashboard through read-only views","Support desk: one ID finds the exact call"]}
   ];
@@ -544,7 +544,7 @@ footer a:hover{border-color:var(--cyan)}
     nodes.forEach(function(n,j){n.classList.toggle("sel",j===i)});
     var L=LAYERS[i];
     detail.innerHTML='<h3>'+String(i+1).padStart(2,"0")+' · '+L.t+'</h3><p>'+esc(L.d)+'</p><ul>'+L.b.map(function(x){return '<li>'+esc(x)+'</li>'}).join("")+'</ul>'+
-      (L.code!=="—"?'<p style="margin:12px 0 0"><span class="tag">fails with '+L.code+'</span></p>':'');
+      (L.code!==""?'<p style="margin:12px 0 0"><span class="tag">fails with '+L.code+'</span></p>':'');
   }
   show(0);
 
@@ -655,7 +655,7 @@ footer a:hover{border-color:var(--cyan)}
 
   /* ---------- service cards ---------- */
   var SERVICES=[
-    ["i-api","One unified API","Anthropic, OpenAI, Gemini and Bedrock behind one request and response shape. Switch provider by changing one string.","4 adapters · tool calls · stop reasons"],
+    ["i-api","One unified API","Anthropic, OpenAI, Gemini and Bedrock behind one request and response shape. Switch provider by changing one string.","4 adapters, tool calls · stop reasons"],
     ["i-key","Virtual keys and tenants","Every app gets its own hashed, revocable key. Provider credentials never leave the gateway.","revoke one tenant, others unaffected"],
     ["i-gauge","Rate limiting","Token-bucket RPM and TPM per tenant, atomic in Redis, with Retry-After for well-behaved clients.","10 × 200 and 5 × 429 in a 15-call burst"],
     ["i-wallet","Budgets and cost autopilot","Monthly dollar budgets, exact costs from a price catalogue, automatic downgrade or hard stop.","402 when spent, with the amount in the error"],
