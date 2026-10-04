@@ -3,6 +3,8 @@ from dataclasses import dataclass
 
 from fastapi import HTTPException
 
+from app.tracing import traced, usage, annotate
+from app.budget import price_of, cost_usd
 from app import breaker, db
 from app.agents import uses_tools
 from app.providers.http import ProviderError
@@ -54,7 +56,7 @@ async def call_with_failover(
 
         attempted.append(model)
         try:
-            resp = await route(req.model_copy(update={"model": model}))
+            resp = await provider_call(req.model_copy(update={"model": model}))
         except ProviderError as e:
             if not e.failover:
                 raise HTTPException(e.status, e.detail)
@@ -69,3 +71,17 @@ async def call_with_failover(
     if last_error:
         raise HTTPException(503, f"All providers failed. Last error: {last_error}")
     raise HTTPException(503, "No capable, healthy provider available")
+
+@traced("gate.provider", "llm")
+async def provider_call(req):
+    annotate(requested_model=req.model)
+    resp = await route(req)
+    # Pricing is observability only here: a lookup failure must not trigger failover.
+    try:
+        price = await price_of(req.model)
+        usage(req.model, resp.usage.input_tokens, resp.usage.output_tokens,
+              cost_usd(price, resp.usage.input_tokens, 0),
+              cost_usd(price, 0, resp.usage.output_tokens))
+    except Exception:
+        usage(req.model, resp.usage.input_tokens, resp.usage.output_tokens)
+    return resp

@@ -9,6 +9,8 @@ from fastapi import Depends, FastAPI, Header, HTTPException, Request, Response
 from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 
+from langsmith import tracing_context
+from app.tracing import traced, annotate, flush
 from app import cache, db
 from app.agents import add_run_cost, check_tools, review_tool_calls, start_step
 from app.audit import UsageEvent, record
@@ -32,6 +34,7 @@ log = logging.getLogger("gate")
 async def lifespan(app: FastAPI):
     await db.connect()
     yield
+    flush()
     await db.disconnect()
     await provider_http.close()
     await redis_client.aclose()
@@ -77,7 +80,21 @@ async def chat(
     response: Response,
     tenant: Tenant = Depends(get_tenant),
     x_agent_run_id: str | None = Header(default=None),
+    langsmith_trace: str | None = Header(default=None),
 ):
+    parent = {"langsmith-trace": langsmith_trace} if langsmith_trace and len(langsmith_trace) < 4096 else None
+    # Invalid external trace lineage must not reject an otherwise valid chat request.
+    try:
+        from langsmith.run_trees import RunTree
+        parent = RunTree.from_headers(parent) if parent else None
+    except (ValueError, TypeError):
+        parent = None
+    with tracing_context(parent=parent, metadata={"application": tenant.name, "tenant_id": tenant.id, "service": "gate", "cost_owner": False}):
+        return await traced_chat(req, response, tenant, x_agent_run_id)
+
+
+@traced("gate.request")
+async def traced_chat(req, response, tenant, x_agent_run_id):
     request_id = uuid.uuid4()
     response.headers["X-Request-ID"] = str(request_id)
     started = time.perf_counter()
@@ -211,4 +228,8 @@ async def chat(
             ev.routed_model, ev.cache_status, attempted, policy_actions, ev.tool_calls,
             ev.stop_reason, ev.status, ev.latency_ms, ev.cost_usd,
         )
+        annotate(request_id=str(request_id), status=ev.status, http_status=ev.http_status,
+                 latency_ms=ev.latency_ms, cache_status=ev.cache_status,
+                 attempted_models=attempted, requested_model=req.model,
+                 routed_model=ev.routed_model, cost_owner=False)
         await record(ev)
