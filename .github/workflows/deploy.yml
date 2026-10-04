@@ -81,7 +81,7 @@ jobs:
             "export HOME=/root",
             "aws s3 sync s3://\($b)/deploy/ /opt/gate/ --exact-timestamps --region \($region)",
             "aws ecr get-login-password --region \($region) | docker login --username AWS --password-stdin \($r)",
-            "cd /opt/gate/app && docker compose pull gateway && docker compose up -d gateway"
+            "cd /opt/gate/app && bash ./render-env.sh && docker compose pull gateway && docker compose up -d gateway"
           ]}')
           CMD=$(aws ssm send-command --instance-ids "$INSTANCE_ID" \
             --document-name AWS-RunShellScript --comment "gate deploy $TAG" \
