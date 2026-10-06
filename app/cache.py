@@ -3,7 +3,8 @@ import json
 import logging
 from dataclasses import dataclass
 
-from app import db
+from app import breaker, db
+from app.providers.http import ProviderError
 from app.embeddings import embed
 from app.schemas import ChatRequest, ChatResponse
 
@@ -53,11 +54,16 @@ async def lookup(tenant, req: ChatRequest) -> CacheLookup:
     if len(req.messages) != 1 or req.tools:
         return CacheLookup("skip")
 
+    if await breaker.is_open("openai"):
+        return CacheLookup("skip")
+
     try:
         values, tokens = await embed(req.messages[0].content)
         vector = _to_pgvector(values)
         row = await db.pool.fetchrow(LOOKUP_SQL, vector, tenant.id, _scope(tenant, req))
     except Exception as e:
+        if isinstance(e, ProviderError):
+            await breaker.record_failure(e.provider, fatal=e.fatal)
         log.warning("cache lookup failed, continuing without cache: %s: %s", type(e).__name__, e)
         return CacheLookup("error", error=f"{type(e).__name__}: {e}"[:160])
 
