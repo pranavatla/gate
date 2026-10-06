@@ -1,3 +1,4 @@
+import json
 from dataclasses import dataclass
 from decimal import Decimal
 
@@ -21,6 +22,22 @@ class Tenant:
     agent_id: int | None
     agent_name: str | None
     agent_policy: dict | None
+
+
+def _json_dict(value) -> dict | None:
+    if value is None or isinstance(value, dict):
+        return value
+    if isinstance(value, str):
+        parsed = json.loads(value)
+        return parsed if isinstance(parsed, dict) else {}
+    return {}
+
+
+def _tenant_from_row(row) -> Tenant:
+    data = dict(row)
+    data["policy"] = _json_dict(data.get("policy")) or {}
+    data["agent_policy"] = _json_dict(data.get("agent_policy"))
+    return Tenant(**data)
 
 
 async def get_tenant(authorization: str | None = Header(default=None)) -> Tenant:
@@ -48,7 +65,7 @@ async def get_tenant(authorization: str | None = Header(default=None)) -> Tenant
     if row is None:
         raise HTTPException(401, "Invalid or revoked API key")
 
-    return Tenant(**dict(row))
+    return _tenant_from_row(row)
 
 async def get_internal_tenant(name: str, key_prefix: str = "internal") -> Tenant:
     row = await db.pool.fetchrow(
