@@ -6,7 +6,7 @@ from decimal import Decimal
 from pathlib import Path
 
 from fastapi import Depends, FastAPI, Header, HTTPException, Request, Response
-from fastapi.responses import HTMLResponse, JSONResponse
+from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 
 from langsmith import tracing_context
@@ -24,6 +24,7 @@ from app.okf import get_context, router as okf_router
 from app.prompts import resolve as resolve_prompt
 from app.ratelimit import charge_tokens, check_before_call
 from app.stats import router as stats_router
+from app.stats_quality import router as quality_router
 from app.redis_conn import client as redis_client
 from app.schemas import ChatRequest, ChatResponse, Usage
 
@@ -44,10 +45,10 @@ async def lifespan(app: FastAPI):
 app = FastAPI(title="gate.atla.in", lifespan=lifespan)
 app.include_router(okf_router)
 app.include_router(stats_router)
+app.include_router(quality_router)
 app.mount("/static", StaticFiles(directory=Path(__file__).parent / "static"), name="static")
 
 LANDING_HTML = (Path(__file__).parent / "static" / "landing.html").read_text(encoding="utf-8")
-SHOWCASE_HTML = (Path(__file__).parent / "static" / "showcase.html").read_text(encoding="utf-8")
 ROOT_INFO = {
     "service": "gate.atla.in",
     "description": "Enterprise LLM gateway: one API in front of Anthropic, OpenAI, Gemini and Amazon Bedrock, with tenant keys, rate limits, budgets, failover, policy and audit.",
@@ -73,7 +74,8 @@ async def root(request: Request):
 
 @app.get("/showcase", include_in_schema=False)
 async def showcase():
-    return HTMLResponse(SHOWCASE_HTML, headers={"Cache-Control": "public, max-age=300"})
+    # The old standalone page now lives inside the home page (Part 2).
+    return RedirectResponse("/#part2-top", status_code=301)
 
 
 @app.get("/health")
