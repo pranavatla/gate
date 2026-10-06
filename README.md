@@ -1,6 +1,6 @@
 # gate.atla.in: an enterprise LLM gateway
 
-One API in front of **Anthropic, OpenAI, Google Gemini and Amazon Bedrock**, with the controls a platform team needs before letting applications near a model: per-tenant keys, rate limits, monthly budgets, failover, policy (PII, allow-lists, enforced instructions), agent governance, a semantic cache and a complete audit trail.
+One API in front of **Anthropic, OpenAI, Google Gemini and Amazon Bedrock**, with the controls a platform team needs before letting applications near a model: per-tenant keys, rate limits, monthly budgets, failover, policy (PII, allow-lists, enforced instructions), agent governance, a semantic cache, versioned prompts with staged rollout, feature flags, nightly quality evaluations and a complete audit trail.
 
 It runs in production at **https://gate.atla.in** on AWS, deployed with Terraform, and serves two real tenants:
 
@@ -19,6 +19,7 @@ Without one, every application holds its own provider keys, picks its own models
 |---|---|
 | Provider keys scattered across apps | Apps hold a **virtual key** (`gk_…`); provider keys live only in the gateway (AWS SSM) |
 | Four different APIs | One request and response shape for all providers |
+| Prompt changes shipped blind | A **prompt registry**: immutable versions, staged rollout to a few users, one-command rollback, and **nightly evals** that flag a regression before visitors see it |
 | Runaway spend | Per-tenant **RPM/TPM limits** and **monthly budgets**, with automatic downgrade or a hard stop |
 | Provider outages | **Fallback chains** with **circuit breakers** |
 | Personal data leaving the organisation | **PII redaction or blocking** before any provider sees the request |
@@ -46,7 +47,7 @@ flowchart LR
 **Every request passes the same pipeline:**
 
 ```
-key → contract → rate limit → policy → cache → budget → circuit breaker → provider (with fallback) → audit
+key → contract → rate limit → policy → prompt + flags → cache → budget → circuit breaker → provider (with fallback) → audit
 ```
 
 Measured overhead of the whole pipeline in production: **p50 4 ms** over the 7 days to 30 September 2026, from `GET /v1/stats` (the rest of each request is the provider generating).
@@ -63,10 +64,30 @@ Measured overhead of the whole pipeline in production: **p50 4 ms** over the 7 d
 | **Budgets** | Monthly budget per tenant. At a soft limit the tenant can be downgraded to a cheaper model; at 100%, `402` |
 | **Failover** | Per-model fallback chains in priority order. Breakers open after repeated failures and probe before closing. Failover never escapes a tenant's allow-list |
 | **Policy** | Per-tenant JSON: model allow-list, size cap, blocked phrases, PII mode (`redact`/`block`; email, card with Luhn check, Aadhaar, phone, PAN), token cap, enforced system instructions |
+| **Prompt registry** | Tenants send `prompt: "name"`. The gateway resolves the rollout for (tenant, name) to a stable or candidate version. The pick is sticky per `user_key` (bucket 0-99), so a user keeps one variant while a rollout runs. Rollout changes are seen within 15 s |
+| **Feature flags** | Named on/off switches with an optional percentage, global or per tenant (tenant wins). Never breaks a request: on a database problem it uses the last known values, then "off". Today's use: `cache_bypass` |
+| **OKF bundles** | Tenants upload a knowledge bundle (`POST /v1/okf/{bundle_id}`, 1 MB cap) and attach concepts to a request with `okf_bundle` and `okf_concepts` |
+| **Nightly evals** | See [Evals](#evals) below |
 | **Semantic cache** | pgvector cosine similarity, scoped by tenant, model and full system text (editing instructions invalidates old answers). Threshold 0.95 after a real false hit at 0.92 |
 | **Agents** | `ga_` keys, required run IDs, tool allow-lists, hallucinated tools dropped, human approval flags, per-run step and cost limits (fail closed) |
 | **Audit** | Append-only `usage_events` table (a trigger blocks updates and deletes). Every call that passes the key and contract checks, including blocks and failures, with a request ID returned to the caller. A bad key (401) or an invalid body (422) is refused before the pipeline and is not recorded |
-| **Observability** | Grafana dashboard provisioned from Git: calls, spend, error rate, governance blocks, latency split into provider time and gateway overhead, budgets, model mix, agent runs. Public aggregate totals at `GET /v1/stats` feed the [obs.atla.in](https://obs.atla.in) status page |
+| **Observability** | Grafana dashboard provisioned from Git: calls, spend, error rate, governance blocks, latency split into provider time and gateway overhead, budgets, model mix, agent runs. Public aggregate totals at `GET /v1/stats` feed the [obs.atla.in](https://obs.atla.in) status page; `GET /v1/stats/evals` (counts, scores and verdicts only) feeds the live dashboard on the home page |
+| **Tracing** | Optional LangSmith traces, metadata only (inputs and outputs are stripped). Enabled by `LANGSMITH_TRACING` |
+
+---
+
+## Evals
+
+A fixed set of questions runs through the gateway every night, so a prompt or model change that makes answers worse is caught by a schedule, not by a visitor.
+
+| Step | What happens |
+|---|---|
+| Cases | Hand-written (`python -m app.evalimport`, JSONL in `evals/`) or generated from an OKF bundle (`python -m app.evalgen`). Cases are immutable |
+| Run | `python -m app.evalrun <tenant>/<set> <route> [prompt@version]` sends every question through the gateway as the `evals` tenant (cache bypassed, own budget) |
+| Score | Rule checks (`contains`, `not_contains`, `max_words`...) plus an LLM judge against a reference answer. Score 0 to 1, pass at 0.7 |
+| Compare | `python -m app.evalcheck` compares with a baseline of recent good runs. **REGRESSION** if the score drops by more than the larger of 0.10 and twice the baseline's own spread; **NOISY_BASELINE** if the baseline can't be trusted. A regressed run never joins a baseline. Exit code 3 or 4 |
+| Schedule | A systemd timer on the host at 03:30 IST runs both chatbot sets (`facts-core`, `facts-guard-v2`) against the live prompt |
+| Alert | Grafana alerts on **Eval regression** and **Eval job silent** |
 
 ---
 
@@ -95,6 +116,7 @@ Measured overhead of the whole pipeline in production: **p50 4 ms** over the 7 d
 | IAM | Least-privilege instance role (its own SSM path, its own ECR repo, backups read and write but never delete) |
 | Backups | Nightly `pg_dump` to S3 (the host cannot delete backups), 30-day lifecycle, tested restores |
 | Infrastructure as code | Terraform with remote state in S3 and native locking |
+| Evals | `gate-eval.timer` runs the nightly eval and regression check; `gate-backup.timer` runs the backups |
 | Releases | Every push to `main` deploys through GitHub Actions: arm64 image build, ECR push, release tag committed to `compose.yaml`, gateway restart over SSM, health check. AWS access by OIDC, no stored keys |
 | Cost | About **$15/month**, under a $20 budget alarm |
 
@@ -114,12 +136,21 @@ app/                  Gateway (FastAPI)
   cache.py            Semantic cache
   agents.py           Agent governance
   admin.py            Admin CLI: tenants, keys, agents
-db/                   Numbered migrations and seed files (limits, policies, prices)
+  prompts.py          Prompt registry, sticky staged rollout
+  flags.py            Feature flags
+  okf.py              OKF bundle upload and context
+  evalrun.py          Run an eval set (also evalimport, evalgen, scorers)
+  evalcheck.py        Baseline comparison and regression verdict
+  stats.py            Public GET /v1/stats (stats_quality.py: /v1/stats/evals)
+  tracing.py          Metadata-only LangSmith tracing
+  static/landing.html Home page (served to browsers; JSON to API clients)
+db/                   Numbered migrations (001 to 016) and seed files (limits, policies, prices)
 deploy/               Production Compose stack, Caddy, secrets rendering, backups, publish script
 infra/terraform/      AWS infrastructure, including the GitHub Actions deploy role
 .github/workflows/    Push-to-deploy pipeline
-infra/grafana/        Dashboard and provisioning
+infra/grafana/        Overview and evals dashboards, alerting rules
 examples/atla-chatbot Reference tenant: grounded chatbot (Lambda + Terraform + facts file)
+evals/                Eval case sets (JSONL)
 tools/agent_demo.py   A real agent loop with human approval
 docs/                 Onboarding guide, secrets runbook
 ```
@@ -127,6 +158,8 @@ docs/                 Onboarding guide, secrets runbook
 ---
 
 ## Using it
+
+Open **https://gate.atla.in** in a browser for the live site; the same URL returns JSON to API clients (or add `?format=json`).
 
 A tenant call:
 
