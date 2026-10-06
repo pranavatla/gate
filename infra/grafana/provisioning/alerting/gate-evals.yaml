@@ -29,9 +29,8 @@ groups:
               rawQuery: true
               rawSql: >-
                 SELECT count(*)::float8 AS value FROM (
-                  SELECT verdict FROM dash_evals
-                  WHERE eval_set = 'facts-core'
-                  ORDER BY started_at DESC LIMIT 1
+                  SELECT DISTINCT ON (eval_set) eval_set, verdict FROM dash_evals
+                  ORDER BY eval_set, started_at DESC
                 ) latest
                 WHERE verdict IN ('REGRESSION', 'NOISY_BASELINE')
           - refId: B
