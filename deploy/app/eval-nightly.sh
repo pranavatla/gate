@@ -1,9 +1,11 @@
 #!/bin/bash
 set -uo pipefail
 
-SETS="atla-chatbot/facts-core atla-chatbot/facts-guard-v2"
 ROUTE="bedrock/global.amazon.nova-2-lite-v1:0"
-PROMPT="atla-chatbot@6"
+# set|prompt pairs. gate-chatbot@live = the page chatbot's exact production instructions and facts.
+JOBS="atla-chatbot/facts-core|atla-chatbot@6
+atla-chatbot/facts-guard-v2|atla-chatbot@6
+gate-chatbot/gate-page-v1|gate-chatbot@live"
 
 cd /opt/gate/app
 
@@ -14,13 +16,16 @@ export EVAL_GATE_KEY
 
 RUN="docker compose exec -T -e EVAL_GATE_KEY -e GATE_URL=http://localhost:8000 gateway python -m app"
 
+# Cases are immutable and the import skips existing ones, so this is safe every night.
+$RUN.evalimport gate-chatbot/gate-page-v1 evals/gate-page-v1.jsonl || echo "warning: could not import gate-page-v1"
+
 FAILED=0
-for SET in $SETS; do
-  echo "=== $SET ==="
+while IFS='|' read -r SET PROMPT; do
+  echo "=== $SET ($PROMPT) ==="
   if $RUN.evalrun "$SET" "$ROUTE" "$PROMPT"; then
     $RUN.evalcheck latest || FAILED=1
   else
     FAILED=1
   fi
-done
+done <<< "$JOBS"
 exit $FAILED

@@ -7,6 +7,7 @@ Two kinds of scoring, combined into one score from 0 to 1:
 Self-test (no network):   python -m app.scorers
 Live judge sanity check:  python -m app.scorers live
 """
+import asyncio
 import json
 import os
 import re
@@ -19,6 +20,7 @@ GATE_URL = os.getenv("GATE_URL", "http://127.0.0.1:8000")
 GATE_KEY = os.getenv("EVAL_GATE_KEY", "")
 JUDGE_MODEL = os.getenv("EVAL_JUDGE_MODEL", "anthropic/claude-haiku-4-5-20251001")
 PASS_THRESHOLD = 0.7
+JUDGE_ATTEMPTS = 6   # the eval tenant shares one rate limit with the answers being graded
 
 JUDGE_SYSTEM = (
     "You grade answers for a test. You receive a question, a reference answer that is "
@@ -83,13 +85,22 @@ async def judge(client: httpx.AsyncClient, question: str, reference: str, answer
         f"<candidate_answer>\n{answer}\n</candidate_answer>"
     )
     try:
-        resp = await client.post(
-            f"{GATE_URL}/v1/chat",
-            headers={"Authorization": f"Bearer {GATE_KEY}"},
-            json={"model": JUDGE_MODEL, "system": JUDGE_SYSTEM, "max_tokens": 200,
-                  "temperature": 0, "messages": [{"role": "user", "content": content}]},
-            timeout=60,
-        )
+        for attempt in range(JUDGE_ATTEMPTS):
+            resp = await client.post(
+                f"{GATE_URL}/v1/chat",
+                headers={"Authorization": f"Bearer {GATE_KEY}"},
+                json={"model": JUDGE_MODEL, "system": JUDGE_SYSTEM, "max_tokens": 200,
+                      "temperature": 0, "messages": [{"role": "user", "content": content}]},
+                timeout=60,
+            )
+            if resp.status_code == 429 and attempt < JUDGE_ATTEMPTS - 1:
+                try:
+                    wait = float(resp.headers.get("retry-after", ""))
+                except ValueError:
+                    wait = 2.0 * (attempt + 1)
+                await asyncio.sleep(min(30.0, max(1.0, wait)))
+                continue
+            break
         resp.raise_for_status()
     except httpx.HTTPError as e:
         raise JudgeError(f"judge call failed: {e}") from e
