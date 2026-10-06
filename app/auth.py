@@ -49,3 +49,19 @@ async def get_tenant(authorization: str | None = Header(default=None)) -> Tenant
         raise HTTPException(401, "Invalid or revoked API key")
 
     return Tenant(**dict(row))
+
+async def get_internal_tenant(name: str, key_prefix: str = "internal") -> Tenant:
+    row = await db.pool.fetchrow(
+        """
+        SELECT t.id, t.name, $2::text AS key_prefix, t.rpm_limit, t.tpm_limit,
+               t.monthly_budget_usd, t.soft_limit_pct, t.downgrade_model, t.policy,
+               NULL::integer AS agent_id, NULL::text AS agent_name, NULL::jsonb AS agent_policy
+        FROM tenants t
+        WHERE t.name = $1
+          AND t.is_active
+        """,
+        name, key_prefix,
+    )
+    if row is None:
+        raise HTTPException(503, f"Tenant '{name}' is not configured")
+    return Tenant(**dict(row))
