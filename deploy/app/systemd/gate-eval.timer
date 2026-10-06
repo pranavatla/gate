@@ -1,0 +1,10 @@
+[Unit]
+Description=Run the gate eval check daily at 03:30 IST
+
+[Timer]
+OnCalendar=*-*-* 22:00:00 UTC
+Persistent=true
+RandomizedDelaySec=300
+
+[Install]
+WantedBy=timers.target
