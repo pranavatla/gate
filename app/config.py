@@ -21,4 +21,4 @@ RATELIMIT_FAIL_OPEN = os.getenv("RATELIMIT_FAIL_OPEN", "true") == "true"
 BEDROCK_API_KEY = os.getenv("BEDROCK_API_KEY", "")
 BEDROCK_REGION = os.getenv("BEDROCK_REGION", "ap-south-1")
 GATE_CHATBOT_TENANT = os.getenv("GATE_CHATBOT_TENANT", "gate-chatbot")
-GATE_CHATBOT_MODEL = os.getenv("GATE_CHATBOT_MODEL", "anthropic/claude-sonnet-4-5-20250929")
+GATE_CHATBOT_MODEL = os.getenv("GATE_CHATBOT_MODEL", "bedrock/global.amazon.nova-2-lite-v1:0")

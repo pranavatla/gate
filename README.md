@@ -8,7 +8,7 @@ It runs in production at **https://gate.atla.in** on AWS, deployed with Terrafor
 |---|---|---|
 | [gita.atla.in](https://gita.atla.in) | RAG app on Amazon EKS answering life questions with Bhagavad Gita verses | 3 model calls per question on Bedrock (Nova 2 Lite), strict JSON, 25-case evaluation in CI |
 | [atla.in](https://atla.in) chatbot | Public portfolio assistant | Browser → Lambda → gateway; grounded in approved facts, PII blocked, $1/month hard stop, cached |
-| [gate.atla.in](https://gate.atla.in) page chatbot | Public explainer for the gateway page itself | Browser -> same-origin proxy -> gateway as `gate-chatbot`; Sonnet-only, no browser key, PII blocked, $3/month hard stop, live safe telemetry |
+| [gate.atla.in](https://gate.atla.in) page chatbot | Public explainer for the gateway page itself | Browser -> same-origin proxy -> gateway as `gate-chatbot`; onboarding-sized limits, no browser key, PII blocked, $1/month hard stop, live safe telemetry |
 
 ---
 
