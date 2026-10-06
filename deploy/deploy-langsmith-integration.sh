@@ -44,8 +44,20 @@ check_requirements() {
 deploy_db_migration() {
     log_info "Step 1: Deploying database migration..."
 
-    psql "$GATE_DB_URL" < "$REPO_ROOT/db/018_langsmith_integration.sql" || \
-        log_error "Database migration failed"
+    # Copy migration file to production host and run via Docker Compose
+    ssh "root@$GATE_HOST" bash <<'EOF'
+set -euo pipefail
+
+GATE_DIR="${GATE_DIR:-/opt/gate}"
+cd "$GATE_DIR"
+
+# Run migration via docker-compose exec against the running postgres container
+docker compose -f deploy/app/compose.yaml exec -T gate-postgres psql -U gate -d gate << 'SQL'
+$(cat db/018_langsmith_integration.sql)
+SQL
+
+echo "Database migration deployed"
+EOF
 
     log_info "Database migration deployed successfully"
 }
