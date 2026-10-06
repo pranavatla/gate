@@ -79,6 +79,7 @@
 
   async function ask(question) {
     addMessage("user", question);
+    suggestions.hidden = true;
     submit.disabled = true;
     const pending = addMessage("assistant", "Routing through the gate-chatbot tenant...");
     try {
