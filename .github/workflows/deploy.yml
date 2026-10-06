@@ -10,7 +10,7 @@ on:
     paths-ignore:
       - "**.md"
       - "docs/**"
-      - "infra/**"
+      - "infra/terraform/**"
       - "examples/**"
       - ".gitignore"
   workflow_dispatch:
