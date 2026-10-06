@@ -98,7 +98,7 @@
         return;
       }
       pending.textContent = data.answer || "No answer returned.";
-      addMessage("meta", "Audit: " + (data.routed_model || "model unknown") + " | cache " + (data.cache || "n/a") + " | budget " + (data.budget_used_pct || "0") + "% | request " + (data.request_id || "n/a"));
+      addMessage("meta", "Audit: " + (data.routed_model || "model unknown") + " | cache " + (data.cache || "n/a") + (data.cache_error ? " (" + data.cache_error + ")" : "") + " | budget " + (data.budget_used_pct || "0") + "% | request " + (data.request_id || "n/a"));
       await refreshStats();
     } catch (_) {
       pending.textContent = "The page could not reach the chatbot endpoint.";

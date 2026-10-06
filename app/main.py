@@ -241,6 +241,8 @@ async def traced_chat(req, response, tenant, x_agent_run_id):
         log.info("timing cache_lookup_ms=%d", (time.perf_counter() - t0) * 1000)
         ev.cache_status = cached.status
         response.headers["X-Gate-Cache"] = cached.status
+        if cached.error:
+            response.headers["X-Gate-Cache-Error"] = cached.error.encode("ascii", "replace").decode().replace("\n", " ")
         if cached.similarity is not None:
             response.headers["X-Gate-Cache-Similarity"] = f"{cached.similarity:.4f}"
         embed_cost = await embedding_cost(cached.embed_tokens)
@@ -374,6 +376,7 @@ async def landing_chat(req: LandingChatRequest):
             "request_id": headers.get("X-Request-ID"),
             "routed_model": headers.get("X-Gate-Routed-Model") or result.model,
             "cache": headers.get("X-Gate-Cache"),
+            "cache_error": headers.get("X-Gate-Cache-Error"),
             "fallback": headers.get("X-Gate-Fallback"),
             "budget_used_pct": headers.get("X-Gate-Budget-Used-Pct"),
             "usage": result.usage.model_dump(),
