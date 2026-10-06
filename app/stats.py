@@ -186,7 +186,7 @@ async def collect_chatbot(now: datetime | None = None) -> dict:
             "cache_hits": totals["cache_hits"],
             "cache_lookups": totals["cache_lookups"],
             "cost_usd": round(float(totals["cost_7d"] or 0), 6),
-            "last_call_at": iso(totals["last_call_at"]),
+            "last_call_at": iso(totals["last_call_at"]) if totals["last_call_at"] else None,
             "latency_ms_p50": _num(totals["latency_ms_p50"]),
         },
         "recent": [_safe_event(r) for r in recent],
