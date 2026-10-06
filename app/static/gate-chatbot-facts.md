@@ -49,7 +49,7 @@
 - Downgrade model: a cheaper model the gateway can switch to after the soft budget limit. The gate-chatbot tenant downgrades to OpenAI nano at the soft limit.
 - Fallback: trying another allowed model when the primary route fails. Fallback never escapes the tenant allow-list.
 - Circuit breaker: a protection that temporarily stops calls to a failing model and probes before restoring it.
-- Semantic cache: a cache that can reuse prior answers when the new request is sufficiently similar and scoped to the same tenant, model, and system text.
+- Semantic cache: a cache that can reuse prior answers when the new request is sufficiently similar and scoped to the same tenant, model, and instruction text.
 - Audit log: append-only metadata about gateway calls, including model, status, tokens, cost, latency, cache state, and policy actions. It excludes prompt and response content.
 - Prompt registry: a versioned prompt system with stable and candidate versions, sticky rollout, and rollback.
 - Feature flag: a named switch that can enable or disable behavior globally or per tenant.
