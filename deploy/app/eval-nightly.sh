@@ -1,9 +1,9 @@
 #!/bin/bash
 set -uo pipefail
 
-SETS="atla-chatbot/facts-core atla-chatbot/facts-guard"
+SETS="atla-chatbot/facts-core atla-chatbot/facts-guard-v2"
 ROUTE="bedrock/global.amazon.nova-2-lite-v1:0"
-PROMPT="atla-chatbot@1"
+PROMPT="atla-chatbot@6"
 
 cd /opt/gate/app
 
