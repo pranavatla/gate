@@ -37,7 +37,7 @@ services:
           memory: 96m
 
   gateway:
-    image: 361739112666.dkr.ecr.ap-south-1.amazonaws.com/gate:1ca5816
+    image: 361739112666.dkr.ecr.ap-south-1.amazonaws.com/gate:f35f502
     restart: unless-stopped
     environment:
       ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY}
