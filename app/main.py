@@ -47,6 +47,7 @@ app.include_router(stats_router)
 app.mount("/static", StaticFiles(directory=Path(__file__).parent / "static"), name="static")
 
 LANDING_HTML = (Path(__file__).parent / "static" / "landing.html").read_text(encoding="utf-8")
+SHOWCASE_HTML = (Path(__file__).parent / "static" / "showcase.html").read_text(encoding="utf-8")
 ROOT_INFO = {
     "service": "gate.atla.in",
     "description": "Enterprise LLM gateway: one API in front of Anthropic, OpenAI, Gemini and Amazon Bedrock, with tenant keys, rate limits, budgets, failover, policy and audit.",
@@ -68,6 +69,11 @@ async def root(request: Request):
     if "text/html" in request.headers.get("accept", "") and request.query_params.get("format") != "json":
         return HTMLResponse(LANDING_HTML, headers={"Cache-Control": "public, max-age=300", "Vary": "Accept"})
     return JSONResponse(ROOT_INFO, headers={"Vary": "Accept"})
+
+
+@app.get("/showcase", include_in_schema=False)
+async def showcase():
+    return HTMLResponse(SHOWCASE_HTML, headers={"Cache-Control": "public, max-age=300"})
 
 
 @app.get("/health")
