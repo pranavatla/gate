@@ -143,6 +143,8 @@ async def main(which: str = "latest"):
         sys.exit(3)
     if verdict == "NOISY_BASELINE":
         sys.exit(4)
+    if verdict == "UNRELIABLE":
+        sys.exit(5)
 
 
 if __name__ == "__main__":
