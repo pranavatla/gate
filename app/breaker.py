@@ -23,6 +23,14 @@ async def allow(provider: str) -> bool:
         return True
 
 
+async def is_open(provider: str) -> bool:
+    """Read-only: True while the circuit is open. Unlike allow(), never takes a half-open probe slot."""
+    try:
+        return bool(await client.exists(f"cb:{provider}:open"))
+    except RedisError:
+        return False
+
+
 async def record_success(provider: str):
     try:
         await client.delete(f"cb:{provider}:fails", f"cb:{provider}:tripped", f"cb:{provider}:probe")
