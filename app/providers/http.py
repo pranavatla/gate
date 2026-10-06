@@ -22,6 +22,10 @@ class ProviderError(Exception):
             or "insufficient_quota" in low
             or "credit_balance" in low
             or "credit balance" in low
+            or "no credits" in low
+            or "credits are depleted" in low
+            or "exceeded your current quota" in low
+            or "billing details" in low
         )
         self.failover = self.fatal or status in FAILOVER_STATUSES
 

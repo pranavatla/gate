@@ -35,7 +35,11 @@ logging.basicConfig(level=logging.INFO)
 log = logging.getLogger("gate")
 
 DEFAULT_GATE_CHATBOT_MODEL = "bedrock/global.amazon.nova-2-lite-v1:0"
-GATE_CHATBOT_FALLBACK_MODELS = ["gemini/gemini-3.5-flash-lite", "openai/gpt-4.1-nano"]
+GATE_CHATBOT_FALLBACK_MODELS = [
+    "gemini/gemini-3.5-flash-lite",
+    "openai/gpt-4.1-nano",
+    "anthropic/claude-haiku-4-5-20251001",
+]
 GATE_CHATBOT_DOWNGRADE_MODEL = "openai/gpt-4.1-nano"
 # Runtime facts must avoid tenant blocked terms.
 GATE_CHATBOT_FACTS = (Path(__file__).parent / "static" / "gate-chatbot-facts.md").read_text(encoding="utf-8")
@@ -108,6 +112,13 @@ async def ensure_gate_chatbot_tenant():
             json.dumps(policy),
             GATE_CHATBOT_DOWNGRADE_MODEL,
         )
+        # Failover order after the primary: first healthy provider wins (see failover.py / breaker.py).
+        for priority, fallback in enumerate(GATE_CHATBOT_FALLBACK_MODELS, start=1):
+            await conn.execute(
+                "INSERT INTO fallback_routes (primary_model, priority, fallback_model) VALUES ($1, $2, $3) "
+                "ON CONFLICT (primary_model, priority) DO NOTHING",
+                full_model, priority, fallback,
+            )
 
 
 
