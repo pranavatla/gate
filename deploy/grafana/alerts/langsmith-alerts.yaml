@@ -1,0 +1,107 @@
+# Grafana alert rules that link to LangSmith traces
+# These rules fire on gateway/LangSmith anomalies and include links to the actual traces
+
+apiVersion: 1
+groups:
+  - orgId: 1
+    name: LangSmith Integration
+    folder: Alerts
+    interval: 1m
+    rules:
+      - uid: langsmith_high_latency
+        title: "High LangSmith Latency"
+        condition: A
+        data:
+          - refId: A
+            queryType: sql
+            datasourceUid: postgres-uid
+            model:
+              rawSql: |
+                SELECT
+                  created_at,
+                  ls_model_name,
+                  AVG(latency_ms) as latency
+                FROM langsmith_traces
+                WHERE created_at > now() - interval '5m'
+                GROUP BY created_at, ls_model_name
+                HAVING AVG(latency_ms) > 5000
+              format: table
+        noDataState: NoData
+        execErrState: Alerting
+        for: 5m
+        annotations:
+          summary: "LangSmith latency spike detected"
+          description: "{{ $labels.ls_model_name }} averaging {{ $value }}ms latency"
+          runbook_url: "https://wiki.example.com/runbooks/langsmith-latency"
+          trace_link: "{{ $labels.ls_run_id }}"
+        labels:
+          severity: warning
+          component: langsmith
+
+      - uid: langsmith_high_error_rate
+        title: "High LangSmith Error Rate"
+        condition: A
+        data:
+          - refId: A
+            queryType: sql
+            datasourceUid: postgres-uid
+            model:
+              rawSql: |
+                SELECT
+                  created_at,
+                  ls_model_name,
+                  100.0 * COUNT(CASE WHEN status != 'success' THEN 1 END) / COUNT(*) as error_rate
+                FROM langsmith_traces
+                WHERE created_at > now() - interval '5m'
+                GROUP BY created_at, ls_model_name
+                HAVING COUNT(*) >= 10 AND 100.0 * COUNT(CASE WHEN status != 'success' THEN 1 END) / COUNT(*) > 10
+              format: table
+        noDataState: NoData
+        execErrState: Alerting
+        for: 2m
+        annotations:
+          summary: "LangSmith error rate elevated"
+          description: "{{ $labels.ls_model_name }} error rate: {{ $value }}%"
+          runbook_url: "https://wiki.example.com/runbooks/langsmith-errors"
+        labels:
+          severity: critical
+          component: langsmith
+
+      - uid: gateway_vs_langsmith_mismatch
+        title: "Gateway & LangSmith Mismatch"
+        condition: A
+        data:
+          - refId: A
+            queryType: sql
+            datasourceUid: postgres-uid
+            model:
+              rawSql: |
+                SELECT
+                  t.request_id,
+                  t.ls_model_name,
+                  t.created_at,
+                  COALESCE(u.gateway_status, 'MISSING') as gateway_status,
+                  COALESCE(u.http_status, 0) as http_status
+                FROM langsmith_traces t
+                LEFT JOIN dash_traces u ON u.request_id = t.request_id
+                WHERE t.created_at > now() - interval '1h'
+                  AND (u.request_id IS NULL OR u.gateway_status != 'ok')
+              format: table
+        noDataState: OK
+        execErrState: OK
+        for: 1m
+        annotations:
+          summary: "LangSmith trace has no matching gateway record"
+          description: "Request {{ $labels.request_id }} recorded in LangSmith but missing from gateway audit"
+          dashboard_link: "/d/langsmith-traces"
+        labels:
+          severity: info
+          component: integration
+
+# Configure this in Grafana:
+# 1. Go to Alerting → Contact points
+# 2. Add a custom webhook or use existing notification channel
+# 3. In message template, include:
+#    - {{if .Alerts.Firing}}
+#      View trace: https://your-langsmith.cloud/traces/{{ .Alerts.Firing.0.Labels.ls_run_id }}
+#      {{end}}
