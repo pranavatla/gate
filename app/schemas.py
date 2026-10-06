@@ -32,6 +32,8 @@ class ChatRequest(BaseModel):
     tools: list[Tool] = []
     okf_bundle: str | None = Field(default=None, pattern=r"^[a-zA-Z0-9_-]{1,64}$")
     okf_concepts: list[str] = Field(default=[], max_length=20)
+    prompt: str | None = Field(default=None, pattern=r"^[a-zA-Z0-9_-]{1,64}$")
+    user_key: str | None = Field(default=None, max_length=128)
 
 
 class Usage(BaseModel):

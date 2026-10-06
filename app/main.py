@@ -11,7 +11,7 @@ from fastapi.staticfiles import StaticFiles
 
 from langsmith import tracing_context
 from app.tracing import traced, annotate, flush
-from app import cache, db
+from app import cache, db, flags
 from app.agents import add_run_cost, check_tools, review_tool_calls, start_step
 from app.audit import UsageEvent, record
 from app.auth import Tenant, get_tenant
@@ -21,6 +21,7 @@ from app.failover import call_with_failover
 from app.policy import apply_policy
 from app.providers import http as provider_http
 from app.okf import get_context, router as okf_router
+from app.prompts import resolve as resolve_prompt
 from app.ratelimit import charge_tokens, check_before_call
 from app.stats import router as stats_router
 from app.redis_conn import client as redis_client
@@ -100,6 +101,7 @@ async def traced_chat(req, response, tenant, x_agent_run_id):
     started = time.perf_counter()
     attempted: list[str] = []
     policy_actions: list[str] = []
+    prompt_header: str | None = None
 
     ev = UsageEvent(
         request_id=request_id,
@@ -128,13 +130,26 @@ async def traced_chat(req, response, tenant, x_agent_run_id):
             policy_actions.append("okf_context_attached")
         elif req.okf_concepts:
             raise HTTPException(400, "okf_concepts requires okf_bundle")
+
+        if req.prompt:
+            rp = await resolve_prompt(tenant.id, req.prompt, req.user_key or str(request_id))
+            req = req.model_copy(update={
+                "system": "\n\n".join(filter(None, [rp.body, req.system])),
+            })
+            ev.prompt_name, ev.prompt_version = rp.name, rp.version
+            policy_actions.append(f"prompt:{rp.name}@v{rp.version}:{rp.variant}")
+            prompt_header = f"{rp.name}@v{rp.version}:{rp.variant}"
+
         pol = apply_policy(tenant, req, policy_actions)
         check_tools(tenant, pol.request, policy_actions)
         await start_step(tenant, x_agent_run_id, policy_actions)
 
         stage = "cache"
         t0 = time.perf_counter()
-        cached = await cache.lookup(tenant, pol.request)
+        if await flags.is_on(tenant.id, "cache_bypass", req.user_key or str(request_id)):
+            cached = cache.CacheLookup("bypass")
+        else:
+            cached = await cache.lookup(tenant, pol.request)
         log.info("timing cache_lookup_ms=%d", (time.perf_counter() - t0) * 1000)
         ev.cache_status = cached.status
         response.headers["X-Gate-Cache"] = cached.status
@@ -152,6 +167,8 @@ async def traced_chat(req, response, tenant, x_agent_run_id):
             ev.cost_usd = embed_cost
             if policy_actions:
                 response.headers["X-Gate-Policy"] = ",".join(policy_actions)
+            if prompt_header:
+                response.headers["X-Gate-Prompt"] = prompt_header
             return cached.response.model_copy(
                 update={"usage": Usage(input_tokens=0, output_tokens=0)}
             )
@@ -201,6 +218,8 @@ async def traced_chat(req, response, tenant, x_agent_run_id):
 
         if policy_actions:
             response.headers["X-Gate-Policy"] = ",".join(policy_actions)
+        if prompt_header:
+            response.headers["X-Gate-Prompt"] = prompt_header
         return resp
 
     except HTTPException as e:
