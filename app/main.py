@@ -37,6 +37,7 @@ log = logging.getLogger("gate")
 DEFAULT_GATE_CHATBOT_MODEL = "bedrock/global.amazon.nova-2-lite-v1:0"
 GATE_CHATBOT_FALLBACK_MODELS = ["gemini/gemini-3.5-flash-lite", "openai/gpt-4.1-nano"]
 GATE_CHATBOT_DOWNGRADE_MODEL = "openai/gpt-4.1-nano"
+# Runtime facts must avoid tenant blocked terms.
 GATE_CHATBOT_FACTS = (Path(__file__).parent / "static" / "gate-chatbot-facts.md").read_text(encoding="utf-8")
 GATE_CHATBOT_SYSTEM = (
     "You are the page explainer chatbot for gate.atla.in. Answer only about this page, "
