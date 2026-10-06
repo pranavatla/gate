@@ -1,0 +1,16 @@
+[Unit]
+Description=Gate LangSmith Trace Synchronization
+Documentation=https://github.com/pranavatla/gate
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=gate
+WorkingDirectory=/opt/gate
+Environment="PATH=/opt/gate/venv/bin:/usr/local/bin:/usr/bin"
+EnvironmentFile=/etc/gate/env
+ExecStart=/opt/gate/venv/bin/python tools/sync_langsmith_traces.py --since 10
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=gate-langsmith-sync
