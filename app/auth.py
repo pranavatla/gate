@@ -81,4 +81,4 @@ async def get_internal_tenant(name: str, key_prefix: str = "internal") -> Tenant
     )
     if row is None:
         raise HTTPException(503, f"Tenant '{name}' is not configured")
-    return Tenant(**dict(row))
+    return _tenant_from_row(row)
