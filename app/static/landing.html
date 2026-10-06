@@ -3,12 +3,13 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
 <title>Gateway.atla.in · Enterprise LLM gateway</title>
 <meta name="description" content="One API in front of Anthropic, OpenAI, Gemini and Amazon Bedrock, with tenant keys, rate limits, budgets, failover, policy, agent governance and audit. Live in production on AWS.">
 <meta property="og:title" content="Gateway.atla.in · Enterprise LLM gateway">
 <meta property="og:description" content="One front door for every AI model: keys, limits, budgets, failover, PII policy, agent governance and a full audit trail.">
 <meta name="theme-color" content="#07110f">
-<script>document.documentElement.className+=' js'</script>
+<script>document.documentElement.className+=' js';try{document.documentElement.dataset.theme=localStorage.getItem('gate-theme')||(matchMedia('(prefers-color-scheme: light)').matches?'light':'dark')}catch(e){}</script>
 <style>
 :root{
   --bg:#07110f; --panel:#0d1815; --panel2:#12211d; --line:#21342f; --text:#ecf8f3; --muted:#91a79f;
@@ -312,7 +313,7 @@ nav .links a{display:inline-block;padding:12px 4px;white-space:nowrap}
 .bs summary{cursor:pointer;padding:13px 16px;font-weight:600;list-style:none;display:flex;align-items:center;gap:10px}
 .bs summary::-webkit-details-marker{display:none}
 .bs summary:before{content:"+";font-family:var(--mono);color:var(--cyan);width:14px;display:inline-block}
-.bs details[open] summary:before{content:"–"}
+.bs details[open] summary:before{content:"-"}
 .bs details .body{padding:0 16px 14px;color:var(--muted);font-size:15px}
 .bs details .body p{margin:8px 0}
 .bs details .body ul{margin:8px 0;padding-left:20px}
@@ -500,25 +501,94 @@ nav .links a{display:inline-block;padding:12px 4px;white-space:nowrap}
 .bs .scroll-x:focus-visible,.bs .b-term:focus-visible{outline:2px solid var(--cyan)}
 
 </style>
+<link rel="stylesheet" href="/static/landing-refinement.css">
 </head>
 <body>
 <div class="grid-bg" aria-hidden="true"></div>
 
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
   <defs>
-    <symbol id="i-api" viewBox="0 0 24 24"><path d="M12 3 3 8l9 5 9-5-9-5Z"/><path d="m3 13 9 5 9-5"/></symbol>
-    <symbol id="i-key" viewBox="0 0 24 24"><circle cx="8" cy="15" r="4"/><path d="m11 12 8-8m-3 3 3 3"/></symbol>
-    <symbol id="i-gauge" viewBox="0 0 24 24"><path d="M4 16a8 8 0 1 1 16 0"/><path d="m12 16 4-5"/></symbol>
-    <symbol id="i-wallet" viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="13" rx="2"/><path d="M3 10h18"/><circle cx="16.5" cy="14.5" r="1"/></symbol>
-    <symbol id="i-swap" viewBox="0 0 24 24"><path d="M4 8h13"/><path d="m14 4 4 4-4 4"/><path d="M20 16H7"/><path d="m10 12-4 4 4 4"/></symbol>
-    <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 3 5 6v6c0 4.5 3 7.5 7 9 4-1.5 7-4.5 7-9V6l-7-3Z"/><path d="m9 12 2 2 4-4"/></symbol>
-    <symbol id="i-db" viewBox="0 0 24 24"><ellipse cx="12" cy="6" rx="7" ry="3"/><path d="M5 6v6c0 1.7 3.1 3 7 3s7-1.3 7-3V6"/><path d="M5 12v6c0 1.7 3.1 3 7 3s7-1.3 7-3v-6"/></symbol>
-    <symbol id="i-bot" viewBox="0 0 24 24"><rect x="5" y="8" width="14" height="10" rx="3"/><path d="M12 8V4"/><circle cx="9.5" cy="13" r="1"/><circle cx="14.5" cy="13" r="1"/></symbol>
-    <symbol id="i-log" viewBox="0 0 24 24"><path d="M6 3h9l3 3v15H6Z"/><path d="M9 11h6M9 15h6"/></symbol>
-    <symbol id="i-chart" viewBox="0 0 24 24"><path d="M4 20V4"/><path d="M4 20h16"/><path d="m7 15 4-4 3 3 5-6"/></symbol>
-    <symbol id="i-cloud" viewBox="0 0 24 24"><path d="M7 18a4 4 0 0 1-.5-8A5.5 5.5 0 0 1 17 8.5 4 4 0 0 1 17 18H7Z"/></symbol>
-    <symbol id="i-lock" viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></symbol>
-    <symbol id="i-restore" viewBox="0 0 24 24"><path d="M4 12a8 8 0 1 0 3-6.2"/><path d="M4 4v4h4"/><path d="M12 8v4l3 2"/></symbol>
+    <symbol id="i-api" viewBox="0 0 24 24">
+  <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+  <path d="M4 13h5" />
+  <path d="M12 16v-8h3a2 2 0 0 1 2 2v1a2 2 0 0 1 -2 2h-3" />
+  <path d="M20 8v8" />
+  <path d="M9 16v-5.5a2.5 2.5 0 0 0 -5 0v5.5" />
+</symbol>
+    <symbol id="i-key" viewBox="0 0 24 24">
+  <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+  <path d="M16.555 3.843l3.602 3.602a2.877 2.877 0 0 1 0 4.069l-2.643 2.643a2.877 2.877 0 0 1 -4.069 0l-.301 -.301l-6.558 6.558a2 2 0 0 1 -1.239 .578l-.175 .008h-1.172a1 1 0 0 1 -.993 -.883l-.007 -.117v-1.172a2 2 0 0 1 .467 -1.284l.119 -.13l.414 -.414h2v-2h2v-2l2.144 -2.144l-.301 -.301a2.877 2.877 0 0 1 0 -4.069l2.643 -2.643a2.877 2.877 0 0 1 4.069 0" />
+  <path d="M15 9h.01" />
+</symbol>
+    <symbol id="i-gauge" viewBox="0 0 24 24">
+  <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+  <path d="M3 12a9 9 0 1 0 18 0a9 9 0 1 0 -18 0" />
+  <path d="M11 12a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" />
+  <path d="M13.41 10.59l2.59 -2.59" />
+  <path d="M7 12a5 5 0 0 1 5 -5" />
+</symbol>
+    <symbol id="i-wallet" viewBox="0 0 24 24">
+  <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+  <path d="M17 8v-3a1 1 0 0 0 -1 -1h-10a2 2 0 0 0 0 4h12a1 1 0 0 1 1 1v3m0 4v3a1 1 0 0 1 -1 1h-12a2 2 0 0 1 -2 -2v-12" />
+  <path d="M20 12v4h-4a2 2 0 0 1 0 -4h4" />
+</symbol>
+    <symbol id="i-swap" viewBox="0 0 24 24">
+  <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+  <path d="M7 10h14l-4 -4" />
+  <path d="M17 14h-14l4 4" />
+</symbol>
+    <symbol id="i-shield" viewBox="0 0 24 24">
+  <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+  <path d="M11.46 20.846a12 12 0 0 1 -7.96 -14.846a12 12 0 0 0 8.5 -3a12 12 0 0 0 8.5 3a12 12 0 0 1 -.09 7.06" />
+  <path d="M15 19l2 2l4 -4" />
+</symbol>
+    <symbol id="i-db" viewBox="0 0 24 24">
+  <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+  <path d="M4 6a8 3 0 1 0 16 0a8 3 0 1 0 -16 0" />
+  <path d="M4 6v6a8 3 0 0 0 16 0v-6" />
+  <path d="M4 12v6a8 3 0 0 0 16 0v-6" />
+</symbol>
+    <symbol id="i-bot" viewBox="0 0 24 24">
+  <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+  <path d="M6 6a2 2 0 0 1 2 -2h8a2 2 0 0 1 2 2v4a2 2 0 0 1 -2 2h-8a2 2 0 0 1 -2 -2l0 -4" />
+  <path d="M12 2v2" />
+  <path d="M9 12v9" />
+  <path d="M15 12v9" />
+  <path d="M5 16l4 -2" />
+  <path d="M15 14l4 2" />
+  <path d="M9 18h6" />
+  <path d="M10 8v.01" />
+  <path d="M14 8v.01" />
+</symbol>
+    <symbol id="i-log" viewBox="0 0 24 24">
+  <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+  <path d="M14 3v4a1 1 0 0 0 1 1h4" />
+  <path d="M17 21h-10a2 2 0 0 1 -2 -2v-14a2 2 0 0 1 2 -2h7l5 5v11a2 2 0 0 1 -2 2" />
+  <path d="M9 9l1 0" />
+  <path d="M9 13l6 0" />
+  <path d="M9 17l6 0" />
+</symbol>
+    <symbol id="i-chart" viewBox="0 0 24 24">
+  <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+  <path d="M4 19l16 0" />
+  <path d="M4 15l4 -6l4 2l4 -5l4 4" />
+</symbol>
+    <symbol id="i-cloud" viewBox="0 0 24 24">
+  <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+  <path d="M6.657 18c-2.572 0 -4.657 -2.007 -4.657 -4.483c0 -2.475 2.085 -4.482 4.657 -4.482c.393 -1.762 1.794 -3.2 3.675 -3.773c1.88 -.572 3.956 -.193 5.444 1c1.488 1.19 2.162 3.007 1.77 4.769h.99c1.913 0 3.464 1.56 3.464 3.486c0 1.927 -1.551 3.487 -3.465 3.487h-11.878" />
+</symbol>
+    <symbol id="i-lock" viewBox="0 0 24 24">
+  <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+  <path d="M5 13a2 2 0 0 1 2 -2h10a2 2 0 0 1 2 2v6a2 2 0 0 1 -2 2h-10a2 2 0 0 1 -2 -2v-6" />
+  <path d="M11 16a1 1 0 1 0 2 0a1 1 0 0 0 -2 0" />
+  <path d="M8 11v-4a4 4 0 1 1 8 0v4" />
+</symbol>
+    <symbol id="i-restore" viewBox="0 0 24 24">
+  <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+  <path d="M3.06 13a9 9 0 1 0 .49 -4.087" />
+  <path d="M3 4.001v5h5" />
+  <path d="M11 12a1 1 0 1 0 2 0a1 1 0 1 0 -2 0" />
+</symbol>
   </defs>
 </svg>
 
@@ -527,11 +597,13 @@ nav .links a{display:inline-block;padding:12px 4px;white-space:nowrap}
     <a class="brand" href="#top">
       Gateway<small>.atla.in</small>
     </a>
-    <div class="links">
+    <div class="links" id="site-links">
       <a class="keep" href="#part1">Gateway</a><span class="nav-sep" aria-hidden="true"></span><a class="keep" href="#part2-top">Live dashboard</a>
       <span class="nav-sub"><a href="#pipeline">Pipeline</a><a href="#services">Services</a><a href="#architecture">Architecture</a><a href="#tenants">Tenants</a><a href="#try">Try it</a><span class="nav-sep" aria-hidden="true"></span><a href="#dashboard">Traffic</a><a href="#quality">Quality</a><a href="#releases">Releases</a><a href="#case">Case study</a></span>
       <a href="https://github.com/pranavatla/gate" target="_blank" rel="noopener">GitHub</a>
     </div>
+    <button class="theme-toggle" type="button" aria-label="Switch theme">Theme</button>
+    <button class="menu-toggle" type="button" aria-controls="site-links" aria-expanded="false">Menu</button>
     <div class="status" id="status" title="Live check of /health"><span class="dot" id="dot"></span><span id="stxt">checking…</span></div>
   </div>
 </nav>
@@ -542,18 +614,13 @@ nav .links a{display:inline-block;padding:12px 4px;white-space:nowrap}
   <header class="hero">
     <div class="hero-grid">
       <div class="hero-copy">
-        <h1>One front door for every AI model</h1>
-        <p class="lead">A live gateway in front of four AI providers: keys, limits, budgets, failover, privacy policy, agent governance and audit.</p>
+        <h1>One API.<br>Every AI model.</h1>
+        <p class="lead">Your AI calls, governed in one place. Keys, budgets, failover, privacy and audit across four providers.</p>
         <div class="cta">
-          <a class="btn primary" href="#pipeline">Watch a request travel through it</a>
-          <a class="btn" href="https://github.com/pranavatla/gate" target="_blank" rel="noopener">View the source on GitHub</a>
+          <a class="btn primary" href="#pipeline">Explore the pipeline</a>
+          <a class="btn" href="https://github.com/pranavatla/gate" target="_blank" rel="noopener">View source</a>
         </div>
-        <div class="providers" aria-label="Supported providers">
-          <span class="chip"><i style="background:#d97757"></i>Anthropic Claude</span>
-          <span class="chip"><i style="background:#10a37f"></i>OpenAI GPT</span>
-          <span class="chip"><i style="background:#4285f4"></i>Google Gemini</span>
-          <span class="chip"><i style="background:#ff9900"></i>Amazon Bedrock</span>
-        </div>
+
       </div>
       <div class="explainer">
         <video controls preload="metadata" playsinline poster="/static/gate-explained-poster.jpg" aria-label="What gate.atla.in is for">
@@ -563,6 +630,13 @@ nav .links a{display:inline-block;padding:12px 4px;white-space:nowrap}
         <div class="explainer-caption"><b>What this gateway does</b><span>A one-minute walkthrough for first-time visitors</span></div>
       </div>
     </div>
+  </header>
+        <div class="providers" aria-label="Supported providers">
+          <span class="chip">Anthropic Claude</span>
+          <span class="chip">OpenAI GPT</span>
+          <span class="chip">Google Gemini</span>
+          <span class="chip">Amazon Bedrock</span>
+        </div>
     <div class="stats">
       <div class="stat"><b id="ovh">4 ms</b><span>median gateway overhead (p50)</span></div>
       <div class="stat"><b>4</b><span>AI providers behind one API</span></div>
@@ -571,14 +645,15 @@ nav .links a{display:inline-block;padding:12px 4px;white-space:nowrap}
       <div class="stat"><b>≈ $15</b><span>per month to run on AWS</span></div>
     </div>
     <p class="note">Numbers measured on the production deployment, September 2026.</p>
-  </header>
 
+  <div class="orientation"><img src="/static/gateway-concept.jpg" width="960" height="640" loading="lazy" alt="Sculptural metal channels converge through a single gateway">
   <div class="overview" role="group" aria-label="Two parts of this page">
-    <a class="ov-card" href="#part1"><span class="part-n">Part 1</span><b>The gateway</b><span>What it does for every AI call: keys, limits, budgets, failover, privacy, audit. Watch a request travel through it.</span><span class="ov-go">Start here &darr;</span></a>
-    <a class="ov-card" href="#part2-top"><span class="part-n">Part 2</span><b>The live dashboard</b><span>Real numbers from production, refreshed every 30 seconds: traffic, speed, cost, and whether the chatbot still answers correctly.</span><span class="ov-go">See the numbers &darr;</span></a>
+    <a class="ov-card" href="#part1"><b>The gateway</b><span>What it does for every AI call: keys, limits, budgets, failover, privacy, audit. Watch a request travel through it.</span><span class="ov-go">Explore Gateway</span></a>
+    <a class="ov-card" href="#part2-top"><b>The live dashboard</b><span>Real numbers from production, refreshed every 30 seconds: traffic, speed, cost, and whether the chatbot still answers correctly.</span><span class="ov-go">Open live dashboard</span></a>
   </div>
 
-  <div class="part" id="part1"><span class="part-n">Part 1</span><div><b>The gateway</b><span>What it does, layer by layer</span></div></div>
+  </div>
+  <div class="part" id="part1"><div><b>The gateway</b><span>What it does, layer by layer</span></div></div>
 
   <section id="pipeline" class="reveal">
     <div class="sec-head">
@@ -741,11 +816,11 @@ nav .links a{display:inline-block;padding:12px 4px;white-space:nowrap}
     <p class="note" style="text-align:left;margin-top:14px">Calls require a tenant key, so this page can't send real requests. Every call that passes the key and contract checks returns an <code>X-Request-ID</code> that maps to a row in the audit log. Prefer JSON? <a href="/?format=json" style="color:var(--cyan)">/?format=json</a> or use <code>curl</code>.</p>
   </section>
 
-  <div class="part" id="part2-top"><span class="part-n">Part 2</span><div><b>The live dashboard</b><span>How it is doing right now, and how it is kept honest</span></div></div>
+  <div class="part" id="part2-top"><div><b>The live dashboard</b><span>How it is doing right now, and how it is kept honest</span></div></div>
   <div class="bs" id="part2">
 <section class="reveal" id="dashboard" aria-labelledby="h-dash">
   <div class="sec-head">
-    <div class="kicker">Live &middot; traffic</div>
+
     <h2 id="h-dash">What the gateway is doing right now</h2>
     <p>These numbers are not typed in. This page asks the production gateway for them every 30 seconds, straight from its append-only audit log. Nothing here includes message text, keys or tenant names.</p>
   </div>
@@ -753,14 +828,14 @@ nav .links a{display:inline-block;padding:12px 4px;white-space:nowrap}
   <div class="lv-err" id="lv-err-traffic" role="status" hidden></div>
   <noscript><p class="noscript">The live dashboard needs JavaScript, because it fetches the numbers from the running gateway. You can read the raw data at <a href="/v1/stats">/v1/stats</a> and <a href="/v1/stats/evals">/v1/stats/evals</a>.</p></noscript>
   <div class="lv-kpis" id="lv-kpis-traffic">
-    <div class="lv-k"><h3>Calls &middot; 7 days</h3><span class="kv" data-k="calls">&ndash;</span><small data-k="calls_sub">&nbsp;</small></div>
-    <div class="lv-k"><h3>Success rate</h3><span class="kv g" data-k="success">&ndash;</span><small data-k="success_sub">&nbsp;</small></div>
-    <div class="lv-k"><h3>Gateway overhead</h3><span class="kv c" data-k="p50">&ndash;</span><small>median time the gateway adds to a call (p50)</small></div>
-    <div class="lv-k"><h3>Answer time &middot; p90</h3><span class="kv" data-k="p90">&ndash;</span><small>9 in 10 successful calls finish faster than this</small></div>
-    <div class="lv-k"><h3>Cache hit rate</h3><span class="kv" data-k="cache">&ndash;</span><small data-k="cache_sub">&nbsp;</small></div>
-    <div class="lv-k"><h3>Failovers</h3><span class="kv" data-k="failovers">&ndash;</span><small>calls that needed a second provider</small></div>
-    <div class="lv-k"><h3>Turned away</h3><span class="kv" data-k="refused">&ndash;</span><small data-k="refused_sub">&nbsp;</small></div>
-    <div class="lv-k"><h3>Model spend</h3><span class="kv" data-k="spend">&ndash;</span><small data-k="spend_sub">&nbsp;</small></div>
+    <div class="lv-k"><h3>Calls &middot; 7 days</h3><span class="kv" data-k="calls">-</span><small data-k="calls_sub">&nbsp;</small></div>
+    <div class="lv-k"><h3>Success rate</h3><span class="kv g" data-k="success">-</span><small data-k="success_sub">&nbsp;</small></div>
+    <div class="lv-k"><h3>Gateway overhead</h3><span class="kv c" data-k="p50">-</span><small>median time the gateway adds to a call (p50)</small></div>
+    <div class="lv-k"><h3>Answer time &middot; p90</h3><span class="kv" data-k="p90">-</span><small>9 in 10 successful calls finish faster than this</small></div>
+    <div class="lv-k"><h3>Cache hit rate</h3><span class="kv" data-k="cache">-</span><small data-k="cache_sub">&nbsp;</small></div>
+    <div class="lv-k"><h3>Failovers</h3><span class="kv" data-k="failovers">-</span><small>calls that needed a second provider</small></div>
+    <div class="lv-k"><h3>Turned away</h3><span class="kv" data-k="refused">-</span><small data-k="refused_sub">&nbsp;</small></div>
+    <div class="lv-k"><h3>Model spend</h3><span class="kv" data-k="spend">-</span><small data-k="spend_sub">&nbsp;</small></div>
   </div>
   <div class="lv-two">
     <div class="panel">
@@ -779,17 +854,17 @@ nav .links a{display:inline-block;padding:12px 4px;white-space:nowrap}
 
 <section class="reveal" id="quality" aria-labelledby="h-quality">
   <div class="sec-head">
-    <div class="kicker">Live &middot; quality</div>
+
     <h2 id="h-quality">Is the chatbot still answering correctly?</h2>
     <p>Every night the same questions are asked again and graded. This is the latest result of each question set, read live from the eval tables. A score of 1.00 means every answer was graded correct.</p>
   </div>
   <div class="lv-bar" id="lv-bar-quality" role="group" aria-label="Live quality status"><span class="lv-dot" aria-hidden="true"></span><span id="lv-q-status">Loading eval results&hellip;</span></div>
   <div class="lv-err" id="lv-err-quality" role="status" hidden></div>
   <div class="lv-kpis" id="lv-kpis-quality">
-    <div class="lv-k"><h3>Eval runs</h3><span class="kv" data-k="runs">&ndash;</span><small data-k="runs_sub">&nbsp;</small></div>
-    <div class="lv-k"><h3>Graded answers</h3><span class="kv" data-k="graded">&ndash;</span><small>each one scored by rules and a judge model</small></div>
-    <div class="lv-k"><h3>Test questions</h3><span class="kv" data-k="cases">&ndash;</span><small data-k="cases_sub">&nbsp;</small></div>
-    <div class="lv-k"><h3>Prompt versions</h3><span class="kv" data-k="versions">&ndash;</span><small>immutable releases in the registry</small></div>
+    <div class="lv-k"><h3>Eval runs</h3><span class="kv" data-k="runs">-</span><small data-k="runs_sub">&nbsp;</small></div>
+    <div class="lv-k"><h3>Graded answers</h3><span class="kv" data-k="graded">-</span><small>each one scored by rules and a judge model</small></div>
+    <div class="lv-k"><h3>Test questions</h3><span class="kv" data-k="cases">-</span><small data-k="cases_sub">&nbsp;</small></div>
+    <div class="lv-k"><h3>Prompt versions</h3><span class="kv" data-k="versions">-</span><small>immutable releases in the registry</small></div>
   </div>
   <div class="setgrid" id="lv-sets"></div>
   <div class="vsum" id="lv-verdicts" role="group" aria-label="Runs by verdict"></div>
@@ -810,7 +885,7 @@ nav .links a{display:inline-block;padding:12px 4px;white-space:nowrap}
 </section>
 <section class="reveal" id="releases" aria-labelledby="h-prompts">
   <div class="sec-head">
-    <div class="kicker">Under the hood &middot; releases</div>
+
     <h2 id="h-prompts">Prompts as versioned, rollback-able releases</h2>
     <p>Before this, a prompt was a text file inside someone's code. Changing it meant redeploying, with no record of what changed and no quick way back. Now a prompt is a released artifact. Pick a release and press <b>Ship it</b>, or click any step to see what it does.</p>
   </div>
@@ -847,7 +922,7 @@ nav .links a{display:inline-block;padding:12px 4px;white-space:nowrap}
   </details>
 </section><section class="reveal" id="nightly" aria-labelledby="h-evals">
   <div class="sec-head">
-    <div class="kicker">Under the hood &middot; nightly checks</div>
+
     <h2 id="h-evals">An eval pipeline that runs while I sleep</h2>
     <p>Every night the same questions are asked, the answers are graded, and the score is compared with how it normally does. It only speaks up when something truly changed, or when the check itself breaks. Pick a night and press <b>Run the night</b>, or click any step to see what it does.</p>
   </div>
@@ -1001,7 +1076,7 @@ nav .links a{display:inline-block;padding:12px 4px;white-space:nowrap}
     var t0=performance.now();
     fetch("/health",{cache:"no-store"}).then(function(r){return r.json()}).then(function(j){
       var ms=Math.round(performance.now()-t0);
-      if(j && j.status==="ok"){dot.className="dot ok";txt.textContent="Operational · "+ms+" ms";}
+      if(j && j.status==="ok"){dot.className="dot ok";txt.textContent="Operational";document.getElementById("status").title="Live /health response: "+ms+" ms";}
       else{dot.className="dot bad";txt.textContent="Degraded";}
     }).catch(function(){
       dot.className="dot";txt.textContent = location.protocol==="file:" ? "Preview mode" : "Status unavailable";
@@ -1227,7 +1302,7 @@ nav .links a{display:inline-block;padding:12px 4px;white-space:nowrap}
   if("IntersectionObserver" in window && !reduce){
     var io=new IntersectionObserver(function(es){
       es.forEach(function(e){if(e.isIntersecting){e.target.classList.add("in");io.unobserve(e.target)}});
-    },{threshold:.08});
+    },{threshold:0});
     reveals.forEach(function(r){io.observe(r)});
   }else{reveals.forEach(function(r){r.classList.add("in")})}
 })();
@@ -1356,8 +1431,8 @@ nav .links a{display:inline-block;padding:12px 4px;white-space:nowrap}
   function $(s){return root.querySelector(s)}
   function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
   function fmt(n){return Number(n).toLocaleString('en-US')}
-  function pct(a,b){if(!b)return '–';var p=a/b*100;return (p>=99.95?'100':p.toFixed(1).replace(/\.0$/,''))+'%'}
-  function ms(v){if(typeof v!=='number')return '–';if(v<1)return '<1 ms';if(v>=1000)return (v/1000).toFixed(1)+' s';return Math.round(v)+' ms'}
+  function pct(a,b){if(!b)return '-';var p=a/b*100;return (p>=99.95?'100':p.toFixed(1).replace(/\.0$/,''))+'%'}
+  function ms(v){if(typeof v!=='number')return '-';if(v<1)return '<1 ms';if(v>=1000)return (v/1000).toFixed(1)+' s';return Math.round(v)+' ms'}
   function usd(v){v=+v||0;if(v===0)return '$0';if(v<0.01)return 'under $0.01';return '$'+v.toFixed(2)}
   function ago(iso){
     var t=Date.parse(iso); if(isNaN(t))return '';
@@ -1382,7 +1457,7 @@ nav .links a{display:inline-block;padding:12px 4px;white-space:nowrap}
     setK(k,'calls',fmt(t.calls)); setK(k,'calls_sub',fmt(t.calls_24h||0)+' of them in the last 24 hours');
     setK(k,'success',pct(t.ok,t.calls)); setK(k,'success_sub',fmt(t.ok)+' answered, '+fmt(t.errors_5xx||0)+' server errors');
     setK(k,'p50',ms(t.gateway_ms_p50)); setK(k,'p90',ms(t.latency_ms_p90));
-    setK(k,'cache',t.cache_lookups?pct(t.cache_hits,t.cache_lookups):'–');
+    setK(k,'cache',t.cache_lookups?pct(t.cache_hits,t.cache_lookups):'-');
     setK(k,'cache_sub',fmt(t.cache_hits||0)+' repeat questions answered for free');
     setK(k,'failovers',fmt(t.failovers||0));
     setK(k,'refused',fmt(refused));
@@ -1445,7 +1520,7 @@ nav .links a{display:inline-block;padding:12px 4px;white-space:nowrap}
     $('#lv-sets').innerHTML=(j.sets||[]).map(function(s){
       var l=s.latest, mine=runs.filter(function(r){return r.set===s.name&&r.verdict!=='EXCLUDED'});
       if(!l)return '<div class="setc"><div class="top"><h3>'+esc(s.name)+'</h3></div><p class="sc-sub">'+fmt(s.cases)+' questions &middot; no run yet</p></div>';
-      var sc=typeof l.score==='number'?l.score.toFixed(2):'–';
+      var sc=typeof l.score==='number'?l.score.toFixed(2):'-';
       return '<div class="setc"><div class="top"><div><h3>'+esc(s.name)+'</h3><div class="sc-sub">'+fmt(s.cases)+' questions &middot; '+fmt(s.runs)+' recent runs</div></div>'+pill(l.verdict)+'</div>'+
         '<div class="sc-big">'+sc+'</div>'+
         '<div class="sc-meta">latest score'+(typeof l.baseline==='number'?' &middot; normal range centres on <b>'+l.baseline.toFixed(2)+'</b>':'')+'<br>'+
@@ -1454,7 +1529,7 @@ nav .links a{display:inline-block;padding:12px 4px;white-space:nowrap}
     var vs=t.verdicts||{};
     $('#lv-verdicts').innerHTML=Object.keys(vs).map(function(v){return '<span><b>'+fmt(vs[v])+'</b>'+esc(v.replace(/_/g,' ').toLowerCase())+'</span>'}).join('');
     var rows=runs.slice(0,8).map(function(r){
-      return '<tr><td>'+r.run_id+'</td><td>'+esc(when(r.at))+'</td><td>'+esc(r.set)+'</td><td>'+esc(r.prompt||'')+'</td><td class="num">'+(typeof r.score==='number'?r.score.toFixed(2):'–')+'</td><td>'+pill(r.verdict)+'</td></tr>';
+      return '<tr><td>'+r.run_id+'</td><td>'+esc(when(r.at))+'</td><td>'+esc(r.set)+'</td><td>'+esc(r.prompt||'')+'</td><td class="num">'+(typeof r.score==='number'?r.score.toFixed(2):'-')+'</td><td>'+pill(r.verdict)+'</td></tr>';
     }).join('');
     $('#lv-runs').innerHTML=rows||'<tr><td colspan="6">No runs yet.</td></tr>';
   }
@@ -1490,5 +1565,6 @@ nav .links a{display:inline-block;padding:12px 4px;white-space:nowrap}
 document.querySelectorAll('.arch-scroll,#term').forEach(function(e){e.setAttribute('tabindex','0')});
 
 </script>
+<script src="/static/landing-ui.js" defer></script>
 </body>
 </html>
