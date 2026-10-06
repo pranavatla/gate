@@ -320,6 +320,11 @@ async def traced_chat(req, response, tenant, x_agent_run_id):
         ev.error = str(e.detail)[:500]
         e.headers = {**(e.headers or {}), "X-Request-ID": str(request_id)}
         raise
+    except Exception as e:
+        ev.status = "failed"
+        ev.http_status = 500
+        ev.error = f"{type(e).__name__}: {str(e)}"[:500]
+        raise
 
     finally:
         ev.latency_ms = int((time.perf_counter() - started) * 1000)
