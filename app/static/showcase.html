@@ -1,0 +1,793 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>How it was built · Gateway.atla.in</title>
+<meta name="description" content="The build story behind gate.atla.in: architecture, prompt versioning, an automated eval pipeline, and a real prompt defect found and fixed by it.">
+<meta name="color-scheme" content="dark">
+<meta name="theme-color" content="#07110f">
+<script>document.documentElement.className+=" js"</script>
+<style>
+:root{
+  --bg:#07110f;--panel:#0d1815;--panel2:#12211d;--line:#21342f;--text:#ecf8f3;--muted:#91a79f;
+  --cyan:#2dd4bf;--gold:#f59e0b;--green:#34d399;--amber:#fbbf24;--red:#f87171;
+  --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,"DejaVu Sans Mono",monospace;
+  --sans:system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  --ease-out:cubic-bezier(.23,1,.32,1);
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:72px}
+body{margin:0;background:var(--bg);color:var(--text);font-family:var(--sans);line-height:1.6;-webkit-font-smoothing:antialiased}
+a{color:var(--cyan)}
+.wrap{max-width:1080px;margin:0 auto;padding:0 20px}
+code,.mono{font-family:var(--mono)}
+code{background:var(--panel2);border:1px solid var(--line);border-radius:5px;padding:1px 6px;font-size:.88em}
+
+/* nav */
+nav{position:sticky;top:0;z-index:20;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);background:rgba(7,17,15,.78);border-bottom:1px solid var(--line)}
+nav .wrap{display:flex;align-items:center;gap:22px;height:58px}
+.brand{font-weight:700;color:var(--text);text-decoration:none;letter-spacing:.2px}
+.brand small{color:var(--cyan);font-weight:600;font-size:1em}
+nav .links{margin-left:auto;display:flex;gap:18px;font-size:14px;color:var(--muted);flex-wrap:wrap;justify-content:flex-end}
+nav .links a{text-decoration:none;color:var(--muted)}
+nav .links a:hover{color:var(--text)}
+@media(max-width:820px){nav .links a:not(.keep){display:none}}
+
+/* hero */
+.hero{padding:64px 0 28px}
+.eyebrow{font-family:var(--mono);font-size:12.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--cyan)}
+h1{font-size:clamp(32px,5.4vw,54px);line-height:1.08;margin:12px 0 16px;letter-spacing:-.02em}
+h1 em{font-style:normal;color:var(--cyan)}
+.lead{font-size:clamp(17px,2.2vw,20px);color:var(--muted);max-width:760px;margin:0 0 22px}
+.lead b{color:var(--text);font-weight:600}
+.cta{display:flex;gap:12px;flex-wrap:wrap}
+.btn{display:inline-block;padding:11px 18px;border-radius:10px;border:1px solid var(--line);color:var(--text);text-decoration:none;font-weight:600;font-size:15px;background:var(--panel);transition:transform .18s var(--ease-out),border-color .18s}
+.btn:hover{border-color:var(--cyan);transform:translateY(-1px)}
+.btn.primary{background:var(--cyan);color:#04201b;border-color:var(--cyan)}
+
+/* number strip */
+.nums{display:grid;grid-template-columns:repeat(6,1fr);gap:1px;background:var(--line);border:1px solid var(--line);border-radius:14px;overflow:hidden;margin:34px 0 8px}
+.num{background:var(--panel);padding:18px 14px}
+.num b{display:block;font-family:var(--mono);font-size:clamp(22px,3.4vw,32px);color:var(--cyan);letter-spacing:-.02em}
+.num span{font-size:12.5px;color:var(--muted);line-height:1.35;display:block;margin-top:4px}
+@media(max-width:860px){.nums{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:480px){.nums{grid-template-columns:repeat(2,1fr)}}
+.asof{font-size:12.5px;color:var(--muted);font-family:var(--mono)}
+
+/* sections */
+section{padding:56px 0 8px;border-top:1px solid var(--line);margin-top:48px}
+section:first-of-type{border-top:0}
+h2{font-size:clamp(24px,3.4vw,32px);margin:0 0 6px;letter-spacing:-.015em}
+.kicker{font-family:var(--mono);font-size:12px;color:var(--gold);letter-spacing:.14em;text-transform:uppercase}
+.sub{color:var(--muted);max-width:760px;margin:6px 0 22px}
+h3{font-size:17px;margin:0 0 6px}
+.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+@media(max-width:820px){.cards{grid-template-columns:1fr}}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:18px}
+.card p{margin:0;color:var(--muted);font-size:15px}
+.card .tag{font-family:var(--mono);font-size:12px;color:var(--cyan);margin-bottom:8px;display:block}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:20px}
+.scroll-x{overflow-x:auto;-webkit-overflow-scrolling:touch}
+.diagram{min-width:720px;display:block;width:100%;height:auto}
+
+/* flow */
+.flow{display:flex;align-items:stretch;gap:0;flex-wrap:wrap}
+.step{flex:1 1 150px;background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:14px;min-width:140px;position:relative}
+.step b{display:block;font-size:14px;margin-bottom:4px}
+.step span{font-size:13px;color:var(--muted);display:block}
+.step .n{font-family:var(--mono);font-size:12px;color:var(--cyan);letter-spacing:.1em}
+.arrow{align-self:center;color:var(--cyan);font-family:var(--mono);padding:0 8px;font-size:18px}
+@media(max-width:820px){.flow{flex-direction:column;gap:6px}.arrow{transform:rotate(90deg);align-self:flex-start;padding:0 0 0 22px}}
+
+/* verdicts */
+.verdicts{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;margin-top:16px}
+.v{border:1px solid var(--line);border-radius:12px;padding:12px 14px;background:var(--panel2)}
+.v .name{font-family:var(--mono);font-size:13px;font-weight:700}
+.v .exit{float:right;font-family:var(--mono);font-size:12px;color:var(--muted)}
+.v p{margin:6px 0 0;font-size:13px;color:var(--muted)}
+.ok .name{color:var(--green)}.bad .name{color:var(--red)}.warn .name{color:var(--amber)}.info .name{color:var(--cyan)}
+
+/* case study */
+.timeline{position:relative;margin:6px 0 0;padding-left:26px}
+.timeline:before{content:"";position:absolute;left:8px;top:6px;bottom:6px;width:2px;background:var(--line)}
+.tl{position:relative;margin:0 0 20px}
+.tl:before{content:"";position:absolute;left:-23px;top:6px;width:12px;height:12px;border-radius:50%;background:var(--bg);border:2px solid var(--cyan)}
+.tl.bad:before{border-color:var(--red)}.tl.good:before{border-color:var(--green)}.tl.warn:before{border-color:var(--amber)}
+.tl b{display:block}
+.tl p{margin:2px 0 0;color:var(--muted);font-size:15px}
+.quote{font-family:var(--mono);font-size:13.5px;background:var(--panel2);border:1px solid var(--line);border-left:3px solid var(--red);border-radius:8px;padding:10px 12px;margin:8px 0;color:var(--text)}
+.quote.good{border-left-color:var(--green)}
+
+.heat{display:grid;grid-template-columns:130px repeat(9,minmax(0,1fr));gap:4px;align-items:center;font-family:var(--mono);font-size:12px}
+.heat .h{color:var(--muted);text-align:center}
+.heat .lbl{color:var(--text);font-weight:600}
+.cell{height:32px;border-radius:6px;display:grid;place-items:center;font-size:12px;font-weight:700}
+.cell.p{background:rgba(52,211,153,.18);color:var(--green);border:1px solid rgba(52,211,153,.35)}
+.cell.f{background:rgba(248,113,113,.2);color:var(--red);border:1px solid rgba(248,113,113,.45)}
+.grp{grid-column:2/5;text-align:center;color:var(--cyan);border-bottom:2px solid var(--cyan);padding-bottom:3px;font-size:12px}
+.grp.v5{grid-column:5/8;color:var(--amber);border-color:var(--amber)}
+.grp.v6{grid-column:8/11;color:var(--green);border-color:var(--green)}
+.bars{display:grid;grid-template-columns:130px repeat(9,minmax(0,1fr));gap:4px;align-items:end;height:130px;margin-top:34px}
+.bars .lbl{font-family:var(--mono);font-size:12px;color:var(--muted);align-self:center}
+.bar{background:linear-gradient(180deg,var(--cyan),#0f766e);border-radius:5px 5px 0 0;position:relative;min-height:2px}
+.bar.v5{background:linear-gradient(180deg,var(--amber),#92610a)}.bar.v6{background:linear-gradient(180deg,var(--green),#0f6b4b)}
+.bar i{position:absolute;top:-17px;left:0;right:0;text-align:center;font-style:normal;font-family:var(--mono);font-size:12px;color:var(--muted)}
+.rule{border:1px dashed var(--amber);border-radius:12px;padding:14px 16px;background:rgba(251,191,36,.05);margin:14px 0}
+.rule b{color:var(--amber)}
+@media(max-width:640px){.heat,.bars{grid-template-columns:70px repeat(9,minmax(0,1fr))}.cell{height:28px}.heat .lbl,.bars .lbl{font-size:12px}}
+
+/* dashboard mock */
+.dash{display:grid;grid-template-columns:repeat(6,1fr);gap:12px}
+.pn{background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:12px}
+
+.pn.s2{grid-column:span 2}.pn.s3{grid-column:span 3}.pn.s4{grid-column:span 4}.pn.s6{grid-column:span 6}
+@media(max-width:760px){.pn.s2,.pn.s3,.pn.s4{grid-column:span 6}}
+.big{font-family:var(--mono);font-size:30px;font-weight:700}
+.tbl{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:12px}
+.tbl th{color:var(--muted);text-align:left;font-weight:600;padding:5px 6px;border-bottom:1px solid var(--line)}
+.tbl td{padding:5px 6px;border-bottom:1px solid rgba(33,52,47,.6)}
+.pill{display:inline-block;border-radius:99px;padding:1px 8px;font-size:12px;font-weight:700}
+.pill.ok{background:rgba(52,211,153,.15);color:var(--green)}.pill.ex{background:rgba(145,167,159,.15);color:var(--muted)}.pill.bl{background:rgba(45,212,191,.13);color:var(--cyan)}.pill.un{background:rgba(248,113,113,.15);color:var(--red)}
+.alerts{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px}
+@media(max-width:760px){.alerts{grid-template-columns:1fr}}
+.alert{border:1px solid var(--line);border-radius:12px;padding:14px;background:var(--panel2)}
+.alert .state{font-family:var(--mono);font-size:12px;font-weight:700}
+.alert p{margin:6px 0 0;color:var(--muted);font-size:14px}
+
+/* details */
+details{border:1px solid var(--line);border-radius:12px;background:var(--panel);margin:12px 0;overflow:hidden}
+summary{cursor:pointer;padding:13px 16px;font-weight:600;list-style:none;display:flex;align-items:center;gap:10px}
+summary::-webkit-details-marker{display:none}
+summary:before{content:"+";font-family:var(--mono);color:var(--cyan);width:14px;display:inline-block}
+details[open] summary:before{content:"–"}
+details .body{padding:0 16px 14px;color:var(--muted);font-size:15px}
+details .body p{margin:8px 0}
+details .body ul{margin:8px 0;padding-left:20px}
+.pre{font-family:var(--mono);font-size:12.5px;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:10px 12px;overflow-x:auto;color:var(--text);white-space:pre;margin:8px 0}
+
+.two{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:14px}.two>*{min-width:0}
+@media(max-width:820px){.two{grid-template-columns:minmax(0,1fr)}}
+ul.clean{margin:0;padding-left:18px;color:var(--muted)}
+ul.clean li{margin:6px 0}
+ul.clean li b{color:var(--text)}
+
+footer{border-top:1px solid var(--line);margin-top:64px;padding:26px 0 40px;color:var(--muted);font-size:14px}
+footer .wrap{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
+
+.js .reveal{opacity:0;transform:translateY(14px);transition:opacity .6s var(--ease-out),transform .6s var(--ease-out)}
+.js .reveal.in{opacity:1;transform:none}
+@media(prefers-reduced-motion:reduce){.js .reveal{opacity:1;transform:none;transition:none}html{scroll-behavior:auto}*,*:before,*:after{animation:none!important;transition:none!important}}
+.dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--muted);margin-right:6px}
+.dot.ok{background:var(--green);box-shadow:0 0 8px var(--green)}
+
+/* ===== v2: roomier layout + interactive walkthroughs (matches the landing page) ===== */
+.grid-bg{position:fixed;inset:0;z-index:-2;background:
+  radial-gradient(900px 500px at 15% -5%,rgba(45,212,191,.14),transparent 60%),
+  radial-gradient(800px 500px at 90% 5%,rgba(245,158,11,.10),transparent 60%),
+  radial-gradient(700px 500px at 50% 110%,rgba(52,211,153,.08),transparent 60%)}
+.grid-bg:after{content:"";position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,.035) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.035) 1px,transparent 1px);background-size:44px 44px;-webkit-mask-image:radial-gradient(ellipse at 50% 0%,#000 30%,transparent 75%);mask-image:radial-gradient(ellipse at 50% 0%,#000 30%,transparent 75%)}
+.wrap{max-width:1140px}
+section{padding:78px 0 12px;margin-top:0}
+.sec-head{max-width:780px;margin-bottom:30px}
+.sec-head h2{font-size:clamp(26px,3.6vw,38px);line-height:1.15;letter-spacing:-.02em;margin:6px 0 12px;text-wrap:balance}
+.sec-head p{color:var(--muted);margin:0;font-size:16.5px}
+.sec-head p b{color:var(--text)}
+.panel{background:linear-gradient(180deg,var(--panel2),var(--panel));border-radius:18px;padding:24px}
+.card,.mini{background:linear-gradient(180deg,var(--panel2),var(--panel))}
+.sub-h{margin:34px 0 14px;font-size:18px}
+
+/* context strip */
+.ctx{display:grid;grid-template-columns:1fr auto 1fr auto 1fr;gap:14px;align-items:center;margin-bottom:22px}
+.ctx-col{background:linear-gradient(180deg,var(--panel2),var(--panel));border:1px solid var(--line);border-radius:16px;padding:16px 16px 14px;display:flex;flex-wrap:wrap;gap:8px;align-content:flex-start}
+.ctx-col.mid{border-color:rgba(45,212,191,.5);flex-direction:column;gap:2px;text-align:center;align-items:center;justify-content:center;min-height:100%}
+.ctx-h{flex:0 0 100%;font-family:var(--mono);font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--cyan);margin-bottom:2px}
+.ctx-big{font-size:20px;font-weight:700}
+.ctx-col small{color:var(--muted);font-size:13px}
+.ctx-arrow{display:flex;flex-direction:column;align-items:center;color:var(--cyan);font-size:24px;line-height:1}
+.ctx-arrow small{font-size:12px;color:var(--muted);font-family:var(--mono);margin-top:4px;text-align:center;max-width:90px}
+.chip2{font-size:13px;font-weight:600;padding:6px 12px;border-radius:999px;border:1px solid var(--line);background:var(--bg);display:inline-flex;gap:8px;align-items:center}
+.chip2 i{width:8px;height:8px;border-radius:50%;display:inline-block}
+@media(max-width:900px){.ctx{grid-template-columns:1fr}.ctx-arrow{transform:rotate(90deg);height:36px;justify-content:center}.ctx-arrow small{display:none}}
+
+.trio{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin-top:18px}
+.mini{border:1px solid var(--line);border-radius:14px;padding:18px}
+.mini .tag{font-family:var(--mono);font-size:12px;color:var(--cyan);letter-spacing:.12em;display:block;margin-bottom:6px}
+.mini h3{margin:0 0 6px}
+.mini p{margin:0;color:var(--muted);font-size:14.5px}
+@media(max-width:820px){.trio{grid-template-columns:1fr}}
+
+/* simulator */
+.controls{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:20px}
+.controls label{font-size:13px;color:var(--muted);margin-right:4px}
+.sc{font:inherit;font-size:13px;padding:7px 13px;border-radius:999px;border:1px solid var(--line);background:var(--bg);color:var(--text);cursor:pointer;transition:border-color .15s,background-color .15s,transform .16s var(--ease-out)}
+.sc:hover{border-color:var(--cyan)}
+.sc[aria-pressed="true"]{background:rgba(45,212,191,.14);border-color:var(--cyan);color:#fff}
+.run{margin-left:auto;font:inherit;font-weight:700;font-size:14px;padding:9px 18px;border-radius:10px;border:0;cursor:pointer;color:#fff;background:linear-gradient(100deg,#0f766e,#16a34a);transition:filter .15s,transform .16s var(--ease-out)}
+.run:hover{filter:brightness(1.12)}.run:active,.node:active,.sc:active{transform:scale(.97)}
+@media(max-width:700px){.run{margin-left:0;width:100%}}
+.pipe{display:grid;gap:14px;position:relative}
+.pipe.cols4{grid-template-columns:repeat(4,minmax(0,1fr))}
+.pipe.cols6{grid-template-columns:repeat(6,minmax(0,1fr))}
+@media(max-width:1000px){.pipe.cols6{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:760px){.pipe.cols4{grid-template-columns:repeat(2,minmax(0,1fr))}.pipe.cols6{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.node{position:relative;font:inherit;color:var(--text);text-align:left;background:var(--bg);border:1px solid var(--line);border-radius:14px;padding:16px 15px 14px;cursor:pointer;min-height:118px;display:flex;flex-direction:column;gap:5px;transition:border-color .25s,background-color .25s,opacity .25s,transform .25s var(--ease-out),box-shadow .25s}
+.node:hover{border-color:rgba(45,212,191,.6)}
+.node .no{font-family:var(--mono);font-size:12px;color:var(--cyan);letter-spacing:.1em}
+.node b{font-size:15.5px;line-height:1.25}
+.node small{font-size:12.5px;color:var(--muted);line-height:1.35}
+.node .st{position:absolute;top:13px;right:13px;font-family:var(--mono);font-size:12px;font-weight:700;letter-spacing:.06em;opacity:0;transition:opacity .25s}
+.node.sel{outline:1px solid var(--cyan);outline-offset:2px}
+.node.on{transform:translateY(-3px);border-color:var(--cyan);box-shadow:0 0 0 3px rgba(45,212,191,.14),0 12px 28px -18px rgba(45,212,191,.7)}
+.node.g{border-color:rgba(52,211,153,.55);background:rgba(52,211,153,.07)}.node.g .st{color:var(--green);opacity:1}
+.node.a{border-color:rgba(251,191,36,.6);background:rgba(251,191,36,.07)}.node.a .st{color:var(--amber);opacity:1}
+.node.c{border-color:rgba(45,212,191,.7);background:rgba(45,212,191,.09)}.node.c .st{color:var(--cyan);opacity:1}
+.node.r{border-color:rgba(248,113,113,.65);background:rgba(248,113,113,.09)}.node.r .st{color:var(--red);opacity:1}
+.node.s{opacity:.42}.node.s .st{opacity:1;color:var(--muted)}
+.pipe.reset .node{transition:none}
+.legend{display:flex;gap:18px;flex-wrap:wrap;font-size:12.5px;color:var(--muted);margin:18px 0 0}
+.legend span:before{content:"";display:inline-block;width:9px;height:9px;border-radius:3px;margin-right:6px;vertical-align:-1px}
+.legend .g:before{background:var(--green)}.legend .a:before{background:var(--amber)}.legend .c:before{background:var(--cyan)}.legend .r:before{background:var(--red)}.legend .s:before{background:var(--line)}
+.split{display:grid;grid-template-columns:1.1fr 1fr;gap:18px;margin-top:18px}
+@media(max-width:900px){.split{grid-template-columns:minmax(0,1fr)}}
+.term{background:#040a08;border:1px solid var(--line);border-radius:12px;padding:16px 18px;font-family:var(--mono);font-size:12.5px;min-height:210px;overflow-x:auto;line-height:1.7}
+.term .ln{white-space:pre;animation:lnin .22s var(--ease-out) both}
+@keyframes lnin{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+.term .ok{color:var(--green)}.term .warn{color:var(--amber)}.term .bad{color:var(--red)}.term .info{color:var(--cyan)}.term .dim{color:var(--muted)}
+.detail{border:1px solid var(--line);border-radius:12px;padding:18px 20px;background:var(--bg)}
+.detail h3{margin:0 0 6px;font-size:17px}
+.detail p{margin:0 0 10px;color:var(--muted);font-size:14.5px}
+.detail ul{margin:0;padding-left:18px;color:var(--text);font-size:14px}
+.detail li{margin:4px 0}
+.outcome{margin-top:16px;padding:14px 18px;border-radius:12px;border:1px solid var(--line);font-weight:600;animation:lnin .3s var(--ease-out) both}
+.outcome.ok{border-color:rgba(52,211,153,.5);background:rgba(52,211,153,.08);color:var(--green)}
+.outcome.warn{border-color:rgba(251,191,36,.5);background:rgba(251,191,36,.07);color:var(--amber)}
+.outcome.bad{border-color:rgba(248,113,113,.55);background:rgba(248,113,113,.08);color:var(--red)}
+.outcome.info{border-color:rgba(45,212,191,.55);background:rgba(45,212,191,.08);color:var(--cyan)}
+.outcome small{display:block;font-weight:400;color:var(--muted);margin-top:3px;font-size:13.5px}
+
+@media(max-width:760px){.term .ln{white-space:pre-wrap;word-break:break-word}.term{font-size:12px}}
+.ctx-col.mid .ctx-h{text-align:center}
+/* verdict groups */
+.vgrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+@media(max-width:900px){.vgrid{grid-template-columns:minmax(0,1fr)}}
+.vcol{background:linear-gradient(180deg,var(--panel2),var(--panel));border:1px solid var(--line);border-radius:16px;padding:6px 18px 12px}
+.vh{display:flex;align-items:center;gap:10px;font-weight:700;font-size:15px;padding:14px 0 12px;border-bottom:1px solid var(--line)}
+.vdot{width:10px;height:10px;border-radius:50%}
+.vcol.good .vdot{background:var(--green)}.vcol.bad .vdot{background:var(--red)}.vcol.man .vdot{background:var(--amber)}
+.vcol.good .vh{color:var(--green)}.vcol.bad .vh{color:var(--red)}.vcol.man .vh{color:var(--amber)}
+.vi{padding:12px 0;border-bottom:1px solid rgba(33,52,47,.55)}
+.vi:last-child{border-bottom:0}
+.vi b{font-family:var(--mono);font-size:13.5px}
+.vi small{float:right;font-family:var(--mono);font-size:12px;color:var(--muted)}
+.vi p{margin:5px 0 0;color:var(--muted);font-size:14px}
+
+
+/* ===== a11y + polish ===== */
+.skip{position:absolute;left:12px;top:-60px;z-index:60;background:var(--cyan);color:#04201b;padding:10px 16px;border-radius:10px;font-weight:700;text-decoration:none}
+.skip:focus{top:10px}
+:focus-visible{outline:2px solid var(--cyan);outline-offset:3px;border-radius:6px}
+main:focus{outline:none}
+nav .links a{display:inline-block;padding:12px 6px}
+.sc{padding:11px 15px;min-height:44px}
+.run{min-height:44px;background:linear-gradient(100deg,#0f766e,#15803d)}
+.node.s{opacity:.8;border-style:dashed;background:transparent}
+.node.s .st{color:var(--muted)}
+.run.pulse{animation:pulse 2s ease-out infinite}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(45,212,191,.55)}70%{box-shadow:0 0 0 12px rgba(45,212,191,0)}100%{box-shadow:0 0 0 0 rgba(45,212,191,0)}}
+.noscript{color:var(--muted);margin:0 0 12px;font-size:15px}
+.pn h3{margin:0 0 8px;font-size:12px;color:var(--muted);font-weight:600;font-family:var(--mono);letter-spacing:.04em}
+
+.pipe.cols5{grid-template-columns:repeat(5,minmax(0,1fr))}
+@media(max-width:1000px){.pipe.cols5{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:760px){.pipe.cols5{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.term .cmd{color:var(--text)}
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<div class="grid-bg" aria-hidden="true"></div>
+
+<nav>
+  <div class="wrap">
+    <a class="brand" href="/">Gateway<small>.atla.in</small></a>
+    <div class="links">
+      <a href="#numbers">Numbers</a><a href="#architecture">Architecture</a><a href="#prompts">Prompts</a><a href="#evals">Evals</a><a class="keep" href="#case">Case study</a><a href="#watch">Dashboard</a><a href="#learned">Learnings</a>
+      <a class="keep" href="https://github.com/pranavatla/gate" target="_blank" rel="noopener">GitHub</a>
+    </div>
+  </div>
+</nav>
+
+<main id="main" tabindex="-1">
+<div class="wrap">
+
+<header class="hero">
+  <div class="eyebrow">Build story &middot; October 2026</div>
+  <h1>An AI gateway that <em>tests itself</em> every night</h1>
+  <p class="lead">I built a production LLM gateway, then added what most teams skip: <b>versioned prompts</b>, <b>feature flags</b>, and an <b>automated evaluation pipeline</b> that catches quality regressions before visitors do. This page shows how it works, with real numbers and one real bug it helped me find and fix.</p>
+  <div class="cta">
+    <a class="btn primary" href="#case">See the bug it caught</a>
+    <a class="btn" href="/">Back to the live gateway</a>
+    <a class="btn" href="https://github.com/pranavatla/gate" target="_blank" rel="noopener">Source on GitHub</a>
+  </div>
+
+  <div class="nums" id="numbers">
+    <div class="num"><b data-count="1134">0</b><span>requests through the gateway, including my own tests and evals</span></div>
+    <div class="num"><b data-count="4">0</b><span>tenants, each with own keys, limits and budget</span></div>
+    <div class="num"><b data-count="33">0</b><span>automated eval runs</span></div>
+    <div class="num"><b data-count="435">0</b><span>answers graded by rules and an LLM judge</span></div>
+    <div class="num"><b data-count="40">0</b><span>eval cases across 3 sets</span></div>
+    <div class="num"><b data-prefix="$" data-dec="2" data-count="0.45">0</b><span>total cost of every eval run so far</span></div>
+  </div>
+  <div class="asof">As of 6 Oct 2026 &middot; live traffic 29 Sep &ndash; 6 Oct &middot; numbers read from the production database</div>
+</header>
+
+<section class="reveal" id="summary" aria-labelledby="h-summary">
+  <div class="kicker">The one-minute version</div>
+  <h2 id="h-summary">What problem this solves</h2>
+  <p class="sub">Companies that put an LLM behind a product face three problems at once: who is allowed to call it and how much can they spend, which prompt is live and what happens when someone edits it, and how do you know the answers did not quietly get worse.</p>
+  <div class="cards">
+    <div class="card"><span class="tag">01 &middot; CONTROL</span><h3>One front door</h3><p>Tenant keys, rate limits, monthly budgets with automatic model downgrade, PII redaction, failover across four providers, and an audit trail for every call.</p></div>
+    <div class="card"><span class="tag">02 &middot; CHANGE</span><h3>Safe prompt changes</h3><p>Prompts are immutable versions. A new version can go to a small, sticky share of traffic first, be promoted, or be rolled back in one command, with every step audited.</p></div>
+    <div class="card"><span class="tag">03 &middot; QUALITY</span><h3>Proof, not hope</h3><p>A nightly eval asks a fixed set of questions, grades the answers, compares them with a baseline, and raises an alert when quality drops or the check itself breaks.</p></div>
+  </div>
+</section>
+
+<section class="reveal" id="architecture" aria-labelledby="h-architecture">
+  <div class="sec-head">
+    <div class="kicker">Architecture</div>
+    <h2 id="h-architecture">Watch a request travel through the gateway</h2>
+    <p>Every call walks the same eight layers, in order. The first layer that says no ends the request, so a refused call never reaches a model and never costs money. Pick a scenario and press <b>Send request</b>, or click any layer to see what it does. This is a simulation of the real flow.</p>
+  </div>
+
+  <div class="ctx">
+    <div class="ctx-col"><span class="ctx-h">Who calls it</span>
+      <span class="chip2">gita.atla.in &middot; RAG app</span><span class="chip2">atla.in chatbot</span><span class="chip2">Nightly eval runner</span><span class="chip2">Test tenant</span></div>
+    <div class="ctx-arrow">&rarr;<small>Caddy &middot; HTTPS</small></div>
+    <div class="ctx-col mid"><span class="ctx-h">The gateway</span><span class="ctx-big">8 layers &middot; FastAPI</span><small>one ARM server in Mumbai</small></div>
+    <div class="ctx-arrow">&rarr;<small>first route that works</small></div>
+    <div class="ctx-col"><span class="ctx-h">Model providers</span>
+      <span class="chip2"><i style="background:#d97757"></i>Anthropic Claude</span><span class="chip2"><i style="background:#10a37f"></i>OpenAI GPT</span><span class="chip2"><i style="background:#4285f4"></i>Google Gemini</span><span class="chip2"><i style="background:#f59e0b"></i>Amazon Bedrock</span></div>
+  </div>
+
+  <div class="panel sim" id="sim-arch">
+    <noscript><p class="noscript">This walkthrough needs JavaScript. In short: every request passes eight layers in order (authenticate, rate limit, budget, policy, prompt and flags, cache, router with failover, audit), and the first layer that says no ends it.</p></noscript>
+    <div class="controls" data-controls role="group" aria-label="Scenarios"><label>Scenario:</label></div>
+    <div class="pipe cols4" data-pipe></div>
+    <div class="legend"><span class="g">passed</span><span class="a">acted on the request</span><span class="c">answered from cache</span><span class="r">blocked</span><span class="s">skipped</span></div>
+    <div class="split">
+      <div class="term" data-term aria-live="polite"><div class="dim">Press &ldquo;Send request&rdquo; to trace a call.</div></div>
+      <div class="detail" data-detail></div>
+    </div>
+    <div class="outcome" data-outcome hidden></div>
+  </div>
+
+  <div class="trio">
+    <div class="mini"><span class="tag">STORES</span><h3>Postgres + pgvector</h3><p>Keys, tenants, prompts, flags, usage, audit and eval history. 18 tables, one place to ask &ldquo;what happened&rdquo;.</p></div>
+    <div class="mini"><span class="tag">COUNTS</span><h3>Redis</h3><p>Fast counters for rate limits, so the checks in layer 2 never slow a request down.</p></div>
+    <div class="mini"><span class="tag">WATCHES</span><h3>Grafana, read-only</h3><p>Dashboards and alerts read special views through a role that cannot change data.</p></div>
+  </div>
+
+  <div class="panel" style="margin-top:22px">
+    <h3>How a change reaches production</h3>
+    <div class="flow" style="margin-top:12px">
+      <div class="step"><span class="n">PUSH</span><b>GitHub</b><span>commit to main</span></div><div class="arrow">&rarr;</div>
+      <div class="step"><span class="n">BUILD</span><b>Actions</b><span>ARM image to ECR</span></div><div class="arrow">&rarr;</div>
+      <div class="step"><span class="n">SHIP</span><b>S3 bundle</b><span>config and dashboards</span></div><div class="arrow">&rarr;</div>
+      <div class="step"><span class="n">DEPLOY</span><b>SSM command</b><span>sync and restart</span></div><div class="arrow">&rarr;</div>
+      <div class="step"><span class="n">VERIFY</span><b>Health check</b><span>fails the build if down</span></div>
+    </div>
+  </div>
+
+  <details>
+    <summary>Engineer's view: the pieces and why</summary>
+    <div class="body">
+      <ul>
+        <li><b>Single arm64 EC2, Docker Compose:</b> five services (gateway, Postgres with pgvector, Redis, Grafana, Caddy). One box keeps cost and operations small; the deploy path is the same one a larger fleet would use.</li>
+        <li><b>Caddy</b> terminates HTTPS and only routes <code>gate.atla.in</code> to the gateway. Grafana is bound to localhost and reached through an SSM tunnel, never exposed publicly.</li>
+        <li><b>Database migrations</b> are plain SQL files applied by hand and recorded in git. I know this lacks a migration runner; it is listed under limitations.</li>
+        <li><b>Grafana's database user is read-only</b> and can only read views built for dashboards, so a mistake in a panel cannot change data.</li>
+      </ul>
+    </div>
+  </details>
+</section>
+
+<section class="reveal" id="prompts" aria-labelledby="h-prompts">
+  <div class="sec-head">
+    <div class="kicker">Phase A</div>
+    <h2 id="h-prompts">Prompts as versioned, rollback-able releases</h2>
+    <p>Before this, a prompt was a text file inside someone's code. Changing it meant redeploying, with no record of what changed and no quick way back. Now a prompt is a released artifact. Pick a release and press <b>Ship it</b>, or click any step to see what it does.</p>
+  </div>
+
+  <div class="panel sim" id="sim-prompt">
+    <noscript><p class="noscript">This walkthrough needs JavaScript. In short: publish a new prompt version, send it to a small share of visitors, watch the results, then either promote it to everyone or roll it back with one command.</p></noscript>
+    <div class="controls" data-controls role="group" aria-label="Releases"><label>Which release?</label></div>
+    <div class="pipe cols5" data-pipe></div>
+    <div class="legend"><span class="g">done</span><span class="a">needs a look</span><span class="r">stopped</span><span class="s">not needed</span></div>
+    <div class="split">
+      <div class="term" data-term aria-live="polite"><div class="dim">Press &ldquo;Ship it&rdquo; to follow one prompt release.</div></div>
+      <div class="detail" data-detail></div>
+    </div>
+    <div class="outcome" data-outcome hidden></div>
+  </div>
+
+  <div class="trio">
+    <div class="mini"><span class="tag">IMMUTABLE</span><h3>v3 is always exactly v3</h3><p>A saved version can never be edited, only replaced by a newer one. Any answer can be traced to the precise text that produced it.</p></div>
+    <div class="mini"><span class="tag">STICKY</span><h3>A visitor never flips</h3><p>The share of traffic is decided by a hash of the visitor, so the same person always gets the same version and a conversation never changes behaviour halfway.</p></div>
+    <div class="mini"><span class="tag">FLAGS</span><h3>Switches with a safety net</h3><p>Flags can be set for one tenant or everyone. If the lookup ever fails, the gateway falls back to the safe default instead of failing the request.</p></div>
+  </div>
+
+  <details>
+    <summary>Engineer's view: rollout mechanics</summary>
+    <div class="body">
+      <ul>
+        <li>Per tenant and prompt name, the registry holds a <b>stable</b> version and an optional <b>candidate</b> with a percentage.</li>
+        <li>The bucket is a SHA-256 hash of the visitor identity, so assignment is sticky and needs no extra storage.</li>
+        <li>Commands: publish, rollout, promote, rollback, show; flags: set, clear, show. Every one writes to the audit log.</li>
+        <li>Version 1 of a prompt goes live immediately; later versions are &ldquo;not live yet&rdquo; until rolled out.</li>
+        <li>Example flag: the <code>evals</code> tenant has <code>cache_bypass</code> on, so eval questions never read or fill the cache and every run measures the model, not a remembered answer.</li>
+      </ul>
+    </div>
+  </details>
+</section>
+
+<section class="reveal" id="evals" aria-labelledby="h-evals">
+  <div class="sec-head">
+    <div class="kicker">Phase B</div>
+    <h2 id="h-evals">An eval pipeline that runs while I sleep</h2>
+    <p>Every night the same questions are asked, the answers are graded, and the score is compared with how it normally does. It only speaks up when something truly changed, or when the check itself breaks. Pick a night and press <b>Run the night</b>, or click any step to see what it does.</p>
+  </div>
+
+  <div class="panel sim" id="sim-eval">
+    <noscript><p class="noscript">This walkthrough needs JavaScript. In short: each night the runner loads the questions, asks them through the gateway, grades the answers, compares the score with a baseline, decides a verdict and raises an alert if needed.</p></noscript>
+    <div class="controls" data-controls role="group" aria-label="Nights"><label>Which night?</label></div>
+    <div class="pipe cols6" data-pipe></div>
+    <div class="legend"><span class="g">healthy</span><span class="a">needs a look</span><span class="r">failed</span><span class="s">skipped</span></div>
+    <div class="split">
+      <div class="term" data-term aria-live="polite"><div class="dim">Press &ldquo;Run the night&rdquo; to follow one nightly run.</div></div>
+      <div class="detail" data-detail></div>
+    </div>
+    <div class="outcome" data-outcome hidden></div>
+  </div>
+
+  <h3 class="sub-h">What the verdict means</h3>
+  <div class="vgrid">
+    <div class="vcol good">
+      <div class="vh"><span class="vdot"></span>Healthy &middot; no alert</div>
+      <div class="vi"><b>OK</b><small>exit 0</small><p>Score is inside the normal range.</p></div>
+      <div class="vi"><b>IMPROVED</b><small>exit 0</small><p>Score is better than normal.</p></div>
+      <div class="vi"><b>BUILDING_BASELINE</b><small>exit 0</small><p>Fewer than three clean runs exist yet, so there is nothing to compare with.</p></div>
+    </div>
+    <div class="vcol bad">
+      <div class="vh"><span class="vdot"></span>Needs attention &middot; alert fires</div>
+      <div class="vi"><b>REGRESSION</b><small>exit 3</small><p>Quality fell by more than the allowed tolerance.</p></div>
+      <div class="vi"><b>NOISY_BASELINE</b><small>exit 4</small><p>History is too jumpy to judge fairly.</p></div>
+      <div class="vi"><b>UNRELIABLE</b><small>exit 5</small><p>The run did not finish properly, so its score cannot be trusted.</p></div>
+    </div>
+    <div class="vcol man">
+      <div class="vh"><span class="vdot"></span>Person decides &middot; manual</div>
+      <div class="vi"><b>ACCEPTED</b><small>command</small><p>&ldquo;This lower score is the new normal.&rdquo; Resets what future runs are compared with.</p></div>
+      <div class="vi"><b>EXCLUDED</b><small>command</small><p>&ldquo;Throw this run out.&rdquo; Used for experiments so they never pollute the baseline.</p></div>
+    </div>
+  </div>
+
+  <div class="cards" style="margin-top:26px">
+    <div class="card"><span class="tag">GRADING</span><h3>Two layers of checks</h3><p>Hard rules first (must contain, must not contain, word limit). Then a judge model scores meaning, and it sees only the reference answer, never the prompt, so it cannot be talked into agreeing.</p></div>
+    <div class="card"><span class="tag">FAIRNESS</span><h3>Tolerance that adapts</h3><p>The allowed drop is the larger of 0.10 or twice the history's spread, so a naturally noisy test does not cry wolf and a stable one is held tight.</p></div>
+    <div class="card"><span class="tag">SCHEDULE</span><h3>Nightly, with a dead-man's switch</h3><p>A timer runs both sets at 22:00 UTC. A separate alert fires if no run has happened in 36 hours, so silence itself is caught.</p></div>
+  </div>
+
+  <details>
+    <summary>Engineer's view: data model and baseline rules</summary>
+    <div class="body">
+      <ul>
+        <li><b>Tables:</b> <code>eval_sets</code>, <code>eval_cases</code> (immutable), <code>eval_runs</code>, <code>eval_results</code>. Each result keeps the answer, score, judge reason, latency, cost and the request id that links back to the audit log.</li>
+        <li><b>Baseline:</b> last five <code>done</code> runs of the same set and route, ignoring excluded or regressed runs, starting from the latest accepted run, minimum three needed.</li>
+        <li><b>Baseline is by set and route, not prompt version.</b> That is deliberate: a new prompt must beat the normal, but experiments must be explicitly excluded so they do not poison it.</li>
+        <li><b>Exit codes</b> let the nightly script and systemd report failure as a failed unit, which feeds the alert.</li>
+        <li><b>Secrets:</b> the eval key lives in a secrets store and is fetched at run time; it never touches a shell history or a file.</li>
+      </ul>
+    </div>
+  </details>
+</section>
+
+<section class="reveal" id="case" aria-labelledby="h-case">
+  <div class="kicker">Case study</div>
+  <h2 id="h-case">The bug the evals helped me find</h2>
+  <p class="sub">The chatbot on atla.in sometimes told visitors that I used OpenAI, Anthropic, Gemini and Bedrock <b>at Accenture</b>. That is false: those providers belong to my own projects. A wrong claim about my experience, in front of recruiters, is exactly the kind of defect that nobody notices until it hurts.</p>
+
+  <div class="two">
+    <div class="panel">
+      <div class="timeline">
+        <div class="tl bad"><b>Found</b><p>A guard test asked "did Pranav use an LLM at Accenture?" and the chatbot said yes in roughly one run in six.</p></div>
+        <div class="tl warn"><b>Corrected my own claim</b><p>After four clean runs I thought the old prompt was immune. A later run failed. Four runs were not proof, so I fixed a rule before testing further.</p></div>
+        <div class="tl"><b>Candidate v5</b><p>Added one explicit fact to the chatbot's knowledge. Passed the Accenture test in 3 of 3 runs.</p></div>
+        <div class="tl bad"><b>But it failed a second test, 3 of 3</b><p>The greeting. The model replied as if the visitor were me:</p>
+          <div class="quote">"Hello Pranav! What would you like to know about me?"</div></div>
+        <div class="tl warn"><b>Read the actual answers, not the scores</b><p>The rule said "ask what they want to know about Pranav", but nothing said <i>who the assistant is</i>. The model had a name and no role.</p></div>
+        <div class="tl good"><b>v6 and ship</b><p>One added rule: you are an assistant that tells visitors about Pranav. 3 of 3 clean runs, then deployed. Checked live on atla.in.</p>
+          <div class="quote good">"Hello! I can tell you about Pranav and his work. What would you like to know about him?"</div></div>
+      </div>
+    </div>
+    <div>
+      <div class="rule"><b>Decided before looking at results:</b> ship only if the Accenture test passes in all three runs <i>and</i> no other case fails in two or more. Keep the old prompt if the Accenture test fails even once. Writing the rule first stopped me from rationalising a weaker result.</div>
+      <div class="panel">
+        <h3>Nine runs on the same 15 questions</h3>
+        <p style="color:var(--muted);font-size:14px;margin:4px 0 12px">Two cases that mattered. Green passed, red failed.</p>
+        <div class="heat" role="img" aria-label="Pass or fail for runs 24 to 32. Accenture test: failed only in run 25. Greeting test: failed in runs 24, 25, 27, 28 and 29, and passed in runs 26, 30, 31 and 32.">
+          <div></div><div class="grp">v1 &middot; old</div><div class="grp v5">v5</div><div class="grp v6">v6 &middot; shipped</div>
+          <div></div><div class="h">24</div><div class="h">25</div><div class="h">26</div><div class="h">27</div><div class="h">28</div><div class="h">29</div><div class="h">30</div><div class="h">31</div><div class="h">32</div>
+          <div class="lbl">Accenture</div>
+          <div class="cell p">✓</div><div class="cell f">✗</div><div class="cell p">✓</div><div class="cell p">✓</div><div class="cell p">✓</div><div class="cell p">✓</div><div class="cell p">✓</div><div class="cell p">✓</div><div class="cell p">✓</div>
+          <div class="lbl">Greeting</div>
+          <div class="cell f">✗</div><div class="cell f">✗</div><div class="cell p">✓</div><div class="cell f">✗</div><div class="cell f">✗</div><div class="cell f">✗</div><div class="cell p">✓</div><div class="cell p">✓</div><div class="cell p">✓</div>
+        </div>
+        <div class="bars" role="img" aria-label="Average score per run, runs 24 to 32: 0.93, 0.87, 1.0, 0.93, 0.93, 0.93, 1.0, 1.0, 1.0">
+          <div class="lbl">Avg score</div>
+          <div class="bar" style="height:93.3%"><i>.93</i></div><div class="bar" style="height:86.7%"><i>.87</i></div><div class="bar" style="height:100%"><i>1.0</i></div>
+          <div class="bar v5" style="height:93.3%"><i>.93</i></div><div class="bar v5" style="height:93.3%"><i>.93</i></div><div class="bar v5" style="height:93.3%"><i>.93</i></div>
+          <div class="bar v6" style="height:100%"><i>1.0</i></div><div class="bar v6" style="height:100%"><i>1.0</i></div><div class="bar v6" style="height:100%"><i>1.0</i></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <p class="sub" style="margin-top:16px">The lesson I care about most: the average score barely moved (0.93 to 1.0), yet two real defects hid inside it. The score tells you <i>that</i> something is off; reading the stored answer tells you <i>why</i>.</p>
+</section>
+
+<section class="reveal" id="watch" aria-labelledby="h-watch">
+  <div class="kicker">Observability</div>
+  <h2 id="h-watch">A dashboard and two alerts</h2>
+  <p class="sub">Panels read a purpose-built view of the eval data. Below is the same layout, drawn from real runs of the main eval set.</p>
+  <div class="panel">
+    <div class="dash">
+      <div class="pn s2"><h3>LATEST VERDICT</h3><div class="big" style="color:var(--green)">OK</div><div style="color:var(--muted);font-size:12.5px;margin-top:4px">facts-core &middot; prompt v6</div></div>
+      <div class="pn s2"><h3>LATEST SCORE</h3><div class="big">0.95</div><div style="color:var(--muted);font-size:12.5px;margin-top:4px">baseline 0.97 &middot; tolerance 0.10</div></div>
+      <div class="pn s2"><h3>PASS RATE</h3><div class="big">90%</div><div style="color:var(--muted);font-size:12.5px;margin-top:4px">9 of 10 cases</div></div>
+      <div class="pn s4"><h3>SCORE PER RUN &middot; FACTS-CORE</h3>
+        <svg viewBox="0 0 520 150" width="100%" role="img" aria-label="Score per run, between 0.9 and 1.0">
+          <g stroke="#21342f" stroke-width="1"><line x1="40" y1="20" x2="510" y2="20"/><line x1="40" y1="60" x2="510" y2="60"/><line x1="40" y1="100" x2="510" y2="100"/><line x1="40" y1="130" x2="510" y2="130"/></g>
+          <g fill="#91a79f" font-family="ui-monospace,monospace" font-size="13"><text x="6" y="24">1.00</text><text x="6" y="64">0.95</text><text x="6" y="104">0.90</text></g>
+          <rect x="40" y="20" width="470" height="40" fill="#34d399" opacity=".07"/>
+          <polyline fill="none" stroke="#2dd4bf" stroke-width="2.4" points="70,20 160,100 250,60 340,20 430,20 500,60"/>
+          <g fill="#07110f" stroke="#2dd4bf" stroke-width="2"><circle cx="70" cy="20" r="4.5"/><circle cx="160" cy="100" r="4.5"/><circle cx="250" cy="60" r="4.5"/><circle cx="340" cy="20" r="4.5"/><circle cx="430" cy="20" r="4.5"/><circle cx="500" cy="60" r="4.5" stroke="#34d399"/></g>
+          <g fill="#91a79f" font-family="ui-monospace,monospace" font-size="13" text-anchor="middle"><text x="70" y="146">run 4</text><text x="160" y="146">run 5</text><text x="250" y="146">run 7</text><text x="340" y="146">run 11</text><text x="430" y="146">run 12</text><text x="500" y="146">run 33</text></g>
+        </svg>
+      </div>
+      <div class="pn s2"><h3>COST AND SPEED</h3><div class="big" style="font-size:22px">$0.011</div><div style="color:var(--muted);font-size:12.5px">per 10-case run</div><div class="big" style="font-size:22px;margin-top:8px">~1 s</div><div style="color:var(--muted);font-size:12.5px">typical answer latency</div></div>
+      <div class="pn s6"><h3>RECENT RUNS</h3>
+        <div class="scroll-x"><table class="tbl" style="min-width:460px"><thead><tr><th>run</th><th>set</th><th>prompt</th><th>score</th><th>verdict</th></tr></thead><tbody>
+          <tr><td>33</td><td>facts-core</td><td>chatbot@6</td><td>0.95</td><td><span class="pill ok">OK</span></td></tr>
+          <tr><td>29</td><td>facts-guard-v2</td><td>chatbot@5</td><td>0.93</td><td><span class="pill ex">EXCLUDED</span></td></tr>
+          <tr><td>13</td><td>facts-guard</td><td>chatbot@1</td><td>partial</td><td><span class="pill un">UNRELIABLE</span></td></tr>
+          <tr><td>6</td><td>facts-core</td><td>chatbot@2</td><td>&ndash;</td><td><span class="pill ex">EXCLUDED</span></td></tr>
+        </tbody></table></div>
+      </div>
+    </div>
+    <div class="alerts">
+      <div class="alert"><div class="state" style="color:var(--red)">&#9679; Eval regression</div><p>Fires if the latest run of <i>any</i> set is a regression, a noisy baseline, or unreliable. I tested it on purpose and watched it go from Normal to Firing.</p></div>
+      <div class="alert"><div class="state" style="color:var(--green)">&#9679; Eval job silent</div><p>Fires if no run has happened for 36 hours, and also if the data is missing. A check that stops running must be loud, not quiet.</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="reveal" id="learned" aria-labelledby="h-learned">
+  <div class="kicker">Learnings</div>
+  <h2 id="h-learned">What this build taught me</h2>
+  <div class="two">
+    <div class="panel"><h3>Practices I would keep</h3>
+      <ul class="clean">
+        <li><b>Write the pass rule before the test.</b> It removes the temptation to move the goalposts.</li>
+        <li><b>Read the raw answer.</b> Scores locate a problem; the stored text explains it.</li>
+        <li><b>Make the checker fail loudly.</b> A half-finished run once passed silently, so it now exits non-zero and raises an alert.</li>
+        <li><b>Keep experiments out of the baseline.</b> One banana-test prompt would have wrecked a week of history.</li>
+        <li><b>Ship the smallest change that fixes the cause.</b> One rule fixed the greeting; no rewrite.</li>
+        <li><b>Keep unfinished work out of a release.</b> I found an unrelated, half-built change sitting in the same folder and set it aside before deploying.</li>
+      </ul>
+    </div>
+    <div class="panel"><h3>Honest limits</h3>
+      <ul class="clean">
+        <li><b>Small eval sets.</b> 40 cases across 3 sets catch known failures, not unknown ones.</li>
+        <li><b>The judge is a model.</b> It can wobble on thin references; rule checks back it up.</li>
+        <li><b>No automated unit tests yet.</b> Quality is gated by evals and a health check, not by a test suite.</li>
+        <li><b>Single server.</b> Right for this scale; a larger fleet would need more than one box.</li>
+        <li><b>Migrations are applied by hand.</b> A tracked migration runner is the next improvement.</li>
+        <li><b>The eval tests prompt and model</b>, not retrieval, so the Gita app needs its own set.</li>
+      </ul>
+    </div>
+  </div>
+  <div class="panel" style="margin-top:14px">
+    <h3>Next</h3>
+    <p style="color:var(--muted);margin:6px 0 0">An eval set for the Gita app (its 25 questions), a migration runner, and a dashboard that tracks every set side by side.</p>
+  </div>
+</section>
+
+</div>
+</main>
+
+<footer>
+  <div class="wrap">
+    <span>Built and operated by <b>Sai Pranav Atla</b> &middot; Bengaluru</span>
+    <span><a href="/">Gateway</a> &middot; <a href="https://github.com/pranavatla/gate" target="_blank" rel="noopener">Source</a> &middot; <a href="https://atla.in" target="_blank" rel="noopener">atla.in</a></span>
+  </div>
+</footer>
+
+<script>
+(function(){
+  var reduce=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  function fmt(el,v){
+    var dec=parseInt(el.getAttribute('data-dec')||'0',10),pre=el.getAttribute('data-prefix')||'';
+    el.textContent=pre+(dec?v.toFixed(dec):Math.round(v).toLocaleString('en-US'));
+  }
+  function run(el){
+    var to=parseFloat(el.getAttribute('data-count'));
+    if(reduce){fmt(el,to);return}
+    var t0=null,dur=1100;
+    function tick(t){if(!t0)t0=t;var p=Math.min((t-t0)/dur,1),e=1-Math.pow(1-p,3);fmt(el,to*e);if(p<1)requestAnimationFrame(tick);else fmt(el,to)}
+    requestAnimationFrame(tick);
+  }
+  var nums=document.querySelectorAll('[data-count]');
+  nums.forEach(function(n){fmt(n,parseFloat(n.getAttribute('data-count')))});
+  if('IntersectionObserver' in window){
+    var io=new IntersectionObserver(function(es){es.forEach(function(e){
+      if(e.isIntersecting){e.target.classList.add('in');e.target.querySelectorAll&&e.target.querySelectorAll('[data-count]').forEach(run);io.unobserve(e.target)}
+    })},{threshold:.08});
+    document.querySelectorAll('.reveal').forEach(function(s){io.observe(s)});
+    var ho=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){nums.forEach(run);ho.disconnect()}})},{threshold:.4});
+    var strip=document.getElementById('numbers');if(strip)ho.observe(strip);
+  }else{
+    document.querySelectorAll('.reveal').forEach(function(s){s.classList.add('in')});
+  }
+})();
+</script>
+
+<script>
+(function(){
+  var reduce=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  function wait(ms){return new Promise(function(r){setTimeout(r,reduce?0:ms)})}
+  var LABEL={g:'PASS',a:'ACTED',c:'CACHE',r:'BLOCKED',s:'SKIPPED'};
+
+  function mount(root,cfg){
+    var controls=root.querySelector('[data-controls]'),pipe=root.querySelector('[data-pipe]'),
+        term=root.querySelector('[data-term]'),detail=root.querySelector('[data-detail]'),out=root.querySelector('[data-outcome]');
+    var nodes=[],cur=cfg.scenarios[0],token=0,running=false,runBtn;
+    cfg.nodes.forEach(function(n,i){
+      var b=document.createElement('button');b.type='button';b.className='node';
+      b.innerHTML='<span class="no">'+String(i+1).padStart(2,'0')+'</span><b>'+n.t+'</b><small>'+n.s+'</small><span class="st"></span>';
+      b.setAttribute('aria-pressed','false');b.addEventListener('click',function(){select(i)});
+      pipe.appendChild(b);nodes.push(b);
+    });
+    cfg.scenarios.forEach(function(sc,k){
+      var c=document.createElement('button');c.type='button';c.className='sc';c.textContent=sc.label;
+      c.setAttribute('aria-pressed',k===0?'true':'false');
+      c.addEventListener('click',function(){if(running)return;cur=sc;runBtn.classList.remove('pulse');
+        controls.querySelectorAll('.sc').forEach(function(x){x.setAttribute('aria-pressed','false')});
+        c.setAttribute('aria-pressed','true');reset(true)});
+      controls.appendChild(c);
+    });
+    runBtn=document.createElement('button');runBtn.type='button';runBtn.className='run';runBtn.textContent=cfg.run;
+    runBtn.classList.add('pulse');runBtn.addEventListener('click',function(){runBtn.classList.remove('pulse');play()});term.setAttribute('role','log');out.setAttribute('role','status');controls.appendChild(runBtn);
+
+    function select(i){
+      nodes.forEach(function(n){n.classList.remove('sel');n.setAttribute('aria-pressed','false')});nodes[i].classList.add('sel');nodes[i].setAttribute('aria-pressed','true');
+      var d=cfg.nodes[i].d;
+      detail.innerHTML='<h3>'+d.h+'</h3><p>'+d.p+'</p><ul>'+d.l.map(function(x){return'<li>'+x+'</li>'}).join('')+'</ul>';
+    }
+    function reset(showNote){
+      token++;pipe.classList.add('reset');
+      nodes.forEach(function(n,k){n.className='node';n.querySelector('.st').textContent=''});
+      void pipe.offsetWidth;pipe.classList.remove('reset');
+      out.hidden=true;out.className='outcome';
+      term.innerHTML='<div class="dim">'+(showNote?cur.note:cfg.intro)+'</div>';
+    }
+    function line(cls,txt){var d=document.createElement('div');d.className='ln '+cls;d.textContent=txt;term.appendChild(d);term.scrollTop=term.scrollHeight}
+    async function play(){
+      if(running)return;running=true;runBtn.disabled=true;runBtn.style.opacity='.6';
+      reset(false);var my=token;term.innerHTML='';line('dim',cur.start);
+      for(var i=0;i<cur.steps.length;i++){
+        var st=cur.steps[i];nodes[i].classList.add('on');select(i);
+        await wait(300);if(my!==token)return;
+        st.log.forEach(function(l){line(l[0],l[1])});
+        nodes[i].classList.remove('on');nodes[i].classList.add(st.s);var lbl=st.l||(cfg.labels||LABEL)[st.s];nodes[i].querySelector('.st').textContent=lbl;
+        await wait(420);if(my!==token)return;
+      }
+      out.className='outcome '+cur.result.c;out.innerHTML=cur.result.t+(cur.result.n?'<small>'+cur.result.n+'</small>':'');out.hidden=false;
+      running=false;runBtn.disabled=false;runBtn.style.opacity='';
+    }
+    select(0);term.innerHTML='<div class="dim">'+cfg.intro+'</div>';
+  }
+
+  document.querySelectorAll('.scroll-x,.term,.pre').forEach(function(e){e.setAttribute('tabindex','0')});
+  function L(c,t){return [c,t]}
+  /* ---------- request walk-through ---------- */
+  var archNodes=[
+    {t:'Authenticate',s:'Whose key is this?',d:{h:'1 · Authenticate the tenant key',p:'Every caller holds a virtual key that belongs to one tenant. The key is never stored in plain text.',l:['Unknown or revoked key: refused here, nothing else runs','Identifies the tenant for every later layer','Keys can be revoked instantly without touching the provider keys']}},
+    {t:'Rate limit',s:'Too fast?',d:{h:'2 · Rate limit',p:'Each tenant has a ceiling for requests per minute and tokens per minute, counted in Redis.',l:['Stops one noisy client from starving the others','Returns a clear 429 with how long to wait','Limits are per tenant and can be raised with one command']}},
+    {t:'Budget',s:'Money left this month?',d:{h:'3 · Budget check',p:'Each tenant has a monthly spend ceiling. As it gets close, the gateway can switch to a cheaper model instead of failing.',l:['Cost is calculated from real token counts and a price table','Automatic downgrade keeps the service up near the limit','Over the limit: refused before any model is called']}},
+    {t:'Policy',s:'Is it safe to send?',d:{h:'4 · Policy and privacy',p:'Looks at what is being sent and what the caller is allowed to do.',l:['PII such as emails and phone numbers is replaced before leaving','Agent tool allow-lists decide which tools a caller may use','Risky actions can require human approval']}},
+    {t:'Prompt + flags',s:'Which version is live?',d:{h:'5 · Prompt registry and feature flags',p:'Picks the exact prompt version for this caller and checks feature flags. This layer was added in this build.',l:['Stable or candidate version, chosen by a sticky hash','The version used is returned in a response header','Flags fall back to a safe default if the lookup fails']}},
+    {t:'Cache',s:'Asked before?',d:{h:'6 · Semantic cache',p:'If a near-identical question was answered recently, the stored answer is returned without calling a model.',l:['Matches by meaning using pgvector, not exact text','A cache hit costs nothing and answers in milliseconds','Skipped for the eval runner so tests measure the model, not memory']}},
+    {t:'Router',s:'Which provider?',d:{h:'7 · Router, failover and circuit breakers',p:'Sends the request to the chosen provider route and falls back to the next one if it fails or is slow.',l:['Four providers behind one API','A failing route is taken out temporarily by a circuit breaker','The caller sees one answer, not the failover']}},
+    {t:'Audit',s:'Write it down.',d:{h:'8 · Audit and usage',p:'Every request, including refused ones, leaves a row with who, what route, tokens and cost.',l:['Powers budgets, the dashboard and the stats page','Each row has a request id that links to eval results','Nothing here changes the answer; it makes everything explainable']}}
+  ];
+  var archSc=[
+    {label:'Normal request',note:'A healthy call: every layer passes, one provider answers.',start:'POST /v1/chat  tenant=demo-app',
+     steps:[{s:'g',log:[L('ok','auth      key accepted · tenant demo-app')]},{s:'g',log:[L('ok','rate      18 of 60 requests this minute')]},{s:'g',log:[L('ok','budget    $0.31 of $5.00 used')]},{s:'g',log:[L('ok','policy    nothing sensitive found')]},{s:'g',log:[L('ok','prompt    support-bot@v3 (stable) · flags checked')]},{s:'g',log:[L('info','cache     miss · no similar earlier question')]},{s:'g',log:[L('ok','router    bedrock route answered in 812 ms')]},{s:'g',log:[L('ok','audit     logged · cost $0.0011')]}],
+     result:{c:'ok',t:'200 OK',n:'Answer returned with header x-gate-prompt: support-bot@v3:stable'}},
+    {label:'Repeat question',note:'Same question again: the cache answers, no model is called.',start:'POST /v1/chat  tenant=demo-app  (asked 2 minutes ago)',
+     steps:[{s:'g',log:[L('ok','auth      key accepted')]},{s:'g',log:[L('ok','rate      within limit')]},{s:'g',log:[L('ok','budget    under limit')]},{s:'g',log:[L('ok','policy    clean')]},{s:'g',log:[L('ok','prompt    support-bot@v3 (stable)')]},{s:'c',log:[L('info','cache     HIT · similarity 0.97 · answered from cache')]},{s:'s',log:[L('dim','router    skipped · no model needed')]},{s:'g',log:[L('ok','audit     logged · cost $0.0000')]}],
+     result:{c:'info',t:'200 OK from cache',n:'Faster and free. This is why the eval runner bypasses the cache.'}},
+    {label:'Budget nearly spent',note:'Close to the monthly limit: switch to a cheaper model instead of failing.',start:'POST /v1/chat  tenant=demo-app',
+     steps:[{s:'g',log:[L('ok','auth      key accepted')]},{s:'g',log:[L('ok','rate      within limit')]},{s:'a',log:[L('warn','budget    $4.82 of $5.00 used · downgrading model')]},{s:'g',log:[L('ok','policy    clean')]},{s:'g',log:[L('ok','prompt    support-bot@v3 (stable)')]},{s:'g',log:[L('info','cache     miss')]},{s:'g',log:[L('ok','router    cheaper route answered in 690 ms')]},{s:'g',log:[L('ok','audit     logged · cost $0.0002')]}],
+     result:{c:'warn',t:'200 OK on a cheaper model',n:'Service stays up instead of hitting a hard stop.'}},
+    {label:'Contains personal data',note:'An email address is found and removed before it leaves the gateway.',start:'POST /v1/chat  "email me at jo@example.com"',
+     steps:[{s:'g',log:[L('ok','auth      key accepted')]},{s:'g',log:[L('ok','rate      within limit')]},{s:'g',log:[L('ok','budget    under limit')]},{s:'a',log:[L('warn','policy    1 email found · replaced with [EMAIL]')]},{s:'g',log:[L('ok','prompt    support-bot@v3 (stable)')]},{s:'g',log:[L('info','cache     miss')]},{s:'g',log:[L('ok','router    answered in 905 ms')]},{s:'g',log:[L('ok','audit     logged · redaction recorded')]}],
+     result:{c:'warn',t:'200 OK, privacy preserved',n:'The provider never saw the email address.'}},
+    {label:'Provider fails',note:'The first provider times out; the router quietly uses the next one.',start:'POST /v1/chat  tenant=demo-app',
+     steps:[{s:'g',log:[L('ok','auth      key accepted')]},{s:'g',log:[L('ok','rate      within limit')]},{s:'g',log:[L('ok','budget    under limit')]},{s:'g',log:[L('ok','policy    clean')]},{s:'g',log:[L('ok','prompt    support-bot@v3 (stable)')]},{s:'g',log:[L('info','cache     miss')]},{s:'a',log:[L('bad','router    primary route timed out · circuit opened'),L('warn','router    trying fallback route'),L('ok','router    fallback answered in 1,140 ms')]},{s:'g',log:[L('ok','audit     logged · failover recorded')]}],
+     result:{c:'warn',t:'200 OK through failover',n:'The caller sees one normal answer. The failure is in the audit log.'}},
+    {label:'Bad key',note:'An unknown key is refused at the first layer. Nothing else runs, nothing is billed.',start:'POST /v1/chat  Authorization: Bearer gk_????',
+     steps:[{s:'r',log:[L('bad','auth      key not found · request refused')]}].concat([2,3,4,5,6,7,8].map(function(){return {s:'s',log:[]}})),
+     result:{c:'bad',t:'401 Unauthorized',n:'No model was called and no money was spent.'}}
+  ];
+  mount(document.getElementById('sim-arch'),{nodes:archNodes,scenarios:archSc,run:'Send request',intro:'Press “Send request” to trace a call, or click a layer to read what it does.'});
+
+
+  /* ---------- prompt release ---------- */
+  var prNodes=[
+    {t:'Publish',s:'Save the new version',d:{h:'1 · Publish a new version',p:'The new text is saved as the next version number. It does not change what anyone sees yet.',l:['Versions are immutable: they can be replaced, never edited','The previous stable version keeps serving everyone','The command is audited with who ran it and when']}},
+    {t:'Roll out',s:'Show it to a few',d:{h:'2 · Roll out to a small share',p:'Choose a percentage, for example 5. Only that slice of visitors gets the candidate.',l:['A hash of the visitor decides, so the choice is sticky','Everyone else stays on the stable version','The share can be raised or cut at any time']}},
+    {t:'Observe',s:'Check what happened',d:{h:'3 · Observe',p:'Every response names the version that produced it, and the eval pipeline can score the candidate before anyone is exposed widely.',l:['Header on each reply: x-gate-prompt','Eval run on the candidate compared with the baseline','Usage and audit rows show which version served whom']}},
+    {t:'Promote',s:'Make it stable',d:{h:'4 · Promote',p:'If the numbers look right, the candidate becomes the stable version for everyone.',l:['One command, written to the audit log','The old stable version stays stored for later rollback','No redeploy is needed']}},
+    {t:'Roll back',s:'Undo in one command',d:{h:'5 · Roll back',p:'If something looks wrong, the candidate is removed and everyone is back on the stable version immediately.',l:['One command, no redeploy','Takes effect for the next request','The bad version stays stored for the post-mortem']}}
+  ];
+  var prSc=[
+    {label:'Good release',note:'A change that behaves, from first save to everyone.',start:'$ admin  (tenant demo, prompt support-bot)',
+     steps:[
+      {s:'g',log:[L('cmd','$ publish-prompt demo/support-bot v3.txt'),L('ok','Published demo/support-bot v3'),L('dim','Not live yet. Stable is still v2.')]},
+      {s:'g',log:[L('cmd','$ rollout-prompt demo/support-bot 3 5'),L('ok','candidate = v3 · 5% of visitors'),L('dim','same visitor always gets the same version')]},
+      {s:'g',log:[L('info','visitor A  x-gate-prompt: support-bot@v2:stable'),L('info','visitor B  x-gate-prompt: support-bot@v3:candidate'),L('ok','eval on v3: 0.97 vs baseline 0.97 · OK')]},
+      {s:'g',log:[L('cmd','$ promote-prompt demo/support-bot'),L('ok','stable = v3 · candidate cleared'),L('dim','audit: promoted')]},
+      {s:'s',log:[L('dim','rollback  not needed')]}],
+     result:{c:'ok',t:'v3 is live for everyone, with no redeploy',n:'Only 5% of visitors saw it until the numbers were checked.'}},
+    {label:'Bad release',note:'A change that fails its eval and is undone in one command.',start:'$ admin  (tenant demo, prompt support-bot)',
+     steps:[
+      {s:'g',log:[L('cmd','$ publish-prompt demo/support-bot v3.txt'),L('ok','Published demo/support-bot v3'),L('dim','Not live yet. Stable is still v2.')]},
+      {s:'g',log:[L('cmd','$ rollout-prompt demo/support-bot 3 5'),L('ok','candidate = v3 · 5% of visitors')]},
+      {s:'r',log:[L('info','visitor B  x-gate-prompt: support-bot@v3:candidate'),L('bad','eval on v3: 0.68 vs baseline 0.97 · REGRESSION')]},
+      {s:'s',log:[L('dim','promote   not run · the eval said no')]},
+      {s:'g',log:[L('cmd','$ rollback-prompt demo/support-bot'),L('ok','candidate removed · everyone on v2'),L('dim','audit: rolled back')]}],
+     result:{c:'warn',t:'Back to v2 in seconds',n:'Only 5% of visitors ever saw v3, and v3 stays stored for the post-mortem.'}}
+  ];
+  mount(document.getElementById('sim-prompt'),{nodes:prNodes,scenarios:prSc,labels:{g:'DONE',a:'LOOK',r:'STOPPED',s:'NOT NEEDED'},run:'Ship it',intro:'Press “Ship it” to follow one prompt release, or click a step to read what it does.'});
+
+  /* ---------- nightly eval run ---------- */
+  var evNodes=[
+    {t:'Eval set',s:'The fixed questions',d:{h:'1 · Load the eval set',p:'A set is a list of cases. Each case has a question, a reference answer, and optional rule checks. Cases never change once saved, so tonight is comparable with last week.',l:['3 sets today: 40 cases in total','Rule checks: must contain, must not contain, word limit','Reference answers are what the judge compares against']}},
+    {t:'Ask',s:'Send them through the gateway',d:{h:'2 · Ask the questions',p:'The runner calls the gateway like any customer would, as its own tenant called evals, so the whole real path is tested.',l:['The cache is bypassed with a feature flag, so every run measures the model','Latency, cost and request id are stored per answer','Rate limits apply, which is how a past run broke halfway']}},
+    {t:'Grade',s:'Rules, then a judge',d:{h:'3 · Grade the answers',p:'Hard rules run first. Then a judge model scores meaning from 0 to 1. The judge sees only the question, the answer and the reference, never the prompt.',l:['A case passes when its score is high enough and its rules hold','The judge writes a reason, stored with the answer','Reading those reasons is how real defects were found']}},
+    {t:'Compare',s:'Against the normal',d:{h:'4 · Compare with the baseline',p:'The new score is compared with the last five clean runs of the same set.',l:['Needs at least three clean runs to judge anything','Tolerance is the larger of 0.10 or twice the spread','Experiments are excluded so they do not shift normal']}},
+    {t:'Verdict',s:'One clear label',d:{h:'5 · Decide the verdict',p:'The comparison becomes one label and an exit code, so machines and people read the same answer.',l:['OK, IMPROVED, BUILDING_BASELINE: exit 0','REGRESSION: exit 3 · NOISY_BASELINE: exit 4 · UNRELIABLE: exit 5','Stored on the run, so the dashboard can show it']}},
+    {t:'Alert',s:'Tell a human, or stay quiet',d:{h:'6 · Alert',p:'A failed exit makes the nightly job fail, and Grafana separately watches the latest verdict of every set.',l:['Eval regression: fires on a bad verdict of any set','Eval job silent: fires if nothing ran for 36 hours','Good nights stay quiet on purpose']}}
+  ];
+  var evSc=[
+    {label:'Healthy night',note:'Based on run 33 of the main eval set.',start:'22:00 UTC · gate-eval.timer fired',
+     steps:[{s:'g',log:[L('ok','cases     facts-core · 10 questions loaded')]},{s:'g',log:[L('ok','ask       10 sent as tenant evals · cache bypassed'),L('dim','          about 1 s per answer · cost $0.011')]},{s:'a',log:[L('warn','grade     9 pass · facts#1 scored 0.5'),L('dim','          judge: leaves out his last working day'),L('ok','grade     average 0.95 · pass rate 90%')]},{s:'g',log:[L('info','compare   baseline mean 0.97 over last 5 clean runs'),L('ok','compare   change -0.02 · tolerance 0.10 · inside')]},{s:'g',log:[L('ok','verdict   OK · exit code 0')]},{s:'s',l:'QUIET',log:[L('dim','alert     nothing to report')]}],
+     result:{c:'ok',t:'Quiet night, no alert',n:'The run is saved and shows on the dashboard. One weak answer was visible but inside normal range.'}},
+    {label:'Quality drops',note:'An example of what a real regression looks like.',start:'22:00 UTC · gate-eval.timer fired',
+     steps:[{s:'g',log:[L('ok','cases     facts-core · 10 questions loaded')]},{s:'g',log:[L('ok','ask       10 sent as tenant evals')]},{s:'r',log:[L('bad','grade     4 cases failed · average 0.68')]},{s:'r',log:[L('bad','compare   baseline 0.97 · change -0.29 · tolerance 0.10')]},{s:'r',log:[L('bad','verdict   REGRESSION · exit code 3')]},{s:'a',l:'FIRED',log:[L('warn','alert     job fails · Grafana “Eval regression” fires')]}],
+     result:{c:'bad',t:'A person hears about it the same night',n:'Example scenario. Roll back the prompt with one command, then investigate.'}},
+    {label:'Run breaks halfway',note:'This really happened (run 13): a rate limit cut a run short.',start:'22:00 UTC · gate-eval.timer fired',
+     steps:[{s:'g',log:[L('ok','cases     facts-guard · 15 questions loaded')]},{s:'a',log:[L('warn','ask       rate limit hit (429) partway'),L('warn','          some cases have no answer')]},{s:'a',log:[L('warn','grade     graded what answered · run marked partial')]},{s:'s',log:[L('dim','compare   skipped · a partial run cannot be compared')]},{s:'r',log:[L('bad','verdict   UNRELIABLE · exit code 5')]},{s:'a',l:'FIRED',log:[L('warn','alert     fires · a broken check is never silent')]}],
+     result:{c:'warn',t:'The check itself is held to account',n:'A partial run once passed silently. Now it fails loudly, and the limit was raised.'}},
+    {label:'Jumpy history',note:'An example: scores are all over the place, so no fair judgement is possible.',start:'22:00 UTC · gate-eval.timer fired',
+     steps:[{s:'g',log:[L('ok','cases     loaded')]},{s:'g',log:[L('ok','ask       sent')]},{s:'g',log:[L('ok','grade     average 0.82')]},{s:'a',log:[L('warn','compare   last 5: 0.60 0.95 0.70 1.00 0.65'),L('warn','          spread too wide to set a fair tolerance')]},{s:'a',log:[L('warn','verdict   NOISY_BASELINE · exit code 4')]},{s:'a',l:'FIRED',log:[L('warn','alert     fires · fix the test, do not ignore it')]}],
+     result:{c:'warn',t:'A test nobody can judge is flagged',n:'Example scenario. Usually means thin reference answers or too few cases.'}},
+    {label:'Silent night',note:'The dead-man’s switch: what if nothing runs at all?',start:'22:00 UTC · timer did not fire',
+     steps:[{s:'r',l:'NO RUN',log:[L('bad','cases     no run started')]},{s:'s',log:[]},{s:'s',log:[]},{s:'s',log:[]},{s:'s',log:[]},{s:'a',l:'FIRED',log:[L('warn','alert     36 hours with no run · “Eval job silent” fires')]}],
+     result:{c:'bad',t:'Silence is an alert too',n:'A check that stops running must be loud. This second alert watches the first.'}}
+  ];
+  mount(document.getElementById('sim-eval'),{nodes:evNodes,scenarios:evSc,labels:{g:'OK',a:'LOOK',r:'FAILED',s:'SKIPPED'},run:'Run the night',intro:'Press “Run the night” to follow one nightly run, or click a step to read what it does.'});
+})();
+</script>
+</body>
+</html>
