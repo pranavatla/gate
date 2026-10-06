@@ -1,13 +1,49 @@
 """Metadata-only LangSmith instrumentation; enabled with LANGSMITH_TRACING."""
 import os
+import json
 from langsmith import traceable, get_current_run_tree
 from langsmith import Client
 
 _client = Client()
 
 
+def _serialize_value(v):
+    """Serialize values for LangSmith: handle Pydantic models, responses, and basic types."""
+    if v is None:
+        return None
+    if isinstance(v, (str, int, float, bool)):
+        return v
+    if isinstance(v, dict):
+        return {k: _serialize_value(v) for k, v in v.items()}
+    if isinstance(v, (list, tuple)):
+        return [_serialize_value(i) for i in v]
+    # Pydantic model or other object with dict() or model_dump()
+    if hasattr(v, "model_dump"):
+        return _serialize_value(v.model_dump())
+    if hasattr(v, "dict"):
+        return _serialize_value(v.dict())
+    # FastAPI Response objects
+    if hasattr(v, "body"):
+        try:
+            return json.loads(v.body) if isinstance(v.body, bytes) else v.body
+        except Exception:
+            return str(v)
+    return str(v)
+
+
 def traced(name, run_type="chain"):
-    return traceable(name=name, run_type=run_type, client=_client)
+    def process_inputs(inputs):
+        if isinstance(inputs, dict):
+            return {k: _serialize_value(v) for k, v in inputs.items()}
+        if isinstance(inputs, (list, tuple)):
+            return [_serialize_value(v) for v in inputs]
+        return _serialize_value(inputs)
+
+    def process_outputs(outputs):
+        return _serialize_value(outputs)
+
+    return traceable(name=name, run_type=run_type, client=_client,
+                     process_inputs=process_inputs, process_outputs=process_outputs)
 
 
 def annotate(**metadata):
