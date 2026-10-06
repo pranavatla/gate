@@ -204,6 +204,301 @@ footer a:hover{border-color:var(--cyan)}
   .verdict{opacity:1;transform:none;filter:none}
   html{scroll-behavior:auto}
 }
+
+.part{display:flex;align-items:center;gap:14px;margin:40px 0 -30px;padding:14px 18px;border:1px solid var(--line);border-radius:14px;background:linear-gradient(180deg,var(--panel2),var(--panel))}
+.part>div{display:flex;flex-direction:column;line-height:1.3}
+.part>div b{font-size:17px}.part>div span{color:var(--muted);font-size:13.5px}
+.part-n{font-family:var(--mono);font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--gold);white-space:nowrap}
+.overview{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin:26px 0 0}
+@media(max-width:760px){.overview{grid-template-columns:minmax(0,1fr)}}
+.ov-card{display:flex;flex-direction:column;gap:6px;padding:20px;border:1px solid var(--line);border-radius:16px;background:linear-gradient(180deg,var(--panel2),var(--panel));text-decoration:none;color:var(--text);transition:border-color .2s ease,transform .2s var(--ease-out)}
+.ov-card:hover{border-color:var(--cyan)}
+.ov-card b{font-size:20px;letter-spacing:-.01em}
+.ov-card span:not(.part-n):not(.ov-go){color:var(--muted);font-size:14.5px}
+.ov-go{margin-top:6px;color:var(--cyan);font-weight:600;font-size:14px}
+.nav-sep{width:1px;align-self:stretch;background:var(--line);margin:8px 0}
+nav .links{align-items:center;gap:14px;flex-wrap:nowrap}
+nav .links a{display:inline-block;padding:12px 4px;white-space:nowrap}
+.nav-sub{display:flex;align-items:center;gap:14px}
+@media(max-width:1399px){.nav-sub{display:none}}
+@media(max-width:820px){nav .links{display:none}}
+@media(prefers-reduced-motion:reduce){.ov-card{transition:none}}
+
+.bs code,.bs .mono{font-family:var(--mono)}
+.bs code{background:var(--panel2);border:1px solid var(--line);border-radius:5px;padding:1px 6px;font-size:.88em}
+.bs section{padding:56px 0 8px;border-top:1px solid var(--line);margin-top:48px}
+.bs section:first-of-type{border-top:0}
+.bs h2{font-size:clamp(24px,3.4vw,32px);margin:0 0 6px;letter-spacing:-.015em}
+.bs .kicker{font-family:var(--mono);font-size:12px;color:var(--gold);letter-spacing:.14em;text-transform:uppercase}
+.bs .sub{color:var(--muted);max-width:760px;margin:6px 0 22px}
+.bs h3{font-size:17px;margin:0 0 6px}
+.bs .b-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+@media(max-width:820px){.bs .b-cards{grid-template-columns:1fr}}
+.bs .b-card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:18px}
+.bs .b-card p{margin:0;color:var(--muted);font-size:15px}
+.bs .b-card .b-tag{font-family:var(--mono);font-size:12px;color:var(--cyan);margin-bottom:8px;display:block}
+.bs .panel{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:20px}
+.bs .scroll-x{overflow-x:auto;-webkit-overflow-scrolling:touch}
+.bs .diagram{min-width:720px;display:block;width:100%;height:auto}
+.bs .b-flow{display:flex;align-items:stretch;gap:0;flex-wrap:wrap}
+.bs .step{flex:1 1 150px;background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:14px;min-width:140px;position:relative}
+.bs .step b{display:block;font-size:14px;margin-bottom:4px}
+.bs .step span{font-size:13px;color:var(--muted);display:block}
+.bs .step .n{font-family:var(--mono);font-size:12px;color:var(--cyan);letter-spacing:.1em}
+.bs .arrow{align-self:center;color:var(--cyan);font-family:var(--mono);padding:0 8px;font-size:18px}
+@media(max-width:820px){.bs .b-flow{flex-direction:column;gap:6px}
+.bs .arrow{transform:rotate(90deg);align-self:flex-start;padding:0 0 0 22px}}
+.bs .verdicts{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;margin-top:16px}
+.bs .v{border:1px solid var(--line);border-radius:12px;padding:12px 14px;background:var(--panel2)}
+.bs .v .name{font-family:var(--mono);font-size:13px;font-weight:700}
+.bs .v .exit{float:right;font-family:var(--mono);font-size:12px;color:var(--muted)}
+.bs .v p{margin:6px 0 0;font-size:13px;color:var(--muted)}
+.bs .ok .name{color:var(--green)}
+.bs .bad .name{color:var(--red)}
+.bs .warn .name{color:var(--amber)}
+.bs .timeline{position:relative;margin:6px 0 0;padding-left:26px}
+.bs .timeline:before{content:"";position:absolute;left:8px;top:6px;bottom:6px;width:2px;background:var(--line)}
+.bs .tl{position:relative;margin:0 0 20px}
+.bs .tl:before{content:"";position:absolute;left:-23px;top:6px;width:12px;height:12px;border-radius:50%;background:var(--bg);border:2px solid var(--cyan)}
+.bs .tl.bad:before{border-color:var(--red)}
+.bs .tl.good:before{border-color:var(--green)}
+.bs .tl.warn:before{border-color:var(--amber)}
+.bs .tl b{display:block}
+.bs .tl p{margin:2px 0 0;color:var(--muted);font-size:15px}
+.bs .quote{font-family:var(--mono);font-size:13.5px;background:var(--panel2);border:1px solid var(--line);border-left:3px solid var(--red);border-radius:8px;padding:10px 12px;margin:8px 0;color:var(--text)}
+.bs .quote.good{border-left-color:var(--green)}
+.bs .heat{display:grid;grid-template-columns:130px repeat(9,minmax(0,1fr));gap:4px;align-items:center;font-family:var(--mono);font-size:12px}
+.bs .heat .h{color:var(--muted);text-align:center}
+.bs .heat .lbl{color:var(--text);font-weight:600}
+.bs .cell{height:32px;border-radius:6px;display:grid;place-items:center;font-size:12px;font-weight:700}
+.bs .cell.p{background:rgba(52,211,153,.18);color:var(--green);border:1px solid rgba(52,211,153,.35)}
+.bs .cell.f{background:rgba(248,113,113,.2);color:var(--red);border:1px solid rgba(248,113,113,.45)}
+.bs .grp{grid-column:2/5;text-align:center;color:var(--cyan);border-bottom:2px solid var(--cyan);padding-bottom:3px;font-size:12px}
+.bs .grp.v5{grid-column:5/8;color:var(--amber);border-color:var(--amber)}
+.bs .grp.v6{grid-column:8/11;color:var(--green);border-color:var(--green)}
+.bs .bars{display:grid;grid-template-columns:130px repeat(9,minmax(0,1fr));gap:4px;align-items:end;height:130px;margin-top:34px}
+.bs .bars .lbl{font-family:var(--mono);font-size:12px;color:var(--muted);align-self:center}
+.bs .bar{background:linear-gradient(180deg,var(--cyan),#0f766e);border-radius:5px 5px 0 0;position:relative;min-height:2px}
+.bs .bar.v5{background:linear-gradient(180deg,var(--amber),#92610a)}
+.bs .bar.v6{background:linear-gradient(180deg,var(--green),#0f6b4b)}
+.bs .bar i{position:absolute;top:-17px;left:0;right:0;text-align:center;font-style:normal;font-family:var(--mono);font-size:12px;color:var(--muted)}
+.bs .rule{border:1px dashed var(--amber);border-radius:12px;padding:14px 16px;background:rgba(251,191,36,.05);margin:14px 0}
+.bs .rule b{color:var(--amber)}
+@media(max-width:640px){.bs .heat,.bs .bars{grid-template-columns:70px repeat(9,minmax(0,1fr))}
+.bs .cell{height:28px}
+.bs .heat .lbl,.bs .bars .lbl{font-size:12px}}
+.bs .dash{display:grid;grid-template-columns:repeat(6,1fr);gap:12px}
+.bs .pn{background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:12px}
+.bs .pn.s2{grid-column:span 2}
+.bs .pn.s3{grid-column:span 3}
+.bs .pn.s4{grid-column:span 4}
+.bs .pn.s6{grid-column:span 6}
+@media(max-width:760px){.bs .pn.s2,.bs .pn.s3,.bs .pn.s4{grid-column:span 6}}
+.bs .big{font-family:var(--mono);font-size:30px;font-weight:700}
+.bs .tbl{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:12px}
+.bs .tbl th{color:var(--muted);text-align:left;font-weight:600;padding:5px 6px;border-bottom:1px solid var(--line)}
+.bs .tbl td{padding:5px 6px;border-bottom:1px solid rgba(33,52,47,.6)}
+.bs .b-pill{display:inline-block;border-radius:99px;padding:1px 8px;font-size:12px;font-weight:700}
+.bs .b-pill.ok{background:rgba(52,211,153,.15);color:var(--green)}
+.bs .b-pill.ex{background:rgba(145,167,159,.15);color:var(--muted)}
+.bs .b-pill.bl{background:rgba(45,212,191,.13);color:var(--cyan)}
+.bs .b-pill.un{background:rgba(248,113,113,.15);color:var(--red)}
+.bs .alerts{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px}
+@media(max-width:760px){.bs .alerts{grid-template-columns:1fr}}
+.bs .alert{border:1px solid var(--line);border-radius:12px;padding:14px;background:var(--panel2)}
+.bs .alert .state{font-family:var(--mono);font-size:12px;font-weight:700}
+.bs .alert p{margin:6px 0 0;color:var(--muted);font-size:14px}
+.bs details{border:1px solid var(--line);border-radius:12px;background:var(--panel);margin:12px 0;overflow:hidden}
+.bs summary{cursor:pointer;padding:13px 16px;font-weight:600;list-style:none;display:flex;align-items:center;gap:10px}
+.bs summary::-webkit-details-marker{display:none}
+.bs summary:before{content:"+";font-family:var(--mono);color:var(--cyan);width:14px;display:inline-block}
+.bs details[open] summary:before{content:"–"}
+.bs details .body{padding:0 16px 14px;color:var(--muted);font-size:15px}
+.bs details .body p{margin:8px 0}
+.bs details .body ul{margin:8px 0;padding-left:20px}
+.bs .pre{font-family:var(--mono);font-size:12.5px;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:10px 12px;overflow-x:auto;color:var(--text);white-space:pre;margin:8px 0}
+.bs .two{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:14px}
+.bs .two>*{min-width:0}
+@media(max-width:820px){.bs .two{grid-template-columns:minmax(0,1fr)}}
+.bs ul.clean{margin:0;padding-left:18px;color:var(--muted)}
+.bs ul.clean li{margin:6px 0}
+.bs ul.clean li b{color:var(--text)}
+.bs .b-dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--muted);margin-right:6px}
+.bs .b-dot.ok{background:var(--green);box-shadow:0 0 8px var(--green)}
+.bs section{padding:78px 0 12px;margin-top:0}
+.bs .sec-head{max-width:780px;margin-bottom:30px}
+.bs .sec-head h2{font-size:clamp(26px,3.6vw,38px);line-height:1.15;letter-spacing:-.02em;margin:6px 0 12px;text-wrap:balance}
+.bs .sec-head p{color:var(--muted);margin:0;font-size:16.5px}
+.bs .sec-head p b{color:var(--text)}
+.bs .panel{background:linear-gradient(180deg,var(--panel2),var(--panel));border-radius:18px;padding:24px}
+.bs .b-card,.bs .mini{background:linear-gradient(180deg,var(--panel2),var(--panel))}
+.bs .sub-h{margin:34px 0 14px;font-size:18px}
+.bs .ctx{display:grid;grid-template-columns:1fr auto 1fr auto 1fr;gap:14px;align-items:center;margin-bottom:22px}
+.bs .ctx-col{background:linear-gradient(180deg,var(--panel2),var(--panel));border:1px solid var(--line);border-radius:16px;padding:16px 16px 14px;display:flex;flex-wrap:wrap;gap:8px;align-content:flex-start}
+.bs .ctx-col.mid{border-color:rgba(45,212,191,.5);flex-direction:column;gap:2px;text-align:center;align-items:center;justify-content:center;min-height:100%}
+.bs .ctx-h{flex:0 0 100%;font-family:var(--mono);font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--cyan);margin-bottom:2px}
+.bs .ctx-big{font-size:20px;font-weight:700}
+.bs .ctx-col small{color:var(--muted);font-size:13px}
+.bs .ctx-arrow{display:flex;flex-direction:column;align-items:center;color:var(--cyan);font-size:24px;line-height:1}
+.bs .ctx-arrow small{font-size:12px;color:var(--muted);font-family:var(--mono);margin-top:4px;text-align:center;max-width:90px}
+.bs .chip2{font-size:13px;font-weight:600;padding:6px 12px;border-radius:999px;border:1px solid var(--line);background:var(--bg);display:inline-flex;gap:8px;align-items:center}
+.bs .chip2 i{width:8px;height:8px;border-radius:50%;display:inline-block}
+@media(max-width:900px){.bs .ctx{grid-template-columns:1fr}
+.bs .ctx-arrow{transform:rotate(90deg);height:36px;justify-content:center}
+.bs .ctx-arrow small{display:none}}
+.bs .trio{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin-top:18px}
+.bs .mini{border:1px solid var(--line);border-radius:14px;padding:18px}
+.bs .mini .b-tag{font-family:var(--mono);font-size:12px;color:var(--cyan);letter-spacing:.12em;display:block;margin-bottom:6px}
+.bs .mini h3{margin:0 0 6px}
+.bs .mini p{margin:0;color:var(--muted);font-size:14.5px}
+@media(max-width:820px){.bs .trio{grid-template-columns:1fr}}
+.bs .b-controls{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:20px}
+.bs .b-controls label{font-size:13px;color:var(--muted);margin-right:4px}
+.bs .b-sc{font:inherit;font-size:13px;padding:7px 13px;border-radius:999px;border:1px solid var(--line);background:var(--bg);color:var(--text);cursor:pointer;transition:border-color .15s,background-color .15s,transform .16s var(--ease-out)}
+.bs .b-sc:hover{border-color:var(--cyan)}
+.bs .b-sc[aria-pressed="true"]{background:rgba(45,212,191,.14);border-color:var(--cyan);color:#fff}
+.bs .b-run{margin-left:auto;font:inherit;font-weight:700;font-size:14px;padding:9px 18px;border-radius:10px;border:0;cursor:pointer;color:#fff;background:linear-gradient(100deg,#0f766e,#16a34a);transition:filter .15s,transform .16s var(--ease-out)}
+.bs .b-run:hover{filter:brightness(1.12)}
+.bs .b-run:active,.bs .b-node:active,.bs .b-sc:active{transform:scale(.97)}
+@media(max-width:700px){.bs .b-run{margin-left:0;width:100%}}
+.bs .b-pipe{display:grid;gap:14px;position:relative}
+.bs .b-pipe.b-cols4{grid-template-columns:repeat(4,minmax(0,1fr))}
+.bs .b-pipe.b-cols6{grid-template-columns:repeat(6,minmax(0,1fr))}
+@media(max-width:1000px){.bs .b-pipe.b-cols6{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:760px){.bs .b-pipe.b-cols4{grid-template-columns:repeat(2,minmax(0,1fr))}
+.bs .b-pipe.b-cols6{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.bs .b-node{position:relative;font:inherit;color:var(--text);text-align:left;background:var(--bg);border:1px solid var(--line);border-radius:14px;padding:16px 15px 14px;cursor:pointer;min-height:118px;display:flex;flex-direction:column;gap:5px;transition:border-color .25s,background-color .25s,opacity .25s,transform .25s var(--ease-out),box-shadow .25s}
+.bs .b-node:hover{border-color:rgba(45,212,191,.6)}
+.bs .b-node .no{font-family:var(--mono);font-size:12px;color:var(--cyan);letter-spacing:.1em}
+.bs .b-node b{font-size:15.5px;line-height:1.25}
+.bs .b-node small{font-size:12.5px;color:var(--muted);line-height:1.35}
+.bs .b-node .st{position:absolute;top:13px;right:13px;font-family:var(--mono);font-size:12px;font-weight:700;letter-spacing:.06em;opacity:0;transition:opacity .25s}
+.bs .b-node.sel{outline:1px solid var(--cyan);outline-offset:2px}
+.bs .b-node.on{transform:translateY(-3px);border-color:var(--cyan);box-shadow:0 0 0 3px rgba(45,212,191,.14),0 12px 28px -18px rgba(45,212,191,.7)}
+.bs .b-node.g{border-color:rgba(52,211,153,.55);background:rgba(52,211,153,.07)}
+.bs .b-node.g .st{color:var(--green);opacity:1}
+.bs .b-node.a{border-color:rgba(251,191,36,.6);background:rgba(251,191,36,.07)}
+.bs .b-node.a .st{color:var(--amber);opacity:1}
+.bs .b-node.c{border-color:rgba(45,212,191,.7);background:rgba(45,212,191,.09)}
+.bs .b-node.c .st{color:var(--cyan);opacity:1}
+.bs .b-node.r{border-color:rgba(248,113,113,.65);background:rgba(248,113,113,.09)}
+.bs .b-node.r .st{color:var(--red);opacity:1}
+.bs .b-node.s{opacity:.42}
+.bs .b-node.s .st{opacity:1;color:var(--muted)}
+.bs .b-pipe.reset .b-node{transition:none}
+.bs .b-legend{display:flex;gap:18px;flex-wrap:wrap;font-size:12.5px;color:var(--muted);margin:18px 0 0}
+.bs .b-legend span:before{content:"";display:inline-block;width:9px;height:9px;border-radius:3px;margin-right:6px;vertical-align:-1px}
+.bs .b-legend .g:before{background:var(--green)}
+.bs .b-legend .a:before{background:var(--amber)}
+.bs .b-legend .c:before{background:var(--cyan)}
+.bs .b-legend .r:before{background:var(--red)}
+.bs .b-legend .s:before{background:var(--line)}
+.bs .b-split{display:grid;grid-template-columns:1.1fr 1fr;gap:18px;margin-top:18px}
+@media(max-width:900px){.bs .b-split{grid-template-columns:minmax(0,1fr)}}
+.bs .b-term{background:#040a08;border:1px solid var(--line);border-radius:12px;padding:16px 18px;font-family:var(--mono);font-size:12.5px;min-height:210px;overflow-x:auto;line-height:1.7}
+.bs .b-term .ln{white-space:pre;animation:b-lnin .22s var(--ease-out) both}
+@keyframes b-lnin{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+.bs .b-term .ok{color:var(--green)}
+.bs .b-term .warn{color:var(--amber)}
+.bs .b-term .bad{color:var(--red)}
+.bs .b-term .info{color:var(--cyan)}
+.bs .b-term .dim{color:var(--muted)}
+.bs .b-detail{border:1px solid var(--line);border-radius:12px;padding:18px 20px;background:var(--bg)}
+.bs .b-detail h3{margin:0 0 6px;font-size:17px}
+.bs .b-detail p{margin:0 0 10px;color:var(--muted);font-size:14.5px}
+.bs .b-detail ul{margin:0;padding-left:18px;color:var(--text);font-size:14px}
+.bs .b-detail li{margin:4px 0}
+.bs .outcome{margin-top:16px;padding:14px 18px;border-radius:12px;border:1px solid var(--line);font-weight:600;animation:b-lnin .3s var(--ease-out) both}
+.bs .outcome.ok{border-color:rgba(52,211,153,.5);background:rgba(52,211,153,.08);color:var(--green)}
+.bs .outcome.warn{border-color:rgba(251,191,36,.5);background:rgba(251,191,36,.07);color:var(--amber)}
+.bs .outcome.bad{border-color:rgba(248,113,113,.55);background:rgba(248,113,113,.08);color:var(--red)}
+.bs .outcome.info{border-color:rgba(45,212,191,.55);background:rgba(45,212,191,.08);color:var(--cyan)}
+.bs .outcome small{display:block;font-weight:400;color:var(--muted);margin-top:3px;font-size:13.5px}
+@media(max-width:760px){.bs .b-term .ln{white-space:pre-wrap;word-break:break-word}
+.bs .b-term{font-size:12px}}
+.bs .ctx-col.mid .ctx-h{text-align:center}
+.bs .vgrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+@media(max-width:900px){.bs .vgrid{grid-template-columns:minmax(0,1fr)}}
+.bs .vcol{background:linear-gradient(180deg,var(--panel2),var(--panel));border:1px solid var(--line);border-radius:16px;padding:6px 18px 12px}
+.bs .vh{display:flex;align-items:center;gap:10px;font-weight:700;font-size:15px;padding:14px 0 12px;border-bottom:1px solid var(--line)}
+.bs .vdot{width:10px;height:10px;border-radius:50%}
+.bs .vcol.good .vdot{background:var(--green)}
+.bs .vcol.bad .vdot{background:var(--red)}
+.bs .vcol.man .vdot{background:var(--amber)}
+.bs .vcol.good .vh{color:var(--green)}
+.bs .vcol.bad .vh{color:var(--red)}
+.bs .vcol.man .vh{color:var(--amber)}
+.bs .vi{padding:12px 0;border-bottom:1px solid rgba(33,52,47,.55)}
+.bs .vi:last-child{border-bottom:0}
+.bs .vi b{font-family:var(--mono);font-size:13.5px}
+.bs .vi small{float:right;font-family:var(--mono);font-size:12px;color:var(--muted)}
+.bs .vi p{margin:5px 0 0;color:var(--muted);font-size:14px}
+.bs .b-sc{padding:11px 15px;min-height:44px}
+.bs .b-run{min-height:44px;background:linear-gradient(100deg,#0f766e,#15803d)}
+.bs .b-node.s{opacity:.8;border-style:dashed;background:transparent}
+.bs .b-node.s .st{color:var(--muted)}
+.bs .b-run.pulse{animation:b-pulse 2s ease-out infinite}
+@keyframes b-pulse{0%{box-shadow:0 0 0 0 rgba(45,212,191,.55)}70%{box-shadow:0 0 0 12px rgba(45,212,191,0)}100%{box-shadow:0 0 0 0 rgba(45,212,191,0)}}
+.bs .noscript{color:var(--muted);margin:0 0 12px;font-size:15px}
+.bs .pn h3{margin:0 0 8px;font-size:12px;color:var(--muted);font-weight:600;font-family:var(--mono);letter-spacing:.04em}
+.bs .b-pipe.b-cols5{grid-template-columns:repeat(5,minmax(0,1fr))}
+@media(max-width:1000px){.bs .b-pipe.b-cols5{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:760px){.bs .b-pipe.b-cols5{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.bs .b-term .cmd{color:var(--text)}
+.bs .lv-bar{display:flex;align-items:flex-start;gap:10px;margin:0 0 18px;font-size:13.5px;color:var(--muted)}
+.bs .lv-bar .lv-dot{width:9px;height:9px;border-radius:50%;background:var(--muted);flex:none;margin-top:7px}
+.bs .lv-bar.ok .lv-dot{background:var(--green);box-shadow:0 0 8px var(--green)}
+.bs .lv-bar.bad .lv-dot{background:var(--amber)}
+.bs .lv-bar b{color:var(--text);font-weight:600}
+.bs .lv-err{margin:0 0 16px;padding:12px 16px;border:1px solid rgba(251,191,36,.5);background:rgba(251,191,36,.07);color:var(--amber);border-radius:12px;font-size:14px}
+.bs .lv-kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:14px}
+@media(max-width:900px){.bs .lv-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.bs .lv-k{background:linear-gradient(180deg,var(--panel2),var(--panel));border:1px solid var(--line);border-radius:14px;padding:16px 16px 14px;min-width:0}
+.bs .lv-k h3{margin:0 0 6px;font-size:12px;color:var(--muted);font-weight:600;font-family:var(--mono);letter-spacing:.06em;text-transform:uppercase}
+.bs .lv-k .kv{display:block;font-family:var(--mono);font-size:clamp(24px,3vw,30px);font-weight:700;letter-spacing:-.02em;font-variant-numeric:tabular-nums;color:var(--text)}
+.bs .lv-k .kv.g{color:var(--green)}
+.bs .lv-k .kv.c{color:var(--cyan)}
+.bs .lv-k small{display:block;margin-top:4px;color:var(--muted);font-size:13px;line-height:1.35}
+.bs .lv-two{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);gap:14px;align-items:stretch}
+@media(max-width:900px){.bs .lv-two{grid-template-columns:minmax(0,1fr)}}
+.bs .lv-two .panel h3{margin:0 0 4px;font-size:16px}
+.bs .lv-two .panel .cap{margin:0 0 12px;color:var(--muted);font-size:13.5px}
+.bs .lv-chart{display:block;width:100%;height:auto}
+.bs .lv-note{color:var(--muted);font-size:13px;margin:12px 0 0}
+.bs .lv-empty{color:var(--muted);font-size:14px;margin:8px 0}
+.bs .mrow{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr) auto;gap:10px;align-items:center;padding:9px 0;border-bottom:1px solid rgba(33,52,47,.6);font-size:13.5px}
+.bs .mrow:last-child{border-bottom:0}
+.bs .mrow .mn{font-family:var(--mono);font-size:13px;word-break:break-all}
+.bs .mrow .mb{height:8px;border-radius:99px;background:var(--bg);border:1px solid var(--line);overflow:hidden}
+.bs .mrow .mb i{display:block;height:100%;background:linear-gradient(90deg,#0f766e,var(--cyan));border-radius:99px}
+.bs .mrow .mv{font-family:var(--mono);font-size:12.5px;color:var(--muted);text-align:right;white-space:nowrap}
+.bs .mrow .mv b{color:var(--text)}
+.bs .setgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:14px;margin:14px 0}
+.bs .setc{background:linear-gradient(180deg,var(--panel2),var(--panel));border:1px solid var(--line);border-radius:16px;padding:18px;min-width:0}
+.bs .setc .top{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;flex-wrap:wrap}
+.bs .setc h3{margin:0;font-family:var(--mono);font-size:15px;word-break:break-all}
+.bs .setc .sc-sub{color:var(--muted);font-size:13px;margin-top:2px}
+.bs .setc .sc-big{font-family:var(--mono);font-size:34px;font-weight:700;letter-spacing:-.02em;margin:12px 0 2px;font-variant-numeric:tabular-nums}
+.bs .setc .sc-meta{color:var(--muted);font-size:13px;line-height:1.5}
+.bs .setc .sc-meta b{color:var(--text);font-weight:600}
+.bs .setc svg{display:block;width:100%;height:56px;margin-top:10px}
+.bs .b-pill.ok{background:rgba(52,211,153,.15);color:var(--green)}
+.bs .b-pill.ex{background:rgba(145,167,159,.15);color:var(--muted)}
+.bs .b-pill.bl{background:rgba(45,212,191,.13);color:var(--cyan)}
+.bs .b-pill.un{background:rgba(248,113,113,.15);color:var(--red)}
+.bs .vsum{display:flex;flex-wrap:wrap;gap:8px;margin:14px 0 0}
+.bs .vsum span{font-family:var(--mono);font-size:12.5px;padding:5px 11px;border-radius:99px;border:1px solid var(--line);background:var(--bg);color:var(--muted)}
+.bs .vsum span b{color:var(--text);margin-right:5px}
+.bs .lv-sec-sub{margin:34px 0 12px;font-size:18px}
+.bs .tbl td,.bs .tbl th{white-space:nowrap}
+.bs .tbl .num{text-align:right}
+.bs .tbl th.num{text-align:right}
+.bs .b-run.b-pulse{animation:b-pulse 2s ease-out infinite}
+@media(prefers-reduced-motion:reduce){.bs .b-run.b-pulse{animation:none}.bs .b-term .ln{animation:none}.bs .outcome{animation:none}}
+.bs{padding-bottom:10px}
+.bs section:first-of-type{border-top:0}
+.bs .scroll-x:focus-visible,.bs .b-term:focus-visible{outline:2px solid var(--cyan)}
+
 </style>
 </head>
 <body>
@@ -233,7 +528,8 @@ footer a:hover{border-color:var(--cyan)}
       Gateway<small>.atla.in</small>
     </a>
     <div class="links">
-      <a href="#pipeline">Pipeline</a><a href="#services">Services</a><a href="#architecture">Architecture</a><a href="#tenants">Tenants</a><a href="#try">Try it</a><a href="/showcase">Build story</a>
+      <a class="keep" href="#part1">Gateway</a><span class="nav-sep" aria-hidden="true"></span><a class="keep" href="#part2-top">Live dashboard</a>
+      <span class="nav-sub"><a href="#pipeline">Pipeline</a><a href="#services">Services</a><a href="#architecture">Architecture</a><a href="#tenants">Tenants</a><a href="#try">Try it</a><span class="nav-sep" aria-hidden="true"></span><a href="#dashboard">Traffic</a><a href="#quality">Quality</a><a href="#releases">Releases</a><a href="#case">Case study</a></span>
       <a href="https://github.com/pranavatla/gate" target="_blank" rel="noopener">GitHub</a>
     </div>
     <div class="status" id="status" title="Live check of /health"><span class="dot" id="dot"></span><span id="stxt">checking…</span></div>
@@ -276,6 +572,13 @@ footer a:hover{border-color:var(--cyan)}
     </div>
     <p class="note">Numbers measured on the production deployment, September 2026.</p>
   </header>
+
+  <div class="overview" role="group" aria-label="Two parts of this page">
+    <a class="ov-card" href="#part1"><span class="part-n">Part 1</span><b>The gateway</b><span>What it does for every AI call: keys, limits, budgets, failover, privacy, audit. Watch a request travel through it.</span><span class="ov-go">Start here &darr;</span></a>
+    <a class="ov-card" href="#part2-top"><span class="part-n">Part 2</span><b>The live dashboard</b><span>Real numbers from production, refreshed every 30 seconds: traffic, speed, cost, and whether the chatbot still answers correctly.</span><span class="ov-go">See the numbers &darr;</span></a>
+  </div>
+
+  <div class="part" id="part1"><span class="part-n">Part 1</span><div><b>The gateway</b><span>What it does, layer by layer</span></div></div>
 
   <section id="pipeline" class="reveal">
     <div class="sec-head">
@@ -437,6 +740,241 @@ footer a:hover{border-color:var(--cyan)}
     </div>
     <p class="note" style="text-align:left;margin-top:14px">Calls require a tenant key, so this page can't send real requests. Every call that passes the key and contract checks returns an <code>X-Request-ID</code> that maps to a row in the audit log. Prefer JSON? <a href="/?format=json" style="color:var(--cyan)">/?format=json</a> or use <code>curl</code>.</p>
   </section>
+
+  <div class="part" id="part2-top"><span class="part-n">Part 2</span><div><b>The live dashboard</b><span>How it is doing right now, and how it is kept honest</span></div></div>
+  <div class="bs" id="part2">
+<section class="reveal" id="dashboard" aria-labelledby="h-dash">
+  <div class="sec-head">
+    <div class="kicker">Live &middot; traffic</div>
+    <h2 id="h-dash">What the gateway is doing right now</h2>
+    <p>These numbers are not typed in. This page asks the production gateway for them every 30 seconds, straight from its append-only audit log. Nothing here includes message text, keys or tenant names.</p>
+  </div>
+  <div class="lv-bar" id="lv-bar-traffic" role="group" aria-label="Live traffic status"><span class="lv-dot" aria-hidden="true"></span><span id="lv-t-status">Loading live numbers&hellip;</span></div>
+  <div class="lv-err" id="lv-err-traffic" role="status" hidden></div>
+  <noscript><p class="noscript">The live dashboard needs JavaScript, because it fetches the numbers from the running gateway. You can read the raw data at <a href="/v1/stats">/v1/stats</a> and <a href="/v1/stats/evals">/v1/stats/evals</a>.</p></noscript>
+  <div class="lv-kpis" id="lv-kpis-traffic">
+    <div class="lv-k"><h3>Calls &middot; 7 days</h3><span class="kv" data-k="calls">&ndash;</span><small data-k="calls_sub">&nbsp;</small></div>
+    <div class="lv-k"><h3>Success rate</h3><span class="kv g" data-k="success">&ndash;</span><small data-k="success_sub">&nbsp;</small></div>
+    <div class="lv-k"><h3>Gateway overhead</h3><span class="kv c" data-k="p50">&ndash;</span><small>median time the gateway adds to a call (p50)</small></div>
+    <div class="lv-k"><h3>Answer time &middot; p90</h3><span class="kv" data-k="p90">&ndash;</span><small>9 in 10 successful calls finish faster than this</small></div>
+    <div class="lv-k"><h3>Cache hit rate</h3><span class="kv" data-k="cache">&ndash;</span><small data-k="cache_sub">&nbsp;</small></div>
+    <div class="lv-k"><h3>Failovers</h3><span class="kv" data-k="failovers">&ndash;</span><small>calls that needed a second provider</small></div>
+    <div class="lv-k"><h3>Turned away</h3><span class="kv" data-k="refused">&ndash;</span><small data-k="refused_sub">&nbsp;</small></div>
+    <div class="lv-k"><h3>Model spend</h3><span class="kv" data-k="spend">&ndash;</span><small data-k="spend_sub">&nbsp;</small></div>
+  </div>
+  <div class="lv-two">
+    <div class="panel">
+      <h3>Calls per hour</h3>
+      <p class="cap">The last 24 whole hours, in UTC.</p>
+      <div id="lv-hours"><p class="lv-empty">Waiting for data&hellip;</p></div>
+    </div>
+    <div class="panel">
+      <h3>Which models answered</h3>
+      <p class="cap">Successful calls in the last 7 days, by model.</p>
+      <div id="lv-models"><p class="lv-empty">Waiting for data&hellip;</p></div>
+    </div>
+  </div>
+  <p class="lv-note">Honest context: this counts every call that reached the gateway, including my own tests and the nightly eval runs. It shows the machinery working, not a busy product.</p>
+</section>
+
+<section class="reveal" id="quality" aria-labelledby="h-quality">
+  <div class="sec-head">
+    <div class="kicker">Live &middot; quality</div>
+    <h2 id="h-quality">Is the chatbot still answering correctly?</h2>
+    <p>Every night the same questions are asked again and graded. This is the latest result of each question set, read live from the eval tables. A score of 1.00 means every answer was graded correct.</p>
+  </div>
+  <div class="lv-bar" id="lv-bar-quality" role="group" aria-label="Live quality status"><span class="lv-dot" aria-hidden="true"></span><span id="lv-q-status">Loading eval results&hellip;</span></div>
+  <div class="lv-err" id="lv-err-quality" role="status" hidden></div>
+  <div class="lv-kpis" id="lv-kpis-quality">
+    <div class="lv-k"><h3>Eval runs</h3><span class="kv" data-k="runs">&ndash;</span><small data-k="runs_sub">&nbsp;</small></div>
+    <div class="lv-k"><h3>Graded answers</h3><span class="kv" data-k="graded">&ndash;</span><small>each one scored by rules and a judge model</small></div>
+    <div class="lv-k"><h3>Test questions</h3><span class="kv" data-k="cases">&ndash;</span><small data-k="cases_sub">&nbsp;</small></div>
+    <div class="lv-k"><h3>Prompt versions</h3><span class="kv" data-k="versions">&ndash;</span><small>immutable releases in the registry</small></div>
+  </div>
+  <div class="setgrid" id="lv-sets"></div>
+  <div class="vsum" id="lv-verdicts" role="group" aria-label="Runs by verdict"></div>
+
+  <h3 class="lv-sec-sub">Recent runs</h3>
+  <div class="panel">
+    <div class="scroll-x"><table class="tbl" style="min-width:560px"><caption class="sr-only" style="position:absolute;left:-9999px">Most recent evaluation runs</caption>
+      <thead><tr><th scope="col">run</th><th scope="col">when</th><th scope="col">set</th><th scope="col">prompt</th><th scope="col" class="num">score</th><th scope="col">verdict</th></tr></thead>
+      <tbody id="lv-runs"><tr><td colspan="6">Waiting for data&hellip;</td></tr></tbody></table></div>
+  </div>
+
+  <h3 class="lv-sec-sub">What raises an alarm</h3>
+  <div class="alerts">
+    <div class="alert"><div class="state" style="color:var(--red)">&#9679; Eval regression</div><p>Fires if the latest run of <i>any</i> set is a regression, a noisy baseline, or unreliable. I tested it on purpose and watched it go from Normal to Firing.</p></div>
+    <div class="alert"><div class="state" style="color:var(--green)">&#9679; Eval job silent</div><p>Fires if no run has happened for 36 hours, and also if the data is missing. A check that stops running must be loud, not quiet.</p></div>
+  </div>
+  <p class="lv-note">The same data also feeds a Grafana dashboard that I use day to day. Raw JSON: <a href="/v1/stats">/v1/stats</a> &middot; <a href="/v1/stats/evals">/v1/stats/evals</a>.</p>
+</section>
+<section class="reveal" id="releases" aria-labelledby="h-prompts">
+  <div class="sec-head">
+    <div class="kicker">Under the hood &middot; releases</div>
+    <h2 id="h-prompts">Prompts as versioned, rollback-able releases</h2>
+    <p>Before this, a prompt was a text file inside someone's code. Changing it meant redeploying, with no record of what changed and no quick way back. Now a prompt is a released artifact. Pick a release and press <b>Ship it</b>, or click any step to see what it does.</p>
+  </div>
+
+  <div class="panel sim" id="sim-prompt">
+    <noscript><p class="noscript">This walkthrough needs JavaScript. In short: publish a new prompt version, send it to a small share of visitors, watch the results, then either promote it to everyone or roll it back with one command.</p></noscript>
+    <div class="b-controls" data-controls role="group" aria-label="Releases"><label>Which release?</label></div>
+    <div class="b-pipe b-cols5" data-pipe></div>
+    <div class="b-legend"><span class="g">done</span><span class="a">needs a look</span><span class="r">stopped</span><span class="s">not needed</span></div>
+    <div class="b-split">
+      <div class="b-term" data-term aria-live="polite"><div class="dim">Press &ldquo;Ship it&rdquo; to follow one prompt release.</div></div>
+      <div class="b-detail" data-detail></div>
+    </div>
+    <div class="outcome" data-outcome hidden></div>
+  </div>
+
+  <div class="trio">
+    <div class="mini"><span class="b-tag">IMMUTABLE</span><h3>v3 is always exactly v3</h3><p>A saved version can never be edited, only replaced by a newer one. Any answer can be traced to the precise text that produced it.</p></div>
+    <div class="mini"><span class="b-tag">STICKY</span><h3>A visitor never flips</h3><p>The share of traffic is decided by a hash of the visitor, so the same person always gets the same version and a conversation never changes behaviour halfway.</p></div>
+    <div class="mini"><span class="b-tag">FLAGS</span><h3>Switches with a safety net</h3><p>Flags can be set for one tenant or everyone. If the lookup ever fails, the gateway falls back to the safe default instead of failing the request.</p></div>
+  </div>
+
+  <details>
+    <summary>Engineer's view: rollout mechanics</summary>
+    <div class="body">
+      <ul>
+        <li>Per tenant and prompt name, the registry holds a <b>stable</b> version and an optional <b>candidate</b> with a percentage.</li>
+        <li>The bucket is a SHA-256 hash of the visitor identity, so assignment is sticky and needs no extra storage.</li>
+        <li>Commands: publish, rollout, promote, rollback, show; flags: set, clear, show. Every one writes to the audit log.</li>
+        <li>Version 1 of a prompt goes live immediately; later versions are &ldquo;not live yet&rdquo; until rolled out.</li>
+        <li>Example flag: the <code>evals</code> tenant has <code>cache_bypass</code> on, so eval questions never read or fill the cache and every run measures the model, not a remembered answer.</li>
+      </ul>
+    </div>
+  </details>
+</section><section class="reveal" id="nightly" aria-labelledby="h-evals">
+  <div class="sec-head">
+    <div class="kicker">Under the hood &middot; nightly checks</div>
+    <h2 id="h-evals">An eval pipeline that runs while I sleep</h2>
+    <p>Every night the same questions are asked, the answers are graded, and the score is compared with how it normally does. It only speaks up when something truly changed, or when the check itself breaks. Pick a night and press <b>Run the night</b>, or click any step to see what it does.</p>
+  </div>
+
+  <div class="panel sim" id="sim-eval">
+    <noscript><p class="noscript">This walkthrough needs JavaScript. In short: each night the runner loads the questions, asks them through the gateway, grades the answers, compares the score with a baseline, decides a verdict and raises an alert if needed.</p></noscript>
+    <div class="b-controls" data-controls role="group" aria-label="Nights"><label>Which night?</label></div>
+    <div class="b-pipe b-cols6" data-pipe></div>
+    <div class="b-legend"><span class="g">healthy</span><span class="a">needs a look</span><span class="r">failed</span><span class="s">skipped</span></div>
+    <div class="b-split">
+      <div class="b-term" data-term aria-live="polite"><div class="dim">Press &ldquo;Run the night&rdquo; to follow one nightly run.</div></div>
+      <div class="b-detail" data-detail></div>
+    </div>
+    <div class="outcome" data-outcome hidden></div>
+  </div>
+
+  <h3 class="sub-h">What the verdict means</h3>
+  <div class="vgrid">
+    <div class="vcol good">
+      <div class="vh"><span class="vdot"></span>Healthy &middot; no alert</div>
+      <div class="vi"><b>OK</b><small>exit 0</small><p>Score is inside the normal range.</p></div>
+      <div class="vi"><b>IMPROVED</b><small>exit 0</small><p>Score is better than normal.</p></div>
+      <div class="vi"><b>BUILDING_BASELINE</b><small>exit 0</small><p>Fewer than three clean runs exist yet, so there is nothing to compare with.</p></div>
+    </div>
+    <div class="vcol bad">
+      <div class="vh"><span class="vdot"></span>Needs attention &middot; alert fires</div>
+      <div class="vi"><b>REGRESSION</b><small>exit 3</small><p>Quality fell by more than the allowed tolerance.</p></div>
+      <div class="vi"><b>NOISY_BASELINE</b><small>exit 4</small><p>History is too jumpy to judge fairly.</p></div>
+      <div class="vi"><b>UNRELIABLE</b><small>exit 5</small><p>The run did not finish properly, so its score cannot be trusted.</p></div>
+    </div>
+    <div class="vcol man">
+      <div class="vh"><span class="vdot"></span>Person decides &middot; manual</div>
+      <div class="vi"><b>ACCEPTED</b><small>command</small><p>&ldquo;This lower score is the new normal.&rdquo; Resets what future runs are compared with.</p></div>
+      <div class="vi"><b>EXCLUDED</b><small>command</small><p>&ldquo;Throw this run out.&rdquo; Used for experiments so they never pollute the baseline.</p></div>
+    </div>
+  </div>
+
+  <div class="b-cards" style="margin-top:26px">
+    <div class="b-card"><span class="b-tag">GRADING</span><h3>Two layers of checks</h3><p>Hard rules first (must contain, must not contain, word limit). Then a judge model scores meaning, and it sees only the reference answer, never the prompt, so it cannot be talked into agreeing.</p></div>
+    <div class="b-card"><span class="b-tag">FAIRNESS</span><h3>Tolerance that adapts</h3><p>The allowed drop is the larger of 0.10 or twice the history's spread, so a naturally noisy test does not cry wolf and a stable one is held tight.</p></div>
+    <div class="b-card"><span class="b-tag">SCHEDULE</span><h3>Nightly, with a dead-man's switch</h3><p>A timer runs both sets at 22:00 UTC. A separate alert fires if no run has happened in 36 hours, so silence itself is caught.</p></div>
+  </div>
+
+  <details>
+    <summary>Engineer's view: data model and baseline rules</summary>
+    <div class="body">
+      <ul>
+        <li><b>Tables:</b> <code>eval_sets</code>, <code>eval_cases</code> (immutable), <code>eval_runs</code>, <code>eval_results</code>. Each result keeps the answer, score, judge reason, latency, cost and the request id that links back to the audit log.</li>
+        <li><b>Baseline:</b> last five <code>done</code> runs of the same set and route, ignoring excluded or regressed runs, starting from the latest accepted run, minimum three needed.</li>
+        <li><b>Baseline is by set and route, not prompt version.</b> That is deliberate: a new prompt must beat the normal, but experiments must be explicitly excluded so they do not poison it.</li>
+        <li><b>Exit codes</b> let the nightly script and systemd report failure as a failed unit, which feeds the alert.</li>
+        <li><b>Secrets:</b> the eval key lives in a secrets store and is fetched at run time; it never touches a shell history or a file.</li>
+      </ul>
+    </div>
+  </details>
+</section><section class="reveal" id="case" aria-labelledby="h-case">
+  <div class="kicker">Case study</div>
+  <h2 id="h-case">The bug the evals helped me find</h2>
+  <p class="sub">The chatbot on atla.in sometimes told visitors that I used OpenAI, Anthropic, Gemini and Bedrock <b>at Accenture</b>. That is false: those providers belong to my own projects. A wrong claim about my experience, in front of recruiters, is exactly the kind of defect that nobody notices until it hurts.</p>
+
+  <div class="two">
+    <div class="panel">
+      <div class="timeline">
+        <div class="tl bad"><b>Found</b><p>A guard test asked "did Pranav use an LLM at Accenture?" and the chatbot said yes in roughly one run in six.</p></div>
+        <div class="tl warn"><b>Corrected my own claim</b><p>After four clean runs I thought the old prompt was immune. A later run failed. Four runs were not proof, so I fixed a rule before testing further.</p></div>
+        <div class="tl"><b>Candidate v5</b><p>Added one explicit fact to the chatbot's knowledge. Passed the Accenture test in 3 of 3 runs.</p></div>
+        <div class="tl bad"><b>But it failed a second test, 3 of 3</b><p>The greeting. The model replied as if the visitor were me:</p>
+          <div class="quote">"Hello Pranav! What would you like to know about me?"</div></div>
+        <div class="tl warn"><b>Read the actual answers, not the scores</b><p>The rule said "ask what they want to know about Pranav", but nothing said <i>who the assistant is</i>. The model had a name and no role.</p></div>
+        <div class="tl good"><b>v6 and ship</b><p>One added rule: you are an assistant that tells visitors about Pranav. 3 of 3 clean runs, then deployed. Checked live on atla.in.</p>
+          <div class="quote good">"Hello! I can tell you about Pranav and his work. What would you like to know about him?"</div></div>
+      </div>
+    </div>
+    <div>
+      <div class="rule"><b>Decided before looking at results:</b> ship only if the Accenture test passes in all three runs <i>and</i> no other case fails in two or more. Keep the old prompt if the Accenture test fails even once. Writing the rule first stopped me from rationalising a weaker result.</div>
+      <div class="panel">
+        <h3>Nine runs on the same 15 questions</h3>
+        <p style="color:var(--muted);font-size:14px;margin:4px 0 12px">Two cases that mattered. Green passed, red failed.</p>
+        <div class="heat" role="img" aria-label="Pass or fail for runs 24 to 32. Accenture test: failed only in run 25. Greeting test: failed in runs 24, 25, 27, 28 and 29, and passed in runs 26, 30, 31 and 32.">
+          <div></div><div class="grp">v1 &middot; old</div><div class="grp v5">v5</div><div class="grp v6">v6 &middot; shipped</div>
+          <div></div><div class="h">24</div><div class="h">25</div><div class="h">26</div><div class="h">27</div><div class="h">28</div><div class="h">29</div><div class="h">30</div><div class="h">31</div><div class="h">32</div>
+          <div class="lbl">Accenture</div>
+          <div class="cell p">✓</div><div class="cell f">✗</div><div class="cell p">✓</div><div class="cell p">✓</div><div class="cell p">✓</div><div class="cell p">✓</div><div class="cell p">✓</div><div class="cell p">✓</div><div class="cell p">✓</div>
+          <div class="lbl">Greeting</div>
+          <div class="cell f">✗</div><div class="cell f">✗</div><div class="cell p">✓</div><div class="cell f">✗</div><div class="cell f">✗</div><div class="cell f">✗</div><div class="cell p">✓</div><div class="cell p">✓</div><div class="cell p">✓</div>
+        </div>
+        <div class="bars" role="img" aria-label="Average score per run, runs 24 to 32: 0.93, 0.87, 1.0, 0.93, 0.93, 0.93, 1.0, 1.0, 1.0">
+          <div class="lbl">Avg score</div>
+          <div class="bar" style="height:93.3%"><i>.93</i></div><div class="bar" style="height:86.7%"><i>.87</i></div><div class="bar" style="height:100%"><i>1.0</i></div>
+          <div class="bar v5" style="height:93.3%"><i>.93</i></div><div class="bar v5" style="height:93.3%"><i>.93</i></div><div class="bar v5" style="height:93.3%"><i>.93</i></div>
+          <div class="bar v6" style="height:100%"><i>1.0</i></div><div class="bar v6" style="height:100%"><i>1.0</i></div><div class="bar v6" style="height:100%"><i>1.0</i></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <p class="sub" style="margin-top:16px">The lesson I care about most: the average score barely moved (0.93 to 1.0), yet two real defects hid inside it. The score tells you <i>that</i> something is off; reading the stored answer tells you <i>why</i>.</p>
+</section><section class="reveal" id="learned" aria-labelledby="h-learned">
+  <div class="kicker">Learnings</div>
+  <h2 id="h-learned">What this build taught me</h2>
+  <div class="two">
+    <div class="panel"><h3>Practices I would keep</h3>
+      <ul class="clean">
+        <li><b>Write the pass rule before the test.</b> It removes the temptation to move the goalposts.</li>
+        <li><b>Read the raw answer.</b> Scores locate a problem; the stored text explains it.</li>
+        <li><b>Make the checker fail loudly.</b> A half-finished run once passed silently, so it now exits non-zero and raises an alert.</li>
+        <li><b>Keep experiments out of the baseline.</b> One banana-test prompt would have wrecked a week of history.</li>
+        <li><b>Ship the smallest change that fixes the cause.</b> One rule fixed the greeting; no rewrite.</li>
+        <li><b>Keep unfinished work out of a release.</b> I found an unrelated, half-built change sitting in the same folder and set it aside before deploying.</li>
+      </ul>
+    </div>
+    <div class="panel"><h3>Honest limits</h3>
+      <ul class="clean">
+        <li><b>Small eval sets.</b> A few dozen questions catch known failures, not unknown ones.</li>
+        <li><b>The judge is a model.</b> It can wobble on thin references; rule checks back it up.</li>
+        <li><b>No automated unit tests yet.</b> Quality is gated by evals and a health check, not by a test suite.</li>
+        <li><b>Single server.</b> Right for this scale; a larger fleet would need more than one box.</li>
+        <li><b>Migrations are applied by hand.</b> A tracked migration runner is the next improvement.</li>
+        <li><b>The eval tests prompt and model</b>, not retrieval, so the Gita app needs its own set.</li>
+      </ul>
+    </div>
+  </div>
+  <div class="panel" style="margin-top:14px">
+    <h3>Next</h3>
+    <p style="color:var(--muted);margin:6px 0 0">An eval set for the Gita app (its 25 questions), a migration runner, and a dashboard that tracks every set side by side.</p>
+  </div>
+</section>
+  </div>
 
 </div>
 </main>
@@ -693,6 +1231,264 @@ footer a:hover{border-color:var(--cyan)}
     reveals.forEach(function(r){io.observe(r)});
   }else{reveals.forEach(function(r){r.classList.add("in")})}
 })();
+</script>
+<script>
+
+(function(){
+  var reduce=window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  function wait(ms){return new Promise(function(r){setTimeout(r,reduce?0:ms)})}
+  var LABEL={g:'PASS',a:'ACTED',c:'CACHE',r:'BLOCKED',s:'SKIPPED'};
+
+  function mount(root,cfg){
+    var controls=root.querySelector('[data-controls]'),pipe=root.querySelector('[data-pipe]'),
+        term=root.querySelector('[data-term]'),detail=root.querySelector('[data-detail]'),out=root.querySelector('[data-outcome]');
+    var nodes=[],cur=cfg.scenarios[0],token=0,running=false,runBtn;
+    cfg.nodes.forEach(function(n,i){
+      var b=document.createElement('button');b.type='button';b.className='b-node';
+      b.innerHTML='<span class="no">'+String(i+1).padStart(2,'0')+'</span><b>'+n.t+'</b><small>'+n.s+'</small><span class="st"></span>';
+      b.setAttribute('aria-pressed','false');b.addEventListener('click',function(){select(i)});
+      pipe.appendChild(b);nodes.push(b);
+    });
+    cfg.scenarios.forEach(function(sc,k){
+      var c=document.createElement('button');c.type='button';c.className='b-sc';c.textContent=sc.label;
+      c.setAttribute('aria-pressed',k===0?'true':'false');
+      c.addEventListener('click',function(){if(running)return;cur=sc;runBtn.classList.remove('pulse');
+        controls.querySelectorAll('.b-sc').forEach(function(x){x.setAttribute('aria-pressed','false')});
+        c.setAttribute('aria-pressed','true');reset(true)});
+      controls.appendChild(c);
+    });
+    runBtn=document.createElement('button');runBtn.type='button';runBtn.className='b-run';runBtn.textContent=cfg.run;
+    runBtn.classList.add('pulse');runBtn.addEventListener('click',function(){runBtn.classList.remove('pulse');play()});term.setAttribute('role','log');out.setAttribute('role','status');controls.appendChild(runBtn);
+
+    function select(i){
+      nodes.forEach(function(n){n.classList.remove('sel');n.setAttribute('aria-pressed','false')});nodes[i].classList.add('sel');nodes[i].setAttribute('aria-pressed','true');
+      var d=cfg.nodes[i].d;
+      detail.innerHTML='<h3>'+d.h+'</h3><p>'+d.p+'</p><ul>'+d.l.map(function(x){return'<li>'+x+'</li>'}).join('')+'</ul>';
+    }
+    function reset(showNote){
+      token++;pipe.classList.add('reset');
+      nodes.forEach(function(n,k){n.className='b-node';n.querySelector('.st').textContent=''});
+      void pipe.offsetWidth;pipe.classList.remove('reset');
+      out.hidden=true;out.className='outcome';
+      term.innerHTML='<div class="dim">'+(showNote?cur.note:cfg.intro)+'</div>';
+    }
+    function line(cls,txt){var d=document.createElement('div');d.className='ln '+cls;d.textContent=txt;term.appendChild(d);term.scrollTop=term.scrollHeight}
+    async function play(){
+      if(running)return;running=true;runBtn.disabled=true;runBtn.style.opacity='.6';
+      reset(false);var my=token;term.innerHTML='';line('dim',cur.start);
+      for(var i=0;i<cur.steps.length;i++){
+        var st=cur.steps[i];nodes[i].classList.add('on');select(i);
+        await wait(300);if(my!==token)return;
+        st.log.forEach(function(l){line(l[0],l[1])});
+        nodes[i].classList.remove('on');nodes[i].classList.add(st.s);var lbl=st.l||(cfg.labels||LABEL)[st.s];nodes[i].querySelector('.st').textContent=lbl;
+        await wait(420);if(my!==token)return;
+      }
+      out.className='outcome '+cur.result.c;out.innerHTML=cur.result.t+(cur.result.n?'<small>'+cur.result.n+'</small>':'');out.hidden=false;
+      running=false;runBtn.disabled=false;runBtn.style.opacity='';
+    }
+    select(0);term.innerHTML='<div class="dim">'+cfg.intro+'</div>';
+  }
+
+  document.querySelectorAll('.bs .scroll-x,.bs .b-term,.bs .pre').forEach(function(e){e.setAttribute('tabindex','0')});
+  function L(c,t){return [c,t]}
+  /* ---------- prompt release ---------- */
+  var prNodes=[
+    {t:'Publish',s:'Save the new version',d:{h:'1 · Publish a new version',p:'The new text is saved as the next version number. It does not change what anyone sees yet.',l:['Versions are immutable: they can be replaced, never edited','The previous stable version keeps serving everyone','The command is audited with who ran it and when']}},
+    {t:'Roll out',s:'Show it to a few',d:{h:'2 · Roll out to a small share',p:'Choose a percentage, for example 5. Only that slice of visitors gets the candidate.',l:['A hash of the visitor decides, so the choice is sticky','Everyone else stays on the stable version','The share can be raised or cut at any time']}},
+    {t:'Observe',s:'Check what happened',d:{h:'3 · Observe',p:'Every response names the version that produced it, and the eval pipeline can score the candidate before anyone is exposed widely.',l:['Header on each reply: x-gate-prompt','Eval run on the candidate compared with the baseline','Usage and audit rows show which version served whom']}},
+    {t:'Promote',s:'Make it stable',d:{h:'4 · Promote',p:'If the numbers look right, the candidate becomes the stable version for everyone.',l:['One command, written to the audit log','The old stable version stays stored for later rollback','No redeploy is needed']}},
+    {t:'Roll back',s:'Undo in one command',d:{h:'5 · Roll back',p:'If something looks wrong, the candidate is removed and everyone is back on the stable version immediately.',l:['One command, no redeploy','Takes effect for the next request','The bad version stays stored for the post-mortem']}}
+  ];
+  var prSc=[
+    {label:'Good release',note:'A change that behaves, from first save to everyone.',start:'$ admin  (tenant demo, prompt support-bot)',
+     steps:[
+      {s:'g',log:[L('cmd','$ publish-prompt demo/support-bot v3.txt'),L('ok','Published demo/support-bot v3'),L('dim','Not live yet. Stable is still v2.')]},
+      {s:'g',log:[L('cmd','$ rollout-prompt demo/support-bot 3 5'),L('ok','candidate = v3 · 5% of visitors'),L('dim','same visitor always gets the same version')]},
+      {s:'g',log:[L('info','visitor A  x-gate-prompt: support-bot@v2:stable'),L('info','visitor B  x-gate-prompt: support-bot@v3:candidate'),L('ok','eval on v3: 0.97 vs baseline 0.97 · OK')]},
+      {s:'g',log:[L('cmd','$ promote-prompt demo/support-bot'),L('ok','stable = v3 · candidate cleared'),L('dim','audit: promoted')]},
+      {s:'s',log:[L('dim','rollback  not needed')]}],
+     result:{c:'ok',t:'v3 is live for everyone, with no redeploy',n:'Only 5% of visitors saw it until the numbers were checked.'}},
+    {label:'Bad release',note:'A change that fails its eval and is undone in one command.',start:'$ admin  (tenant demo, prompt support-bot)',
+     steps:[
+      {s:'g',log:[L('cmd','$ publish-prompt demo/support-bot v3.txt'),L('ok','Published demo/support-bot v3'),L('dim','Not live yet. Stable is still v2.')]},
+      {s:'g',log:[L('cmd','$ rollout-prompt demo/support-bot 3 5'),L('ok','candidate = v3 · 5% of visitors')]},
+      {s:'r',log:[L('info','visitor B  x-gate-prompt: support-bot@v3:candidate'),L('bad','eval on v3: 0.68 vs baseline 0.97 · REGRESSION')]},
+      {s:'s',log:[L('dim','promote   not run · the eval said no')]},
+      {s:'g',log:[L('cmd','$ rollback-prompt demo/support-bot'),L('ok','candidate removed · everyone on v2'),L('dim','audit: rolled back')]}],
+     result:{c:'warn',t:'Back to v2 in seconds',n:'Only 5% of visitors ever saw v3, and v3 stays stored for the post-mortem.'}}
+  ];
+  mount(document.getElementById('sim-prompt'),{nodes:prNodes,scenarios:prSc,labels:{g:'DONE',a:'LOOK',r:'STOPPED',s:'NOT NEEDED'},run:'Ship it',intro:'Press “Ship it” to follow one prompt release, or click a step to read what it does.'});
+
+  /* ---------- nightly eval run ---------- */
+  var evNodes=[
+    {t:'Eval set',s:'The fixed questions',d:{h:'1 · Load the eval set',p:'A set is a list of cases. Each case has a question, a reference answer, and optional rule checks. Cases never change once saved, so tonight is comparable with last week.',l:['3 sets today: 40 cases in total','Rule checks: must contain, must not contain, word limit','Reference answers are what the judge compares against']}},
+    {t:'Ask',s:'Send them through the gateway',d:{h:'2 · Ask the questions',p:'The runner calls the gateway like any customer would, as its own tenant called evals, so the whole real path is tested.',l:['The cache is bypassed with a feature flag, so every run measures the model','Latency, cost and request id are stored per answer','Rate limits apply, which is how a past run broke halfway']}},
+    {t:'Grade',s:'Rules, then a judge',d:{h:'3 · Grade the answers',p:'Hard rules run first. Then a judge model scores meaning from 0 to 1. The judge sees only the question, the answer and the reference, never the prompt.',l:['A case passes when its score is high enough and its rules hold','The judge writes a reason, stored with the answer','Reading those reasons is how real defects were found']}},
+    {t:'Compare',s:'Against the normal',d:{h:'4 · Compare with the baseline',p:'The new score is compared with the last five clean runs of the same set.',l:['Needs at least three clean runs to judge anything','Tolerance is the larger of 0.10 or twice the spread','Experiments are excluded so they do not shift normal']}},
+    {t:'Verdict',s:'One clear label',d:{h:'5 · Decide the verdict',p:'The comparison becomes one label and an exit code, so machines and people read the same answer.',l:['OK, IMPROVED, BUILDING_BASELINE: exit 0','REGRESSION: exit 3 · NOISY_BASELINE: exit 4 · UNRELIABLE: exit 5','Stored on the run, so the dashboard can show it']}},
+    {t:'Alert',s:'Tell a human, or stay quiet',d:{h:'6 · Alert',p:'A failed exit makes the nightly job fail, and Grafana separately watches the latest verdict of every set.',l:['Eval regression: fires on a bad verdict of any set','Eval job silent: fires if nothing ran for 36 hours','Good nights stay quiet on purpose']}}
+  ];
+  var evSc=[
+    {label:'Healthy night',note:'Based on run 33 of the main eval set.',start:'22:00 UTC · gate-eval.timer fired',
+     steps:[{s:'g',log:[L('ok','cases     facts-core · 10 questions loaded')]},{s:'g',log:[L('ok','ask       10 sent as tenant evals · cache bypassed'),L('dim','          about 1 s per answer · cost $0.011')]},{s:'a',log:[L('warn','grade     9 pass · facts#1 scored 0.5'),L('dim','          judge: leaves out his last working day'),L('ok','grade     average 0.95 · pass rate 90%')]},{s:'g',log:[L('info','compare   baseline mean 0.97 over last 5 clean runs'),L('ok','compare   change -0.02 · tolerance 0.10 · inside')]},{s:'g',log:[L('ok','verdict   OK · exit code 0')]},{s:'s',l:'QUIET',log:[L('dim','alert     nothing to report')]}],
+     result:{c:'ok',t:'Quiet night, no alert',n:'The run is saved and shows on the dashboard. One weak answer was visible but inside normal range.'}},
+    {label:'Quality drops',note:'An example of what a real regression looks like.',start:'22:00 UTC · gate-eval.timer fired',
+     steps:[{s:'g',log:[L('ok','cases     facts-core · 10 questions loaded')]},{s:'g',log:[L('ok','ask       10 sent as tenant evals')]},{s:'r',log:[L('bad','grade     4 cases failed · average 0.68')]},{s:'r',log:[L('bad','compare   baseline 0.97 · change -0.29 · tolerance 0.10')]},{s:'r',log:[L('bad','verdict   REGRESSION · exit code 3')]},{s:'a',l:'FIRED',log:[L('warn','alert     job fails · Grafana “Eval regression” fires')]}],
+     result:{c:'bad',t:'A person hears about it the same night',n:'Example scenario. Roll back the prompt with one command, then investigate.'}},
+    {label:'Run breaks halfway',note:'This really happened (run 13): a rate limit cut a run short.',start:'22:00 UTC · gate-eval.timer fired',
+     steps:[{s:'g',log:[L('ok','cases     facts-guard · 15 questions loaded')]},{s:'a',log:[L('warn','ask       rate limit hit (429) partway'),L('warn','          some cases have no answer')]},{s:'a',log:[L('warn','grade     graded what answered · run marked partial')]},{s:'s',log:[L('dim','compare   skipped · a partial run cannot be compared')]},{s:'r',log:[L('bad','verdict   UNRELIABLE · exit code 5')]},{s:'a',l:'FIRED',log:[L('warn','alert     fires · a broken check is never silent')]}],
+     result:{c:'warn',t:'The check itself is held to account',n:'A partial run once passed silently. Now it fails loudly, and the limit was raised.'}},
+    {label:'Jumpy history',note:'An example: scores are all over the place, so no fair judgement is possible.',start:'22:00 UTC · gate-eval.timer fired',
+     steps:[{s:'g',log:[L('ok','cases     loaded')]},{s:'g',log:[L('ok','ask       sent')]},{s:'g',log:[L('ok','grade     average 0.82')]},{s:'a',log:[L('warn','compare   last 5: 0.60 0.95 0.70 1.00 0.65'),L('warn','          spread too wide to set a fair tolerance')]},{s:'a',log:[L('warn','verdict   NOISY_BASELINE · exit code 4')]},{s:'a',l:'FIRED',log:[L('warn','alert     fires · fix the test, do not ignore it')]}],
+     result:{c:'warn',t:'A test nobody can judge is flagged',n:'Example scenario. Usually means thin reference answers or too few cases.'}},
+    {label:'Silent night',note:'The dead-man’s switch: what if nothing runs at all?',start:'22:00 UTC · timer did not fire',
+     steps:[{s:'r',l:'NO RUN',log:[L('bad','cases     no run started')]},{s:'s',log:[]},{s:'s',log:[]},{s:'s',log:[]},{s:'s',log:[]},{s:'a',l:'FIRED',log:[L('warn','alert     36 hours with no run · “Eval job silent” fires')]}],
+     result:{c:'bad',t:'Silence is an alert too',n:'A check that stops running must be loud. This second alert watches the first.'}}
+  ];
+  mount(document.getElementById('sim-eval'),{nodes:evNodes,scenarios:evSc,labels:{g:'OK',a:'LOOK',r:'FAILED',s:'SKIPPED'},run:'Run the night',intro:'Press “Run the night” to follow one nightly run, or click a step to read what it does.'});
+})();
+
+</script>
+<script>
+/* ---------- live dashboard (Part 2) ---------- */
+(function(){
+  var root=document.getElementById('part2'); if(!root) return;
+  function $(s){return root.querySelector(s)}
+  function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
+  function fmt(n){return Number(n).toLocaleString('en-US')}
+  function pct(a,b){if(!b)return '–';var p=a/b*100;return (p>=99.95?'100':p.toFixed(1).replace(/\.0$/,''))+'%'}
+  function ms(v){if(typeof v!=='number')return '–';if(v<1)return '<1 ms';if(v>=1000)return (v/1000).toFixed(1)+' s';return Math.round(v)+' ms'}
+  function usd(v){v=+v||0;if(v===0)return '$0';if(v<0.01)return 'under $0.01';return '$'+v.toFixed(2)}
+  function ago(iso){
+    var t=Date.parse(iso); if(isNaN(t))return '';
+    var s=Math.max(0,Math.round((Date.now()-t)/1000));
+    if(s<90)return s+' s ago'; if(s<5400)return Math.round(s/60)+' min ago';
+    if(s<172800)return Math.round(s/3600)+' h ago'; return Math.round(s/86400)+' days ago';
+  }
+  function when(iso){
+    var d=new Date(iso); if(isNaN(d))return '';
+    return d.toLocaleDateString('en-GB',{day:'numeric',month:'short',timeZone:'UTC'})+' '+d.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit',timeZone:'UTC'})+' UTC';
+  }
+  function setK(scope,key,val,cls){
+    var e=scope.querySelector('[data-k="'+key+'"]'); if(e) e.textContent=val;
+  }
+  var state={traffic:null,quality:null,okAt:{traffic:0,quality:0},fail:{traffic:false,quality:false}};
+
+  /* ----- traffic ----- */
+  function renderTraffic(j){
+    var t=j&&j.totals_7d; if(!t||typeof t.calls!=='number') throw new Error('shape');
+    var k=$('#lv-kpis-traffic');
+    var refused=(t.rate_limited||0)+(t.blocked||0)+(t.over_budget||0);
+    setK(k,'calls',fmt(t.calls)); setK(k,'calls_sub',fmt(t.calls_24h||0)+' of them in the last 24 hours');
+    setK(k,'success',pct(t.ok,t.calls)); setK(k,'success_sub',fmt(t.ok)+' answered, '+fmt(t.errors_5xx||0)+' server errors');
+    setK(k,'p50',ms(t.gateway_ms_p50)); setK(k,'p90',ms(t.latency_ms_p90));
+    setK(k,'cache',t.cache_lookups?pct(t.cache_hits,t.cache_lookups):'–');
+    setK(k,'cache_sub',fmt(t.cache_hits||0)+' repeat questions answered for free');
+    setK(k,'failovers',fmt(t.failovers||0));
+    setK(k,'refused',fmt(refused));
+    setK(k,'refused_sub',fmt(t.rate_limited||0)+' rate-limited, '+fmt(t.blocked||0)+' blocked, '+fmt(t.over_budget||0)+' over budget');
+    setK(k,'spend',usd(t.cost_usd));
+    setK(k,'spend_sub',fmt((t.input_tokens||0)+(t.output_tokens||0))+' tokens in and out');
+    /* hourly bars */
+    var h=(j.calls_hourly_24h||[]).map(Number), box=$('#lv-hours');
+    if(h.length){
+      var max=Math.max.apply(null,h.concat([1])),W=480,H=150,pad=22,bw=(W-pad)/h.length,i,out='';
+      var total=h.reduce(function(a,b){return a+b},0);
+      var end=Date.parse(j.generated_at); end=isNaN(end)?Date.now():end; end=Math.floor(end/3600000)*3600000;
+      for(i=0;i<h.length;i++){
+        var hh=Math.max(h[i]?3:1,Math.round(h[i]/max*(H-30))),x=pad+i*bw+2,y=H-18-hh;
+        var hr=new Date(end-(h.length-i)*3600000).getUTCHours();
+        out+='<rect x="'+x.toFixed(1)+'" y="'+y+'" width="'+(bw-4).toFixed(1)+'" height="'+hh+'" rx="2.5" fill="'+(h[i]?'#2dd4bf':'#21342f')+'"><title>'+String(hr).padStart(2,'0')+':00 UTC: '+h[i]+' calls</title></rect>';
+      }
+      var l0=new Date(end-h.length*3600000).getUTCHours(),l1=new Date(end-3600000).getUTCHours();
+      out+='<text x="'+pad+'" y="'+(H-3)+'" fill="#91a79f" font-family="ui-monospace,monospace" font-size="16">'+String(l0).padStart(2,'0')+':00</text>'+
+           '<text x="'+W+'" y="'+(H-3)+'" text-anchor="end" fill="#91a79f" font-family="ui-monospace,monospace" font-size="16">'+String(l1).padStart(2,'0')+':00</text>'+
+           '<text x="0" y="12" fill="#91a79f" font-family="ui-monospace,monospace" font-size="16">'+max+'</text>';
+      box.innerHTML='<svg class="lv-chart" viewBox="0 0 '+W+' '+H+'" role="img" aria-label="Calls per hour over the last 24 hours: '+fmt(total)+' calls in total, busiest hour '+max+' calls">'+out+'</svg>';
+    }else box.innerHTML='<p class="lv-empty">No hourly data yet.</p>';
+    /* models */
+    var ms_=j.models_7d||[], mb=$('#lv-models');
+    if(ms_.length){
+      var tot=ms_.reduce(function(a,m){return a+(m.calls||0)},0)||1;
+      mb.innerHTML=ms_.slice(0,8).map(function(m){
+        var share=Math.round((m.calls||0)/tot*100);
+        return '<div class="mrow"><span class="mn">'+esc(m.model)+'</span><span class="mb" role="img" aria-label="'+share+' percent of calls"><i style="width:'+Math.max(2,share)+'%"></i></span><span class="mv"><b>'+fmt(m.calls)+'</b> &middot; '+usd(m.cost_usd)+'</span></div>';
+      }).join('');
+    }else mb.innerHTML='<p class="lv-empty">No successful calls in the last 7 days.</p>';
+  }
+
+  /* ----- quality ----- */
+  function pillCls(v){
+    if(v==='OK'||v==='IMPROVED'||v==='ACCEPTED')return 'ok';
+    if(v==='BUILDING_BASELINE')return 'bl';
+    if(v==='REGRESSION'||v==='NOISY_BASELINE'||v==='UNRELIABLE')return 'un';
+    return 'ex';
+  }
+  function pill(v){return '<span class="b-pill '+pillCls(v)+'">'+esc(v||'not checked yet')+'</span>'}
+  function spark(rows){
+    var pts=rows.filter(function(r){return typeof r.score==='number'}).slice(0,12).reverse();
+    if(pts.length<2)return '';
+    var W=300,H=56,lo=Math.min.apply(null,pts.map(function(r){return r.score})),hi=Math.max.apply(null,pts.map(function(r){return r.score}));
+    lo=Math.min(lo,0.8);hi=Math.max(hi,1);
+    var xy=pts.map(function(r,i){return [8+i*(W-16)/(pts.length-1),H-8-(r.score-lo)/(hi-lo)*(H-16)]});
+    var d=xy.map(function(p){return p[0].toFixed(1)+','+p[1].toFixed(1)}).join(' ');
+    var dots=xy.map(function(p,i){return '<circle cx="'+p[0].toFixed(1)+'" cy="'+p[1].toFixed(1)+'" r="3" fill="#07110f" stroke="#2dd4bf" stroke-width="1.8"><title>run '+pts[i].run_id+': '+pts[i].score.toFixed(2)+'</title></circle>'}).join('');
+    return '<svg viewBox="0 0 '+W+' '+H+'" preserveAspectRatio="none" role="img" aria-label="Score of the last '+pts.length+' runs, oldest to newest, from '+pts[0].score.toFixed(2)+' to '+pts[pts.length-1].score.toFixed(2)+'"><polyline fill="none" stroke="#2dd4bf" stroke-width="2" points="'+d+'"/>'+dots+'</svg>';
+  }
+  function renderQuality(j){
+    var t=j&&j.totals; if(!t||typeof t.runs!=='number') throw new Error('shape');
+    var k=$('#lv-kpis-quality');
+    setK(k,'runs',fmt(t.runs)); setK(k,'runs_sub',t.last_run_at?'latest finished '+ago(t.last_run_at):'none yet');
+    setK(k,'graded',fmt(t.graded_answers)); setK(k,'cases',fmt(t.cases)); setK(k,'cases_sub','in '+fmt(t.sets)+' question sets');
+    setK(k,'versions',fmt(t.prompt_versions));
+    var runs=j.runs||[];
+    $('#lv-sets').innerHTML=(j.sets||[]).map(function(s){
+      var l=s.latest, mine=runs.filter(function(r){return r.set===s.name&&r.verdict!=='EXCLUDED'});
+      if(!l)return '<div class="setc"><div class="top"><h3>'+esc(s.name)+'</h3></div><p class="sc-sub">'+fmt(s.cases)+' questions &middot; no run yet</p></div>';
+      var sc=typeof l.score==='number'?l.score.toFixed(2):'–';
+      return '<div class="setc"><div class="top"><div><h3>'+esc(s.name)+'</h3><div class="sc-sub">'+fmt(s.cases)+' questions &middot; '+fmt(s.runs)+' recent runs</div></div>'+pill(l.verdict)+'</div>'+
+        '<div class="sc-big">'+sc+'</div>'+
+        '<div class="sc-meta">latest score'+(typeof l.baseline==='number'?' &middot; normal range centres on <b>'+l.baseline.toFixed(2)+'</b>':'')+'<br>'+
+        (typeof l.pass_rate==='number'?'<b>'+Math.round(l.pass_rate*100)+'%</b> of answers passed &middot; ':'')+'prompt <b>'+esc(l.prompt||'n/a')+'</b><br>run '+l.run_id+' &middot; '+esc(when(l.at))+'</div>'+spark(mine)+'</div>';
+    }).join('')||'<p class="lv-empty">No question sets yet.</p>';
+    var vs=t.verdicts||{};
+    $('#lv-verdicts').innerHTML=Object.keys(vs).map(function(v){return '<span><b>'+fmt(vs[v])+'</b>'+esc(v.replace(/_/g,' ').toLowerCase())+'</span>'}).join('');
+    var rows=runs.slice(0,8).map(function(r){
+      return '<tr><td>'+r.run_id+'</td><td>'+esc(when(r.at))+'</td><td>'+esc(r.set)+'</td><td>'+esc(r.prompt||'')+'</td><td class="num">'+(typeof r.score==='number'?r.score.toFixed(2):'–')+'</td><td>'+pill(r.verdict)+'</td></tr>';
+    }).join('');
+    $('#lv-runs').innerHTML=rows||'<tr><td colspan="6">No runs yet.</td></tr>';
+  }
+
+  /* ----- status line + polling ----- */
+  function paint(){
+    ['traffic','quality'].forEach(function(n){
+      var bar=$('#lv-bar-'+n),txt=$(n==='traffic'?'#lv-t-status':'#lv-q-status'),err=$('#lv-err-'+n);
+      var at=state.okAt[n];
+      if(at){
+        bar.className='lv-bar '+(state.fail[n]?'bad':'ok');
+        txt.innerHTML='<b>'+(state.fail[n]?'Showing the last good reading':'Live')+'</b> &middot; updated '+ago(new Date(at).toISOString())+' &middot; refreshes every 30 seconds';
+      }
+      if(!at&&state.fail[n]){bar.className='lv-bar bad';txt.textContent='Live numbers unavailable right now';}
+      err.hidden=!state.fail[n];
+      if(state.fail[n])err.textContent=at?'Could not refresh just now. Showing the last numbers received; retrying in the background.':'The live numbers are unavailable at the moment. The sections below still explain how everything works.';
+    });
+  }
+  function load(name,url,fn){
+    return fetch(url,{cache:'no-store'}).then(function(r){if(!r.ok)throw new Error('http '+r.status);return r.json()}).then(function(j){
+      fn(j);state.okAt[name]=Date.now();state.fail[name]=false;
+    }).catch(function(){state.fail[name]=true});
+  }
+  function tick(){
+    Promise.all([load('traffic','/v1/stats',renderTraffic),load('quality','/v1/stats/evals',renderQuality)]).then(paint);
+  }
+  tick();
+  setInterval(function(){if(!document.hidden)tick()},30000);
+  setInterval(paint,5000);
+  document.addEventListener('visibilitychange',function(){if(!document.hidden&&Date.now()-Math.min(state.okAt.traffic,state.okAt.quality||0)>30000)tick()});
+})();
+
+document.querySelectorAll('.arch-scroll,#term').forEach(function(e){e.setAttribute('tabindex','0')});
+
 </script>
 </body>
 </html>
