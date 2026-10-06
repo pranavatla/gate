@@ -1,0 +1,120 @@
+{
+  "uid": "gate-evals",
+  "title": "Gate evals",
+  "tags": ["gate", "evals"],
+  "timezone": "browser",
+  "schemaVersion": 39,
+  "version": 1,
+  "refresh": "5m",
+  "time": { "from": "now-30d", "to": "now" },
+  "panels": [
+    {
+      "id": 1, "type": "stat", "title": "Latest verdict",
+      "gridPos": { "h": 5, "w": 6, "x": 0, "y": 0 },
+      "datasource": { "type": "grafana-postgresql-datasource", "uid": "gate-postgres" },
+      "targets": [{
+        "datasource": { "type": "grafana-postgresql-datasource", "uid": "gate-postgres" },
+        "editorMode": "code", "format": "table", "rawQuery": true, "refId": "A",
+        "rawSql": "SELECT coalesce(verdict, 'NONE') AS verdict FROM dash_evals WHERE eval_set = 'facts-core' ORDER BY started_at DESC LIMIT 1"
+      }],
+      "options": {
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "/^verdict$/", "values": false },
+        "colorMode": "background", "graphMode": "none", "textMode": "value"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [{ "type": "value", "options": {
+            "OK": { "color": "green", "index": 0 },
+            "BUILDING_BASELINE": { "color": "blue", "index": 1 },
+            "NOISY_BASELINE": { "color": "orange", "index": 2 },
+            "REGRESSION": { "color": "red", "index": 3 }
+          }}],
+          "color": { "mode": "fixed", "fixedColor": "text" }
+        },
+        "overrides": []
+      }
+    },
+    {
+      "id": 2, "type": "stat", "title": "Latest score",
+      "gridPos": { "h": 5, "w": 6, "x": 6, "y": 0 },
+      "datasource": { "type": "grafana-postgresql-datasource", "uid": "gate-postgres" },
+      "targets": [{
+        "datasource": { "type": "grafana-postgresql-datasource", "uid": "gate-postgres" },
+        "editorMode": "code", "format": "table", "rawQuery": true, "refId": "A",
+        "rawSql": "SELECT avg_score::float8 AS score FROM dash_evals WHERE eval_set = 'facts-core' ORDER BY started_at DESC LIMIT 1"
+      }],
+      "options": {
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "colorMode": "value", "graphMode": "none"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "decimals": 2, "min": 0, "max": 1,
+          "color": { "mode": "thresholds" },
+          "thresholds": { "mode": "absolute", "steps": [
+            { "color": "red", "value": null },
+            { "color": "orange", "value": 0.8 },
+            { "color": "green", "value": 0.9 }
+          ]}
+        },
+        "overrides": []
+      }
+    },
+    {
+      "id": 3, "type": "stat", "title": "Hours since last run",
+      "gridPos": { "h": 5, "w": 6, "x": 12, "y": 0 },
+      "datasource": { "type": "grafana-postgresql-datasource", "uid": "gate-postgres" },
+      "targets": [{
+        "datasource": { "type": "grafana-postgresql-datasource", "uid": "gate-postgres" },
+        "editorMode": "code", "format": "table", "rawQuery": true, "refId": "A",
+        "rawSql": "SELECT (extract(epoch FROM now() - max(started_at)) / 3600)::float8 AS hours FROM dash_evals WHERE eval_set = 'facts-core'"
+      }],
+      "options": {
+        "reduceOptions": { "calcs": ["lastNotNull"], "fields": "", "values": false },
+        "colorMode": "value", "graphMode": "none"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "decimals": 1, "unit": "h",
+          "color": { "mode": "thresholds" },
+          "thresholds": { "mode": "absolute", "steps": [
+            { "color": "green", "value": null },
+            { "color": "orange", "value": 30 },
+            { "color": "red", "value": 36 }
+          ]}
+        },
+        "overrides": []
+      }
+    },
+    {
+      "id": 4, "type": "timeseries", "title": "Score per run vs baseline",
+      "gridPos": { "h": 9, "w": 24, "x": 0, "y": 5 },
+      "datasource": { "type": "grafana-postgresql-datasource", "uid": "gate-postgres" },
+      "targets": [{
+        "datasource": { "type": "grafana-postgresql-datasource", "uid": "gate-postgres" },
+        "editorMode": "code", "format": "time_series", "rawQuery": true, "refId": "A",
+        "rawSql": "SELECT started_at AS time, avg_score::float8 AS score, baseline_score::float8 AS baseline FROM dash_evals WHERE $__timeFilter(started_at) AND eval_set = 'facts-core' ORDER BY 1"
+      }],
+      "options": { "legend": { "displayMode": "list", "placement": "bottom" }, "tooltip": { "mode": "multi" } },
+      "fieldConfig": {
+        "defaults": {
+          "min": 0.5, "max": 1.05, "decimals": 2,
+          "custom": { "drawStyle": "line", "lineWidth": 2, "showPoints": "always", "pointSize": 7, "spanNulls": true }
+        },
+        "overrides": []
+      }
+    },
+    {
+      "id": 5, "type": "table", "title": "Recent runs",
+      "gridPos": { "h": 9, "w": 24, "x": 0, "y": 14 },
+      "datasource": { "type": "grafana-postgresql-datasource", "uid": "gate-postgres" },
+      "targets": [{
+        "datasource": { "type": "grafana-postgresql-datasource", "uid": "gate-postgres" },
+        "editorMode": "code", "format": "table", "rawQuery": true, "refId": "A",
+        "rawSql": "SELECT run_id, started_at, eval_set, route, prompt_name || '@v' || coalesce(prompt_version::text, '?') AS prompt, avg_score::float8 AS score, pass_rate::float8 AS pass_rate, n_errors, cost_usd::float8 AS cost_usd, verdict FROM dash_evals ORDER BY started_at DESC LIMIT 20"
+      }],
+      "options": { "showHeader": true },
+      "fieldConfig": { "defaults": {}, "overrides": [] }
+    }
+  ]
+}
