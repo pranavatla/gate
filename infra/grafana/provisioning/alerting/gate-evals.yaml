@@ -32,7 +32,7 @@ groups:
                   SELECT DISTINCT ON (eval_set) eval_set, verdict FROM dash_evals
                   ORDER BY eval_set, started_at DESC
                 ) latest
-                WHERE verdict IN ('REGRESSION', 'NOISY_BASELINE')
+                WHERE verdict IN ('REGRESSION', 'NOISY_BASELINE', 'UNRELIABLE')
           - refId: B
             datasourceUid: __expr__
             model:
