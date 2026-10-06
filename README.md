@@ -180,7 +180,7 @@ See **[docs/onboarding.md](docs/onboarding.md)** for the full API, error codes, 
 
 | Limit | Why, and what production-scale would change |
 |---|---|
-| **Single node** | Right-sized for two tenants. At scale: containers on ECS/EKS behind a load balancer, managed Postgres and Redis |
+| **Single node** | Right-sized for three tenants. At scale: containers on ECS/EKS behind a load balancer, managed Postgres and Redis |
 | **Regex PII detection** | Catches formats, not meaning. A named-entity model (e.g. Presidio) can replace the scanner without changing the pipeline |
 | **Blocked phrases are easy to rephrase around** | A cheap first layer; enforced instructions, allow-lists and budgets sit behind it |
 | **Rate-limit state is in memory** | A Redis restart resets counters (fails open by design). Acceptable here; persistent or clustered Redis at scale |
