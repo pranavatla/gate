@@ -302,6 +302,21 @@ sudo docker compose exec gate-postgres psql -U gate -d gate -c \
 sudo docker compose exec gateway python -m app.admin revoke-key <key-prefix>
 ```
 
+### Internal (first-party) tenants: the page chatbot
+
+The **gate.atla.in chatbot** is the one tenant that does not follow steps 3 and 4, on purpose. Its endpoint (`POST /v1/landing-chat`) runs inside the gateway process, so there is no HTTP hop that needs a key. It still passes through the full pipeline (limits, policy, cache, budget, failover, audit) as its own tenant, `gate-chatbot`.
+
+| Normal tenant | Internal tenant |
+|---|---|
+| Holds a `gk_` key in its own SSM path | **No key exists**; there is nothing to leak or rotate |
+| Calls `/v1/chat` over HTTPS | Calls the pipeline in-process |
+| Limits and policy in `db/seed_*.sql` | Limits, policy and failover chain in **one file**, `app/chatbot_tenant.py`, applied at every startup. Do not copy them into `db/*.sql` |
+| Abuse limits are the tenant's RPM, TPM and budget | Same, **plus a per-visitor limit** (6 questions per minute and 60 per day per client, `app/visitor_limit.py`), because the tenant's own limits are shared by every visitor |
+
+Use this pattern only for a first-party, server-side endpoint on the gateway itself. Every other app gets a key.
+
+**Verify it** (step 5 for this tenant) with `python tools/chatbot_checks.py`. It sends oversized input, personal data, an instruction-override phrase, a caller-chosen model, a made-up key and a burst, and checks each is refused by the right layer. It makes about 14 requests, so don't run it in a loop.
+
 ---
 
 ## 9. Lifecycle
@@ -328,5 +343,5 @@ sudo docker compose exec gateway python -m app.admin revoke-key <key-prefix>
 - [ ] Client retries only 429/5xx, logs `X-Request-ID`, and has a rollback switch
 - [ ] Quality evaluation passed before **and** after the switch
 - [ ] Burst test at expected peak passed
-- [ ] Unused keys revoked
+- [ ] Unused keys revoked (internal tenants such as `gate-chatbot` must have none)
 - [ ] Dashboard shows the tenant's traffic, spend and policy actions
