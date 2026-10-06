@@ -135,7 +135,7 @@ GROUP BY t.id
 
 CHATBOT_RECENT = """
 SELECT e.created_at, e.status, e.http_status, e.routed_model, e.cache_status,
-       e.latency_ms, e.provider_ms, e.cost_usd, e.policy_actions
+       e.latency_ms, e.provider_ms, e.cost_usd, e.policy_actions, e.error
 FROM usage_events e
 JOIN tenants t ON t.id = e.tenant_id
 WHERE t.name = $1
@@ -155,6 +155,7 @@ def _safe_event(r) -> dict:
         "provider_ms": r["provider_ms"],
         "cost_usd": round(float(r["cost_usd"] or 0), 8),
         "policy_actions": r["policy_actions"] or [],
+        "error": r["error"],
     }
 
 
