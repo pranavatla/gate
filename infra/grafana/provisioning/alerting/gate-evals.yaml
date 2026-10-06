@@ -1,0 +1,95 @@
+apiVersion: 1
+
+groups:
+  - orgId: 1
+    name: gate-evals
+    folder: Gate
+    interval: 5m
+    rules:
+      - uid: gate-eval-regression
+        title: Eval regression
+        condition: C
+        for: 0s
+        noDataState: OK
+        execErrState: Error
+        labels:
+          severity: critical
+        annotations:
+          summary: The latest eval run was flagged REGRESSION or NOISY_BASELINE
+          description: Open the Gate evals dashboard, then run evalcheck on the host to see which cases flipped.
+        data:
+          - refId: A
+            relativeTimeRange: { from: 600, to: 0 }
+            datasourceUid: gate-postgres
+            model:
+              refId: A
+              datasource: { type: grafana-postgresql-datasource, uid: gate-postgres }
+              editorMode: code
+              format: table
+              rawQuery: true
+              rawSql: >-
+                SELECT count(*)::float8 AS value FROM (
+                  SELECT verdict FROM dash_evals
+                  WHERE eval_set = 'facts-core'
+                  ORDER BY started_at DESC LIMIT 1
+                ) latest
+                WHERE verdict IN ('REGRESSION', 'NOISY_BASELINE')
+          - refId: B
+            datasourceUid: __expr__
+            model:
+              refId: B
+              type: reduce
+              expression: A
+              reducer: last
+              datasource: { type: __expr__, uid: __expr__ }
+          - refId: C
+            datasourceUid: __expr__
+            model:
+              refId: C
+              type: threshold
+              expression: B
+              conditions:
+                - evaluator: { type: gt, params: [0] }
+              datasource: { type: __expr__, uid: __expr__ }
+
+      - uid: gate-eval-silent
+        title: Eval job silent
+        condition: C
+        for: 0s
+        noDataState: Alerting
+        execErrState: Error
+        labels:
+          severity: warning
+        annotations:
+          summary: No eval run in the last 36 hours
+          description: The nightly gate-eval timer may have stopped or the job is failing before it records a run. Check systemctl status gate-eval.timer and journalctl -u gate-eval.service on the host.
+        data:
+          - refId: A
+            relativeTimeRange: { from: 600, to: 0 }
+            datasourceUid: gate-postgres
+            model:
+              refId: A
+              datasource: { type: grafana-postgresql-datasource, uid: gate-postgres }
+              editorMode: code
+              format: table
+              rawQuery: true
+              rawSql: >-
+                SELECT coalesce(extract(epoch FROM now() - max(started_at)) / 3600, 9999)::float8 AS value
+                FROM dash_evals WHERE eval_set = 'facts-core'
+          - refId: B
+            datasourceUid: __expr__
+            model:
+              refId: B
+              type: reduce
+              expression: A
+              reducer: last
+              datasource: { type: __expr__, uid: __expr__ }
+          - refId: C
+            datasourceUid: __expr__
+            model:
+              refId: C
+              type: threshold
+              expression: B
+              conditions:
+                - evaluator: { type: gt, params: [36] }
+              datasource: { type: __expr__, uid: __expr__ }
