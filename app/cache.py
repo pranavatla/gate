@@ -30,6 +30,7 @@ class CacheLookup:
     similarity: float | None = None
     vector: str | None = None
     embed_tokens: int = 0
+    error: str | None = None
 
 
 def _settings(tenant) -> dict:
@@ -57,8 +58,8 @@ async def lookup(tenant, req: ChatRequest) -> CacheLookup:
         vector = _to_pgvector(values)
         row = await db.pool.fetchrow(LOOKUP_SQL, vector, tenant.id, _scope(tenant, req))
     except Exception as e:
-        log.warning("cache lookup failed, continuing without cache: %s", e)
-        return CacheLookup("error")
+        log.warning("cache lookup failed, continuing without cache: %s: %s", type(e).__name__, e)
+        return CacheLookup("error", error=f"{type(e).__name__}: {e}"[:160])
 
     similarity = float(row["similarity"]) if row else None
 
