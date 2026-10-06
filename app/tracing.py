@@ -7,8 +7,7 @@ _client = Client()
 
 
 def traced(name, run_type="chain"):
-    return traceable(name=name, run_type=run_type, client=_client,
-                     process_inputs=lambda _: {}, process_outputs=lambda _: {})
+    return traceable(name=name, run_type=run_type, client=_client)
 
 
 def annotate(**metadata):
