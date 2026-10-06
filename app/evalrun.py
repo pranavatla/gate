@@ -9,6 +9,10 @@ Example:
 Every case's question is sent through the gateway as the `evals` tenant (cache
 bypass on, own budget). If a prompt is given, its text is used as the system
 prompt, so you can test a prompt version before it ever reaches a real tenant.
+
+The prompt `gate-chatbot@live` is special: it sends exactly the instructions and
+facts the page chatbot sends in production (app/chatbot_tenant.py), with the same
+answer length, so the nightly run tests what visitors actually get.
 Each answer is scored by rule checks and the LLM judge. The run and every
 result are written to eval_runs and eval_results.
 """
@@ -31,6 +35,9 @@ EVAL_TENANT = os.getenv("EVAL_TENANT", "evals")
 ANSWER_MAX_TOKENS = 300
 CONCURRENCY = 3
 RETRY_STATUS = {429, 500, 502, 503, 504}
+ATTEMPTS = 6                 # 429s are expected with large prompts: wait as told, then retry
+MAX_WAIT_S = 30
+LIVE_CHATBOT = "gate-chatbot@live"
 NAME_RE = re.compile(r"^[a-zA-Z0-9_-]{1,64}$")
 
 COST_SQL = "SELECT COALESCE(sum(cost_usd), 0) FROM usage_events WHERE request_id = ANY($1::uuid[])"
@@ -48,13 +55,21 @@ def describe(e: Exception) -> str:
     return f"{type(e).__name__}: {e}"[:300]
 
 
-async def ask(client: httpx.AsyncClient, route: str, system: str | None, question: str):
+def retry_wait(resp: httpx.Response, attempt: int) -> float:
+    try:
+        return min(MAX_WAIT_S, max(1.0, float(resp.headers.get("retry-after", ""))))
+    except ValueError:
+        return min(MAX_WAIT_S, 2.0 * (attempt + 1))
+
+
+async def ask(client: httpx.AsyncClient, route: str, system: str | None, question: str,
+              max_tokens: int = ANSWER_MAX_TOKENS):
     """One answer through the gateway. Returns (answer, request_id, latency_ms)."""
-    body = {"model": route, "max_tokens": ANSWER_MAX_TOKENS, "temperature": 0,
+    body = {"model": route, "max_tokens": max_tokens, "temperature": 0,
             "messages": [{"role": "user", "content": question}]}
     if system:
         body["system"] = system
-    for attempt in range(3):
+    for attempt in range(ATTEMPTS):
         t0 = time.perf_counter()
         resp = await client.post(
             f"{scorers.GATE_URL}/v1/chat",
@@ -62,20 +77,20 @@ async def ask(client: httpx.AsyncClient, route: str, system: str | None, questio
             json=body, timeout=60,
         )
         ms = int((time.perf_counter() - t0) * 1000)
-        if resp.status_code in RETRY_STATUS and attempt < 2:
-            await asyncio.sleep(2 * (attempt + 1))
+        if resp.status_code in RETRY_STATUS and attempt < ATTEMPTS - 1:
+            await asyncio.sleep(retry_wait(resp, attempt))
             continue
         resp.raise_for_status()
         return resp.json()["content"].strip(), resp.headers.get("x-request-id"), ms
 
 
-async def run_case(pool, client, sem, run_id, case, route, system) -> dict:
+async def run_case(pool, client, sem, run_id, case, route, system, max_tokens=ANSWER_MAX_TOKENS) -> dict:
     async with sem:
         answer = rid = latency = judge_reason = score = passed = error = None
         check_results: dict[str, bool] = {}
         ids: list[str] = []
         try:
-            answer, rid, latency = await ask(client, route, system, case["question"])
+            answer, rid, latency = await ask(client, route, system, case["question"], max_tokens)
             if rid:
                 ids.append(rid)
             checks = case["checks"]
@@ -115,7 +130,13 @@ async def main(spec: str, route: str, prompt: str | None = None):
 
     pool = await asyncpg.create_pool(DATABASE_URL, min_size=1, max_size=4)
     system = prompt_name = prompt_version = None
-    if prompt:
+    max_tokens = ANSWER_MAX_TOKENS
+    if prompt == LIVE_CHATBOT:
+        from app import chatbot_tenant
+        system = chatbot_tenant.production_system()
+        prompt_name, prompt_version = "gate-chatbot-live", chatbot_tenant.facts_version()
+        max_tokens = chatbot_tenant.MAX_TOKENS
+    elif prompt:
         prompt_name, _, v = prompt.partition("@")
         if not NAME_RE.match(prompt_name) or not v.isdigit():
             sys.exit("Give the prompt as name@version (e.g. atla-chatbot@1)")
@@ -151,10 +172,11 @@ async def main(spec: str, route: str, prompt: str | None = None):
     results: list[dict] = []
     status = "aborted"
     try:
-        sem = asyncio.Semaphore(CONCURRENCY)
+        # live chatbot calls carry ~8k tokens of facts each; one at a time keeps the eval tenant's TPM happy
+        sem = asyncio.Semaphore(1 if prompt == LIVE_CHATBOT else CONCURRENCY)
         async with httpx.AsyncClient() as client:
             results = await asyncio.gather(
-                *(run_case(pool, client, sem, run_id, c, route, system) for c in cases)
+                *(run_case(pool, client, sem, run_id, c, route, system, max_tokens) for c in cases)
             )
         scored = [r for r in results if r["error"] is None]
         n_err = len(results) - len(scored)

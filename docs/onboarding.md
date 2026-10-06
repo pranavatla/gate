@@ -315,6 +315,10 @@ The **gate.atla.in chatbot** is the one tenant that does not follow steps 3 and 
 
 Use this pattern only for a first-party, server-side endpoint on the gateway itself. Every other app gets a key.
 
+**Its knowledge** is `app/static/gate-chatbot-facts.md`, which follows the page section by section. When the page changes, update the facts in the same change, then run `python -m app.chatbot_tenant`. It fails if the facts contain personal data or a blocked phrase, either of which would make the policy refuse every question. The policy's size cap is computed from the facts, so a longer facts file never needs a manual limit change. Budget and tokens per minute still do: each answer carries the whole facts file (about 8,000 tokens).
+
+**Its quality** is checked every night by the eval set `gate-chatbot/gate-page-v1` (`evals/gate-page-v1.jsonl`), run with the prompt `gate-chatbot@live`. That sends exactly the instructions, facts and answer length a visitor gets, so the eval tests production rather than a copy. The nightly job imports new cases on its own; cases are immutable, so to change a question, add a new case key.
+
 **Verify it** (step 5 for this tenant) with `python tools/chatbot_checks.py`. It sends oversized input, personal data, an instruction-override phrase, a caller-chosen model, a made-up key and a burst, and checks each is refused by the right layer. It makes about 14 requests, so don't run it in a loop.
 
 ---

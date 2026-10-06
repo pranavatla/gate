@@ -966,7 +966,7 @@ nav .links a{display:inline-block;padding:12px 4px;white-space:nowrap}
   <div class="b-cards" style="margin-top:26px">
     <div class="b-card"><span class="b-tag">GRADING</span><h3>Two layers of checks</h3><p>Hard rules first (must contain, must not contain, word limit). Then a judge model scores meaning, and it sees only the reference answer, never the prompt, so it cannot be talked into agreeing.</p></div>
     <div class="b-card"><span class="b-tag">FAIRNESS</span><h3>Tolerance that adapts</h3><p>The allowed drop is the larger of 0.10 or twice the history's spread, so a naturally noisy test does not cry wolf and a stable one is held tight.</p></div>
-    <div class="b-card"><span class="b-tag">SCHEDULE</span><h3>Nightly, with a dead-man's switch</h3><p>A timer runs both sets at 22:00 UTC. A separate alert fires if no run has happened in 36 hours, so silence itself is caught.</p></div>
+    <div class="b-card"><span class="b-tag">SCHEDULE</span><h3>Nightly, with a dead-man's switch</h3><p>A timer runs the nightly sets at 22:00 UTC. A separate alert fires if no run has happened in 36 hours, so silence itself is caught.</p></div>
   </div>
 
   <details>
@@ -1436,7 +1436,7 @@ nav .links a{display:inline-block;padding:12px 4px;white-space:nowrap}
 
   /* ---------- nightly eval run ---------- */
   var evNodes=[
-    {t:'Eval set',s:'The fixed questions',d:{h:'1 · Load the eval set',p:'A set is a list of cases. Each case has a question, a reference answer, and optional rule checks. Cases never change once saved, so tonight is comparable with last week.',l:['3 sets today: 40 cases in total','Rule checks: must contain, must not contain, word limit','Reference answers are what the judge compares against']}},
+    {t:'Eval set',s:'The fixed questions',d:{h:'1 · Load the eval set',p:'A set is a list of cases. Each case has a question, a reference answer, and optional rule checks. Cases never change once saved, so tonight is comparable with last week.',l:['4 sets today: 69 cases in total','Rule checks: must contain, must not contain, word limit','Reference answers are what the judge compares against']}},
     {t:'Ask',s:'Send them through the gateway',d:{h:'2 · Ask the questions',p:'The runner calls the gateway like any customer would, as its own tenant called evals, so the whole real path is tested.',l:['The cache is bypassed with a feature flag, so every run measures the model','Latency, cost and request id are stored per answer','Rate limits apply, which is how a past run broke halfway']}},
     {t:'Grade',s:'Rules, then a judge',d:{h:'3 · Grade the answers',p:'Hard rules run first. Then a judge model scores meaning from 0 to 1. The judge sees only the question, the answer and the reference, never the prompt.',l:['A case passes when its score is high enough and its rules hold','The judge writes a reason, stored with the answer','Reading those reasons is how real defects were found']}},
     {t:'Compare',s:'Against the normal',d:{h:'4 · Compare with the baseline',p:'The new score is compared with the last five clean runs of the same set.',l:['Needs at least three clean runs to judge anything','Tolerance is the larger of 0.10 or twice the spread','Experiments are excluded so they do not shift normal']}},
