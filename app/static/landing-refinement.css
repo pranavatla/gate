@@ -24,3 +24,7 @@ section{padding-top:80px}.sec-head{margin-bottom:32px}.sec-head h2{font-weight:6
 .explainer-caption{background:var(--panel)}
 .lv-dot,.b-dot{box-shadow:none!important}
 @media(max-width:360px){h1{font-size:39px}}
+/* Architecture leads the gateway story; overview links follow the full diagram. */
+.orientation{display:block;margin-top:0}.orientation #architecture{padding-top:32px}.orientation .sec-head{max-width:900px}.orientation .overview{display:grid;grid-template-columns:1fr 1fr;gap:40px;margin-top:20px}.orientation .ov-card{padding:24px 0}.diagram-hint{display:none;color:var(--muted);font-size:13px;margin:0 0 12px}
+@media(max-width:760px){.orientation .overview{grid-template-columns:1fr;gap:0}.diagram-hint{display:block}.orientation .arch-scroll{padding:12px}}
+.orientation .arch{min-width:880px}

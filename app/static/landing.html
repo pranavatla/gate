@@ -599,7 +599,7 @@ nav .links a{display:inline-block;padding:12px 4px;white-space:nowrap}
     </a>
     <div class="links" id="site-links">
       <a class="keep" href="#part1">Gateway</a><span class="nav-sep" aria-hidden="true"></span><a class="keep" href="#part2-top">Live dashboard</a>
-      <span class="nav-sub"><a href="#pipeline">Pipeline</a><a href="#services">Services</a><a href="#architecture">Architecture</a><a href="#tenants">Tenants</a><a href="#try">Try it</a><span class="nav-sep" aria-hidden="true"></span><a href="#dashboard">Traffic</a><a href="#quality">Quality</a><a href="#releases">Releases</a><a href="#case">Case study</a></span>
+      <span class="nav-sub"><a href="#architecture">Architecture</a><a href="#tenants">Tenants</a><a href="#pipeline">Pipeline</a><a href="#services">Services</a><a href="#try">Try it</a><span class="nav-sep" aria-hidden="true"></span><a href="#dashboard">Traffic</a><a href="#quality">Quality</a><a href="#releases">Releases</a><a href="#case">Case study</a></span>
       <a href="https://github.com/pranavatla/gate" target="_blank" rel="noopener">GitHub</a>
     </div>
     <button class="theme-toggle" type="button" aria-label="Switch theme">Theme</button>
@@ -646,46 +646,15 @@ nav .links a{display:inline-block;padding:12px 4px;white-space:nowrap}
     </div>
     <p class="note">Numbers measured on the production deployment, September 2026.</p>
 
-  <div class="orientation"><img src="/static/gateway-routing.jpg" width="1200" height="800" loading="lazy" alt="Gita and the portfolio chatbot connect through Gate to Anthropic, OpenAI, Gemini and Bedrock, with the Bedrock route highlighted">
-  <div class="overview" role="group" aria-label="Two parts of this page">
-    <a class="ov-card" href="#part1"><b>The gateway</b><span>What it does for every AI call: keys, limits, budgets, failover, privacy, audit. Watch a request travel through it.</span><span class="ov-go">Explore Gateway</span></a>
-    <a class="ov-card" href="#part2-top"><b>The live dashboard</b><span>Real numbers from production, refreshed every 30 seconds: traffic, speed, cost, and whether the chatbot still answers correctly.</span><span class="ov-go">Open live dashboard</span></a>
-  </div>
-
-  </div>
-  <div class="part" id="part1"><div><b>The gateway</b><span>What it does, layer by layer</span></div></div>
-
-  <section id="pipeline" class="reveal">
-    <div class="sec-head">
-      <h2>Every request walks the same nine-layer corridor</h2>
-      <p>Pick a scenario and press <b>Send request</b>. This is a simulation of the real pipeline: each layer is a real check in the gateway's code, and every refusal happens before a model is called. Click any layer to see what it does.</p>
-    </div>
-    <div class="panel">
-      <div class="controls" id="controls"><label>Scenario:</label></div>
-      <div class="pipe" id="pipe"></div>
-      <div class="legend"><span class="g">passed</span><span class="a">acted on the request</span><span class="c">answered from cache</span><span class="r">blocked</span><span class="s">skipped</span></div>
-      <div class="split">
-        <div class="term" id="term" aria-live="polite"><div class="dim">Press “Send request” to trace a call.</div></div>
-        <div class="detail" id="detail"></div>
-      </div>
-      <p class="live" id="live" hidden></p>
-    </div>
-  </section>
-
-  <section id="services" class="reveal">
-    <div class="sec-head">
-      <h2>Twelve services, one control plane</h2>
-      <p>Everything a platform team needs before letting applications near a model, each one tested in production.</p>
-    </div>
-    <div class="cards" id="cards"></div>
-  </section>
-
+  <div class="part" id="part1"><div><b>The gateway</b><span>Architecture, applications and request controls</span></div></div>
+  <div class="orientation">
   <section id="architecture" class="reveal">
     <div class="sec-head">
       <h2>How the pieces fit</h2>
       <p>Tenants call the gateway with a virtual key. The gateway holds the real provider credentials, keeps state in Postgres and Redis, and reports to Grafana.</p>
     </div>
-    <div class="panel arch-scroll">
+    <p class="diagram-hint">On smaller screens, scroll the diagram horizontally to see the full architecture.</p>
+    <div class="panel arch-scroll" tabindex="0" role="region" aria-label="Gateway architecture diagram, horizontally scrollable">
       <svg class="arch" viewBox="0 0 960 400" role="img" aria-label="Architecture: tenants call the gateway, which calls four AI providers and uses Postgres, Redis and Grafana">
         <defs><marker id="ar" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0 10 5 0 10z" fill="#2dd4bf"/></marker></defs>
         <!-- tenants -->
@@ -742,7 +711,12 @@ nav .links a{display:inline-block;padding:12px 4px;white-space:nowrap}
       </svg>
     </div>
   </section>
+  <div class="overview" role="group" aria-label="Two parts of this page">
+    <a class="ov-card" href="#pipeline"><b>The gateway</b><span>What it does for every AI call: keys, limits, budgets, failover, privacy, audit. Watch a request travel through it.</span><span class="ov-go">Explore Gateway</span></a>
+    <a class="ov-card" href="#part2-top"><b>The live dashboard</b><span>Real numbers from production, refreshed every 30 seconds: traffic, speed, cost, and whether the chatbot still answers correctly.</span><span class="ov-go">Open live dashboard</span></a>
+  </div>
 
+  </div>
   <section id="tenants" class="reveal">
     <div class="sec-head">
       <h2>Two real tenants, two very different trust levels</h2>
@@ -785,6 +759,35 @@ nav .links a{display:inline-block;padding:12px 4px;white-space:nowrap}
       </div>
     </div>
   </section>
+
+  <section id="pipeline" class="reveal">
+    <div class="sec-head">
+      <h2>Every request walks the same nine-layer corridor</h2>
+      <p>Pick a scenario and press <b>Send request</b>. This is a simulation of the real pipeline: each layer is a real check in the gateway's code, and every refusal happens before a model is called. Click any layer to see what it does.</p>
+    </div>
+    <div class="panel">
+      <div class="controls" id="controls"><label>Scenario:</label></div>
+      <div class="pipe" id="pipe"></div>
+      <div class="legend"><span class="g">passed</span><span class="a">acted on the request</span><span class="c">answered from cache</span><span class="r">blocked</span><span class="s">skipped</span></div>
+      <div class="split">
+        <div class="term" id="term" aria-live="polite"><div class="dim">Press “Send request” to trace a call.</div></div>
+        <div class="detail" id="detail"></div>
+      </div>
+      <p class="live" id="live" hidden></p>
+    </div>
+  </section>
+
+  <section id="services" class="reveal">
+    <div class="sec-head">
+      <h2>Twelve services, one control plane</h2>
+      <p>Everything a platform team needs before letting applications near a model, each one tested in production.</p>
+    </div>
+    <div class="cards" id="cards"></div>
+  </section>
+
+
+
+
 
   <section id="try" class="reveal">
     <div class="sec-head">
@@ -883,44 +886,7 @@ nav .links a{display:inline-block;padding:12px 4px;white-space:nowrap}
   </div>
   <p class="lv-note">The same data also feeds a Grafana dashboard that I use day to day. Raw JSON: <a href="/v1/stats">/v1/stats</a> &middot; <a href="/v1/stats/evals">/v1/stats/evals</a>.</p>
 </section>
-<section class="reveal" id="releases" aria-labelledby="h-prompts">
-  <div class="sec-head">
-
-    <h2 id="h-prompts">Prompts as versioned, rollback-able releases</h2>
-    <p>Before this, a prompt was a text file inside someone's code. Changing it meant redeploying, with no record of what changed and no quick way back. Now a prompt is a released artifact. Pick a release and press <b>Ship it</b>, or click any step to see what it does.</p>
-  </div>
-
-  <div class="panel sim" id="sim-prompt">
-    <noscript><p class="noscript">This walkthrough needs JavaScript. In short: publish a new prompt version, send it to a small share of visitors, watch the results, then either promote it to everyone or roll it back with one command.</p></noscript>
-    <div class="b-controls" data-controls role="group" aria-label="Releases"><label>Which release?</label></div>
-    <div class="b-pipe b-cols5" data-pipe></div>
-    <div class="b-legend"><span class="g">done</span><span class="a">needs a look</span><span class="r">stopped</span><span class="s">not needed</span></div>
-    <div class="b-split">
-      <div class="b-term" data-term aria-live="polite"><div class="dim">Press &ldquo;Ship it&rdquo; to follow one prompt release.</div></div>
-      <div class="b-detail" data-detail></div>
-    </div>
-    <div class="outcome" data-outcome hidden></div>
-  </div>
-
-  <div class="trio">
-    <div class="mini"><span class="b-tag">IMMUTABLE</span><h3>v3 is always exactly v3</h3><p>A saved version can never be edited, only replaced by a newer one. Any answer can be traced to the precise text that produced it.</p></div>
-    <div class="mini"><span class="b-tag">STICKY</span><h3>A visitor never flips</h3><p>The share of traffic is decided by a hash of the visitor, so the same person always gets the same version and a conversation never changes behaviour halfway.</p></div>
-    <div class="mini"><span class="b-tag">FLAGS</span><h3>Switches with a safety net</h3><p>Flags can be set for one tenant or everyone. If the lookup ever fails, the gateway falls back to the safe default instead of failing the request.</p></div>
-  </div>
-
-  <details>
-    <summary>Engineer's view: rollout mechanics</summary>
-    <div class="body">
-      <ul>
-        <li>Per tenant and prompt name, the registry holds a <b>stable</b> version and an optional <b>candidate</b> with a percentage.</li>
-        <li>The bucket is a SHA-256 hash of the visitor identity, so assignment is sticky and needs no extra storage.</li>
-        <li>Commands: publish, rollout, promote, rollback, show; flags: set, clear, show. Every one writes to the audit log.</li>
-        <li>Version 1 of a prompt goes live immediately; later versions are &ldquo;not live yet&rdquo; until rolled out.</li>
-        <li>Example flag: the <code>evals</code> tenant has <code>cache_bypass</code> on, so eval questions never read or fill the cache and every run measures the model, not a remembered answer.</li>
-      </ul>
-    </div>
-  </details>
-</section><section class="reveal" id="nightly" aria-labelledby="h-evals">
+<section class="reveal" id="nightly" aria-labelledby="h-evals">
   <div class="sec-head">
 
     <h2 id="h-evals">An eval pipeline that runs while I sleep</h2>
@@ -975,6 +941,43 @@ nav .links a{display:inline-block;padding:12px 4px;white-space:nowrap}
         <li><b>Baseline is by set and route, not prompt version.</b> That is deliberate: a new prompt must beat the normal, but experiments must be explicitly excluded so they do not poison it.</li>
         <li><b>Exit codes</b> let the nightly script and systemd report failure as a failed unit, which feeds the alert.</li>
         <li><b>Secrets:</b> the eval key lives in a secrets store and is fetched at run time; it never touches a shell history or a file.</li>
+      </ul>
+    </div>
+  </details>
+</section><section class="reveal" id="releases" aria-labelledby="h-prompts">
+  <div class="sec-head">
+
+    <h2 id="h-prompts">Prompts as versioned, rollback-able releases</h2>
+    <p>Before this, a prompt was a text file inside someone's code. Changing it meant redeploying, with no record of what changed and no quick way back. Now a prompt is a released artifact. Pick a release and press <b>Ship it</b>, or click any step to see what it does.</p>
+  </div>
+
+  <div class="panel sim" id="sim-prompt">
+    <noscript><p class="noscript">This walkthrough needs JavaScript. In short: publish a new prompt version, send it to a small share of visitors, watch the results, then either promote it to everyone or roll it back with one command.</p></noscript>
+    <div class="b-controls" data-controls role="group" aria-label="Releases"><label>Which release?</label></div>
+    <div class="b-pipe b-cols5" data-pipe></div>
+    <div class="b-legend"><span class="g">done</span><span class="a">needs a look</span><span class="r">stopped</span><span class="s">not needed</span></div>
+    <div class="b-split">
+      <div class="b-term" data-term aria-live="polite"><div class="dim">Press &ldquo;Ship it&rdquo; to follow one prompt release.</div></div>
+      <div class="b-detail" data-detail></div>
+    </div>
+    <div class="outcome" data-outcome hidden></div>
+  </div>
+
+  <div class="trio">
+    <div class="mini"><span class="b-tag">IMMUTABLE</span><h3>v3 is always exactly v3</h3><p>A saved version can never be edited, only replaced by a newer one. Any answer can be traced to the precise text that produced it.</p></div>
+    <div class="mini"><span class="b-tag">STICKY</span><h3>A visitor never flips</h3><p>The share of traffic is decided by a hash of the visitor, so the same person always gets the same version and a conversation never changes behaviour halfway.</p></div>
+    <div class="mini"><span class="b-tag">FLAGS</span><h3>Switches with a safety net</h3><p>Flags can be set for one tenant or everyone. If the lookup ever fails, the gateway falls back to the safe default instead of failing the request.</p></div>
+  </div>
+
+  <details>
+    <summary>Engineer's view: rollout mechanics</summary>
+    <div class="body">
+      <ul>
+        <li>Per tenant and prompt name, the registry holds a <b>stable</b> version and an optional <b>candidate</b> with a percentage.</li>
+        <li>The bucket is a SHA-256 hash of the visitor identity, so assignment is sticky and needs no extra storage.</li>
+        <li>Commands: publish, rollout, promote, rollback, show; flags: set, clear, show. Every one writes to the audit log.</li>
+        <li>Version 1 of a prompt goes live immediately; later versions are &ldquo;not live yet&rdquo; until rolled out.</li>
+        <li>Example flag: the <code>evals</code> tenant has <code>cache_bypass</code> on, so eval questions never read or fill the cache and every run measures the model, not a remembered answer.</li>
       </ul>
     </div>
   </details>
