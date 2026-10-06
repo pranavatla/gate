@@ -15,12 +15,13 @@
 - gita.atla.in is a RAG app that answers life questions with Bhagavad Gita verses. It uses Bedrock Nova 2 Lite through the gateway and has evaluation in CI.
 - atla.in chatbot is a public portfolio assistant. The browser calls a Lambda, Lambda calls the gateway, the answer is grounded in approved facts, PII is blocked, the budget is capped, and cache is enabled.
 - gate-chatbot is the page explainer chatbot on gate.atla.in. The browser calls a same-origin endpoint, no gateway key is exposed to the browser, the endpoint runs as the gate-chatbot tenant, and the request goes through the normal gateway pipeline.
+- The page shows three real tenants: gita.atla.in, the atla.in chatbot, and the gate.atla.in chatbot. The dashed "your app" box in the architecture diagram is a placeholder for any new app that follows the onboarding guide, not a real tenant.
 
 ## Gate chatbot design
 - The browser does not receive or store a gateway virtual key.
 - The page calls POST /v1/landing-chat on the same origin.
 - The server creates a normal gateway request for the gate-chatbot tenant.
-- The model allow-list follows the tenant onboarding worksheet: primary Bedrock Nova 2 Lite, Gemini fallback, and OpenAI nano as the budget downgrade route.
+- The model allow-list follows the tenant onboarding worksheet: primary Bedrock Amazon Nova 2 Lite, then failover to Gemini, OpenAI nano and Anthropic Haiku in that order, skipping any provider whose circuit breaker is open (for example one that is out of credits).
 - The tenant follows the repo onboarding process for a public one-call-per-action app: 10 RPM, 20,000 TPM, $1 monthly hard stop, PII blocking, input-size caps, output-token caps, blocked prompt-injection phrases, semantic cache, and audit logging.
 - The live dashboard uses aggregate audit data only. It does not expose prompts, responses, API keys, request bodies, or hidden instructions.
 
