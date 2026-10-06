@@ -24,7 +24,7 @@
   const panel = el("section", { class: "gate-chatbot-panel", "aria-label": "Gate page chatbot" });
   panel.innerHTML = [
     '<div class="gate-chatbot-head">',
-    '  <div><h2 class="gate-chatbot-title">Gate page chatbot</h2><p class="gate-chatbot-subtitle">Sonnet-only tenant, budget capped, audited live.</p></div>',
+    '  <div><h2 class="gate-chatbot-title">Gate page chatbot</h2><p class="gate-chatbot-subtitle">Gateway-routed tenant, budget capped, audited live.</p></div>',
     '  <button class="gate-chatbot-close" type="button" aria-label="Close">x</button>',
     '</div>',
     '<div class="gate-chatbot-stats" aria-live="polite">',

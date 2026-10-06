@@ -34,7 +34,9 @@ from app.schemas import ChatRequest, ChatResponse, Message, Usage
 logging.basicConfig(level=logging.INFO)
 log = logging.getLogger("gate")
 
-DEFAULT_GATE_CHATBOT_MODEL = "anthropic/claude-sonnet-4-5-20250929"
+DEFAULT_GATE_CHATBOT_MODEL = "bedrock/global.amazon.nova-2-lite-v1:0"
+GATE_CHATBOT_FALLBACK_MODELS = ["gemini/gemini-3.5-flash-lite", "openai/gpt-4.1-nano"]
+GATE_CHATBOT_DOWNGRADE_MODEL = "openai/gpt-4.1-nano"
 GATE_CHATBOT_FACTS = (Path(__file__).parent / "static" / "gate-chatbot-facts.md").read_text(encoding="utf-8")
 GATE_CHATBOT_SYSTEM = (
     "You are the page explainer chatbot for gate.atla.in. Answer only about this page, "
@@ -52,18 +54,22 @@ class LandingChatRequest(BaseModel):
 
 def gate_chatbot_model() -> str:
     model = GATE_CHATBOT_MODEL.strip() or DEFAULT_GATE_CHATBOT_MODEL
-    provider, sep, model_id = model.partition("/")
-    if provider != "anthropic" or not sep or "sonnet" not in model_id.lower():
-        log.warning("invalid GATE_CHATBOT_MODEL=%s; forcing Sonnet default", model)
+    _, sep, model_id = model.partition("/")
+    if not sep or not model_id:
+        log.warning("invalid GATE_CHATBOT_MODEL=%s; using gateway default", model)
         return DEFAULT_GATE_CHATBOT_MODEL
     return model
 
 
+def gate_chatbot_allowed_models() -> list[str]:
+    models = [gate_chatbot_model(), *GATE_CHATBOT_FALLBACK_MODELS]
+    return list(dict.fromkeys(models))
+
+
 async def ensure_gate_chatbot_tenant():
     full_model = gate_chatbot_model()
-    provider, _, model_id = full_model.partition("/")
     policy = {
-        "allowed_models": [full_model],
+        "allowed_models": gate_chatbot_allowed_models(),
         "max_tokens_cap": 600,
         "max_input_chars": 16000,
         "pii_mode": "block",
@@ -81,26 +87,22 @@ async def ensure_gate_chatbot_tenant():
         "cache": {"enabled": True, "threshold": 0.95, "ttl_s": 86400},
     }
     async with db.pool.acquire() as conn:
-        await conn.execute(
-            "INSERT INTO model_prices (provider, model, input_per_mtok, output_per_mtok, effective_from) "
-            "VALUES ($1, $2, 3.00, 15.00, '2026-10-06 00:00:00+00') ON CONFLICT DO NOTHING",
-            provider, model_id,
-        )
         await conn.execute("INSERT INTO tenants (name) VALUES ($1) ON CONFLICT (name) DO NOTHING", GATE_CHATBOT_TENANT)
         await conn.execute(
             """
             UPDATE tenants
-            SET rpm_limit = 12,
-                tpm_limit = 30000,
-                monthly_budget_usd = 3,
+            SET rpm_limit = 10,
+                tpm_limit = 20000,
+                monthly_budget_usd = 1,
                 soft_limit_pct = 80,
-                downgrade_model = NULL,
+                downgrade_model = $3,
                 policy = $2::jsonb,
                 is_active = TRUE
             WHERE name = $1
             """,
             GATE_CHATBOT_TENANT,
             json.dumps(policy),
+            GATE_CHATBOT_DOWNGRADE_MODEL,
         )
 
 

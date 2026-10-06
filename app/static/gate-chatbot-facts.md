@@ -20,8 +20,8 @@
 - The browser does not receive or store a gateway virtual key.
 - The page calls POST /v1/landing-chat on the same origin.
 - The server creates a normal gateway request for the gate-chatbot tenant.
-- The model allow-list is Sonnet-only: anthropic/claude-sonnet-4-5-20250929.
-- The tenant has RPM and TPM limits, a monthly budget, PII blocking, input-size caps, output-token caps, blocked prompt-injection phrases, semantic cache, and audit logging.
+- The model allow-list follows the tenant onboarding worksheet: primary Bedrock Nova 2 Lite, Gemini fallback, and OpenAI nano as the budget downgrade route.
+- The tenant follows the repo onboarding process for a public one-call-per-action app: 10 RPM, 20,000 TPM, $1 monthly hard stop, PII blocking, input-size caps, output-token caps, blocked prompt-injection phrases, semantic cache, and audit logging.
 - The live dashboard uses aggregate audit data only. It does not expose prompts, responses, API keys, request bodies, or hidden instructions.
 
 ## Request pipeline
@@ -46,7 +46,7 @@
 - Rate limit: a ceiling on how many requests and tokens a tenant can consume per minute.
 - Budget: the monthly dollar spend limit for a tenant. When the hard cap is reached, the gateway returns HTTP 402 instead of calling a provider.
 - Soft limit: a budget percentage where a tenant may downgrade to a cheaper model if configured.
-- Downgrade model: a cheaper model the gateway can switch to after the soft budget limit. The gate-chatbot tenant does not use downgrade because it is Sonnet-only.
+- Downgrade model: a cheaper model the gateway can switch to after the soft budget limit. The gate-chatbot tenant downgrades to OpenAI nano at the soft limit.
 - Fallback: trying another allowed model when the primary route fails. Fallback never escapes the tenant allow-list.
 - Circuit breaker: a protection that temporarily stops calls to a failing model and probes before restoring it.
 - Semantic cache: a cache that can reuse prior answers when the new request is sufficiently similar and scoped to the same tenant, model, and system text.
@@ -81,6 +81,6 @@
 ## Common answers
 - If asked why this chatbot is in the same repo: it belongs in the same repository because the page, gateway API, tenant bootstrap, stats endpoints, Docker deploy, and dashboard are one product surface.
 - If asked why not direct browser to /v1/chat: that would expose the tenant key or require unsafe client auth. The same-origin proxy avoids key exposure while preserving gateway enforcement.
-- If asked why Sonnet: the user requested Sonnet-only usage because their Claude credits should be used and more expensive models should not be selected.
+- If asked which model is used: the gateway route starts with Bedrock Nova 2 Lite, may fail over to Gemini, and may downgrade to OpenAI nano after the soft budget limit. The browser does not choose the model.
 - If asked what happens when budget is exhausted: the gateway returns HTTP 402 and the UI shows a clean budget-exhausted message instead of calling Anthropic.
 - If asked whether the dashboard shows the chat content: no, it only shows safe aggregate telemetry from audit metadata.

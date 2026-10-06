@@ -1,19 +1,19 @@
-INSERT INTO model_prices (provider, model, input_per_mtok, output_per_mtok, effective_from)
-VALUES ('anthropic', 'claude-sonnet-4-5-20250929', 3.00, 15.00, '2026-10-06 00:00:00+00')
-ON CONFLICT DO NOTHING;
-
 INSERT INTO tenants (name)
 VALUES ('gate-chatbot')
 ON CONFLICT (name) DO NOTHING;
 
 UPDATE tenants
-SET rpm_limit = 12,
-    tpm_limit = 30000,
-    monthly_budget_usd = 3,
+SET rpm_limit = 10,
+    tpm_limit = 20000,
+    monthly_budget_usd = 1,
     soft_limit_pct = 80,
-    downgrade_model = NULL,
+    downgrade_model = 'openai/gpt-4.1-nano',
     policy = '{
-      "allowed_models": ["anthropic/claude-sonnet-4-5-20250929"],
+      "allowed_models": [
+        "bedrock/global.amazon.nova-2-lite-v1:0",
+        "gemini/gemini-3.5-flash-lite",
+        "openai/gpt-4.1-nano"
+      ],
       "max_tokens_cap": 600,
       "max_input_chars": 16000,
       "pii_mode": "block",

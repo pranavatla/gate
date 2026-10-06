@@ -53,7 +53,7 @@ UPDATE tenants SET policy = jsonb_set(policy, '{cache,enabled}', 'true')
 WHERE name = 'atla-chatbot';
 
 UPDATE tenants SET policy = '{
-  "allowed_models": ["anthropic/claude-sonnet-4-5-20250929"],
+  "allowed_models": ["bedrock/global.amazon.nova-2-lite-v1:0", "gemini/gemini-3.5-flash-lite", "openai/gpt-4.1-nano"],
   "max_tokens_cap": 600,
   "max_input_chars": 16000,
   "pii_mode": "block",
