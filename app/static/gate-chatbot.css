@@ -22,6 +22,7 @@
   height: min(640px, calc(100vh - 100px));
   max-height: min(640px, calc(100vh - 100px));
   display: none;
+  padding: 0;
   overflow: hidden;
   border: 1px solid var(--line, #21342f);
   border-radius: 12px;
@@ -32,8 +33,19 @@
 }
 
 .gate-chatbot-panel[data-open="true"] {
-  display: grid;
-  grid-template-rows: auto auto minmax(0, 1fr) auto auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.gate-chatbot-head,
+.gate-chatbot-stats,
+.gate-chatbot-suggestions,
+.gate-chatbot-form {
+  flex: 0 0 auto;
+}
+
+.gate-chatbot-suggestions[hidden] {
+  display: none;
 }
 
 .gate-chatbot-head {
@@ -97,6 +109,7 @@
 }
 
 .gate-chatbot-log {
+  flex: 1 1 auto;
   min-height: 0;
   overflow-y: auto;
   padding: 14px;
