@@ -1,6 +1,4 @@
-@font-face{font-family:Geist;src:url('/static/fonts/geist-400.woff2') format('woff2');font-weight:400;font-display:swap}
-@font-face{font-family:Geist;src:url('/static/fonts/geist-600.woff2') format('woff2');font-weight:600 800;font-display:swap}
-:root{--sans:Geist,system-ui,sans-serif;--bg:#0b1212;--panel:#101b1b;--panel2:#172525;--line:#304343;--muted:#aabdb9;--gold:var(--cyan)}
+:root{--sans:"Avenir Next","SF Pro Display",ui-rounded,system-ui,sans-serif;--bg:#0b1212;--panel:#101b1b;--panel2:#172525;--line:#304343;--muted:#aabdb9;--gold:var(--cyan)}
 :root[data-theme=light]{color-scheme:light;--bg:#f4f7f5;--panel:#fff;--panel2:#eaf0ed;--line:#c6d4cd;--text:#172e29;--muted:#4c665e;--cyan:#08786b;--green:#147344;--amber:#865700;--red:#bb3038}
 :root[data-theme=dark]{color-scheme:dark}
 .grid-bg{background:radial-gradient(900px 600px at 85% 5%,rgba(45,212,191,.05),transparent 70%)}.grid-bg:after{display:none}
