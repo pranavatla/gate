@@ -23,6 +23,6 @@ FAILED=0
 while IFS='|' read -r SET PROMPT; do
   echo "=== $SET ($PROMPT) ==="
   # evalrun compares its own run ID and propagates alert exit codes.
-  $RUN.evalrun "$SET" "$ROUTE" "$PROMPT" || FAILED=1
+  $RUN.evalrun "$SET" "$ROUTE" "$PROMPT" < /dev/null || FAILED=1
 done <<< "$JOBS"
 exit $FAILED
