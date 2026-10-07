@@ -630,7 +630,7 @@ nav .links a{display:inline-block;padding:12px 4px;white-space:nowrap}
     </a>
     <div class="links" id="site-links">
       <a class="keep" href="#part1">Gateway</a><span class="nav-sep" aria-hidden="true"></span><a class="keep" href="#part2-top">Live dashboard</a>
-      <span class="nav-sub"><a href="#architecture">Architecture</a><a href="#tenants">Tenants</a><a href="#pipeline">Pipeline</a><a href="#services">Services</a><a href="#try">Try it</a><span class="nav-sep" aria-hidden="true"></span><a href="#dashboard">Traffic</a><a href="#quality">Quality</a><a href="#releases">Releases</a><a href="#case">Case study</a></span>
+      <span class="nav-sub"><a href="#architecture">Architecture</a><a href="#tenants">Tenants</a><a href="#pipeline">Pipeline</a><a href="#services">Services</a><a href="#try">Try it</a><span class="nav-sep" aria-hidden="true"></span><a href="#dashboard">Traffic</a><a href="#quality">Quality</a><a href="#nightly">Evaluations</a><a href="#case">Case study</a><a href="#releases">Releases</a><a href="#learned">Lessons</a></span>
       <a href="https://github.com/pranavatla/gate" target="_blank" rel="noopener">GitHub</a>
     </div>
     <button class="theme-toggle" type="button" aria-label="Switch theme">Theme</button>
@@ -989,43 +989,6 @@ nav .links a{display:inline-block;padding:12px 4px;white-space:nowrap}
       </ul>
     </div>
   </details>
-</section><section class="reveal" id="releases" aria-labelledby="h-prompts">
-  <div class="sec-head">
-
-    <h2 id="h-prompts">Prompts as versioned, rollback-able releases</h2>
-    <p>Before this, a prompt was a text file inside someone's code. Changing it meant redeploying, with no record of what changed and no quick way back. Now a prompt is a released artifact. Pick a release and press <b>Ship it</b>, or click any step to see what it does.</p>
-  </div>
-
-  <div class="panel sim" id="sim-prompt">
-    <noscript><p class="noscript">This walkthrough needs JavaScript. In short: publish a new prompt version, send it to a small share of visitors, watch the results, then either promote it to everyone or roll it back with one command.</p></noscript>
-    <div class="b-controls" data-controls role="group" aria-label="Releases"><label>Which release?</label></div>
-    <div class="b-pipe b-cols5" data-pipe></div>
-    <div class="b-legend"><span class="g">done</span><span class="a">needs a look</span><span class="r">stopped</span><span class="s">not needed</span></div>
-    <div class="b-split">
-      <div class="b-term" data-term aria-live="polite"><div class="dim">Press &ldquo;Ship it&rdquo; to follow one prompt release.</div></div>
-      <div class="b-detail" data-detail></div>
-    </div>
-    <div class="outcome" data-outcome hidden></div>
-  </div>
-
-  <div class="trio">
-    <div class="mini"><span class="b-tag">IMMUTABLE</span><h3>v3 is always exactly v3</h3><p>A saved version can never be edited, only replaced by a newer one. Any answer can be traced to the precise text that produced it.</p></div>
-    <div class="mini"><span class="b-tag">STICKY</span><h3>A visitor never flips</h3><p>The share of traffic is decided by a hash of the visitor, so the same person always gets the same version and a conversation never changes behaviour halfway.</p></div>
-    <div class="mini"><span class="b-tag">FLAGS</span><h3>Switches with a safety net</h3><p>Flags can be set for one tenant or everyone. If the lookup ever fails, the gateway falls back to the safe default instead of failing the request.</p></div>
-  </div>
-
-  <details>
-    <summary>Engineer's view: rollout mechanics</summary>
-    <div class="body">
-      <ul>
-        <li>Per tenant and prompt name, the registry holds a <b>stable</b> version and an optional <b>candidate</b> with a percentage.</li>
-        <li>The bucket is a SHA-256 hash of the visitor identity, so assignment is sticky and needs no extra storage.</li>
-        <li>Commands: publish, rollout, promote, rollback, show; flags: set, clear, show. Every one writes to the audit log.</li>
-        <li>Version 1 of a prompt goes live immediately; later versions are &ldquo;not live yet&rdquo; until rolled out.</li>
-        <li>Example flag: the <code>evals</code> tenant has <code>cache_bypass</code> on, so eval questions never read or fill the cache and every run measures the model, not a remembered answer.</li>
-      </ul>
-    </div>
-  </details>
 </section><section class="reveal" id="case" aria-labelledby="h-case">
   <div class="kicker">Case study</div>
   <h2 id="h-case">The bug the evals helped me find</h2>
@@ -1067,6 +1030,43 @@ nav .links a{display:inline-block;padding:12px 4px;white-space:nowrap}
     </div>
   </div>
   <p class="sub" style="margin-top:16px">The lesson I care about most: the average score barely moved (0.93 to 1.0), yet two real defects hid inside it. The score tells you <i>that</i> something is off; reading the stored answer tells you <i>why</i>.</p>
+</section><section class="reveal" id="releases" aria-labelledby="h-prompts">
+  <div class="sec-head">
+
+    <h2 id="h-prompts">Prompts as versioned, rollback-able releases</h2>
+    <p>Before this, a prompt was a text file inside someone's code. Changing it meant redeploying, with no record of what changed and no quick way back. Now a prompt is a released artifact. Pick a release and press <b>Ship it</b>, or click any step to see what it does.</p>
+  </div>
+
+  <div class="panel sim" id="sim-prompt">
+    <noscript><p class="noscript">This walkthrough needs JavaScript. In short: publish a new prompt version, send it to a small share of visitors, watch the results, then either promote it to everyone or roll it back with one command.</p></noscript>
+    <div class="b-controls" data-controls role="group" aria-label="Releases"><label>Which release?</label></div>
+    <div class="b-pipe b-cols5" data-pipe></div>
+    <div class="b-legend"><span class="g">done</span><span class="a">needs a look</span><span class="r">stopped</span><span class="s">not needed</span></div>
+    <div class="b-split">
+      <div class="b-term" data-term aria-live="polite"><div class="dim">Press &ldquo;Ship it&rdquo; to follow one prompt release.</div></div>
+      <div class="b-detail" data-detail></div>
+    </div>
+    <div class="outcome" data-outcome hidden></div>
+  </div>
+
+  <div class="trio">
+    <div class="mini"><span class="b-tag">IMMUTABLE</span><h3>v3 is always exactly v3</h3><p>A saved version can never be edited, only replaced by a newer one. Any answer can be traced to the precise text that produced it.</p></div>
+    <div class="mini"><span class="b-tag">STICKY</span><h3>A visitor never flips</h3><p>The share of traffic is decided by a hash of the visitor, so the same person always gets the same version and a conversation never changes behaviour halfway.</p></div>
+    <div class="mini"><span class="b-tag">FLAGS</span><h3>Switches with a safety net</h3><p>Flags can be set for one tenant or everyone. If the lookup ever fails, the gateway falls back to the safe default instead of failing the request.</p></div>
+  </div>
+
+  <details>
+    <summary>Engineer's view: rollout mechanics</summary>
+    <div class="body">
+      <ul>
+        <li>Per tenant and prompt name, the registry holds a <b>stable</b> version and an optional <b>candidate</b> with a percentage.</li>
+        <li>The bucket is a SHA-256 hash of the visitor identity, so assignment is sticky and needs no extra storage.</li>
+        <li>Commands: publish, rollout, promote, rollback, show; flags: set, clear, show. Every one writes to the audit log.</li>
+        <li>Version 1 of a prompt goes live immediately; later versions are &ldquo;not live yet&rdquo; until rolled out.</li>
+        <li>Example flag: the <code>evals</code> tenant has <code>cache_bypass</code> on, so eval questions never read or fill the cache and every run measures the model, not a remembered answer.</li>
+      </ul>
+    </div>
+  </details>
 </section><section class="reveal" id="learned" aria-labelledby="h-learned">
   <div class="kicker">Learnings</div>
   <h2 id="h-learned">What this build taught me</h2>
