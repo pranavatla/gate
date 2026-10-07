@@ -208,8 +208,9 @@ async def main(spec: str, route: str, prompt: str | None = None):
     print(f"Run {run_id} {status}: avg_score={avg_score if avg_score is None else round(avg_score, 3)} "
           f"pass_rate={pass_rate if pass_rate is None else round(pass_rate, 3)} "
           f"errors={len(results) - len(scored)}/{len(results)} cost=${cost:.6f}")
-    if status in ("failed", "aborted"):
-        sys.exit(2)
+    # Compare this exact run, including partial/failed runs, before returning.
+    from app.evalcheck import main as check_run
+    await check_run(str(run_id))
 
 
 if __name__ == "__main__":

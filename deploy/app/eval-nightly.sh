@@ -22,10 +22,7 @@ $RUN.evalimport gate-chatbot/gate-page-v1 evals/gate-page-v1.jsonl || echo "warn
 FAILED=0
 while IFS='|' read -r SET PROMPT; do
   echo "=== $SET ($PROMPT) ==="
-  if $RUN.evalrun "$SET" "$ROUTE" "$PROMPT"; then
-    $RUN.evalcheck latest || FAILED=1
-  else
-    FAILED=1
-  fi
+  # evalrun compares its own run ID and propagates alert exit codes.
+  $RUN.evalrun "$SET" "$ROUTE" "$PROMPT" || FAILED=1
 done <<< "$JOBS"
 exit $FAILED

@@ -909,6 +909,7 @@ nav .links a{display:inline-block;padding:12px 4px;white-space:nowrap}
   <div class="vsum" id="lv-verdicts" role="group" aria-label="Runs by verdict"></div>
 
   <h3 class="lv-sec-sub">Recent runs</h3>
+  <p class="lv-note">Score measures answer quality from 0 to 1. Verdict compares the score with previous runs; OK means no detected regression, not that every answer passed. Excluded runs do not count toward the baseline.</p>
   <div class="panel">
     <div class="scroll-x"><table class="tbl" style="min-width:560px"><caption class="sr-only" style="position:absolute;left:-9999px">Most recent evaluation runs</caption>
       <thead><tr><th scope="col">run</th><th scope="col">when</th><th scope="col">set</th><th scope="col">prompt</th><th scope="col" class="num">score</th><th scope="col">verdict</th></tr></thead>
@@ -1535,7 +1536,7 @@ nav .links a{display:inline-block;padding:12px 4px;white-space:nowrap}
     if(v==='REGRESSION'||v==='NOISY_BASELINE'||v==='UNRELIABLE')return 'un';
     return 'ex';
   }
-  function pill(v){return '<span class="b-pill '+pillCls(v)+'">'+esc(v||'not checked yet')+'</span>'}
+  function pill(v,status){var label=v==='EXCLUDED'?'Excluded from baseline':v?v.replace(/_/g,' '):status==='done'?'Scored · comparison pending':status==='running'?'Running':'Comparison pending';return '<span class="b-pill '+pillCls(v)+'">'+esc(label)+'</span>'}
   function spark(rows){
     var pts=rows.filter(function(r){return typeof r.score==='number'}).slice(0,12).reverse();
     if(pts.length<2)return '';
@@ -1557,7 +1558,7 @@ nav .links a{display:inline-block;padding:12px 4px;white-space:nowrap}
       var l=s.latest, mine=runs.filter(function(r){return r.set===s.name&&r.verdict!=='EXCLUDED'});
       if(!l)return '<div class="setc"><div class="top"><h3>'+esc(s.name)+'</h3></div><p class="sc-sub">'+fmt(s.cases)+' questions &middot; no run yet</p></div>';
       var sc=typeof l.score==='number'?l.score.toFixed(2):'-';
-      return '<div class="setc"><div class="top"><div><h3>'+esc(s.name)+'</h3><div class="sc-sub">'+fmt(s.cases)+' questions &middot; '+fmt(s.runs)+' recent runs</div></div>'+pill(l.verdict)+'</div>'+
+      return '<div class="setc"><div class="top"><div><h3>'+esc(s.name)+'</h3><div class="sc-sub">'+fmt(s.cases)+' questions &middot; '+fmt(s.runs)+' recent runs</div></div>'+pill(l.verdict,l.status)+'</div>'+
         '<div class="sc-big">'+sc+'</div>'+
         '<div class="sc-meta">latest score'+(typeof l.baseline==='number'?' &middot; normal range centres on <b>'+l.baseline.toFixed(2)+'</b>':'')+'<br>'+
         (typeof l.pass_rate==='number'?'<b>'+Math.round(l.pass_rate*100)+'%</b> of answers passed &middot; ':'')+'prompt <b>'+esc(l.prompt||'n/a')+'</b><br>run '+l.run_id+' &middot; '+esc(when(l.at))+'</div>'+spark(mine)+'</div>';
@@ -1565,7 +1566,7 @@ nav .links a{display:inline-block;padding:12px 4px;white-space:nowrap}
     var vs=t.verdicts||{};
     $('#lv-verdicts').innerHTML=Object.keys(vs).map(function(v){return '<span><b>'+fmt(vs[v])+'</b>'+esc(v.replace(/_/g,' ').toLowerCase())+'</span>'}).join('');
     var rows=runs.slice(0,8).map(function(r){
-      return '<tr><td>'+r.run_id+'</td><td>'+esc(when(r.at))+'</td><td>'+esc(r.set)+'</td><td>'+esc(r.prompt||'')+'</td><td class="num">'+(typeof r.score==='number'?r.score.toFixed(2):'-')+'</td><td>'+pill(r.verdict)+'</td></tr>';
+      return '<tr><td>'+r.run_id+'</td><td>'+esc(when(r.at))+'</td><td>'+esc(r.set)+'</td><td>'+esc(r.prompt||'')+'</td><td class="num">'+(typeof r.score==='number'?r.score.toFixed(2):'-')+'</td><td>'+pill(r.verdict,r.status)+'</td></tr>';
     }).join('');
     $('#lv-runs').innerHTML=rows||'<tr><td colspan="6">No runs yet.</td></tr>';
   }

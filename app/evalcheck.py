@@ -147,8 +147,31 @@ async def main(which: str = "latest"):
         sys.exit(5)
 
 
+async def pending():
+    """Backfill recorded, finished runs in order; preserve every existing verdict."""
+    conn = await asyncpg.connect(DATABASE_URL)
+    try:
+        rows = await conn.fetch(
+            "SELECT id FROM eval_runs WHERE verdict IS NULL "
+            "AND status IN ('done', 'partial', 'failed', 'aborted') ORDER BY id"
+        )
+    finally:
+        await conn.close()
+    alerts = 0
+    for row in rows:
+        try:
+            await main(str(row["id"]))
+        except SystemExit as exc:
+            if exc.code not in (3, 4, 5):
+                raise
+            alerts += 1
+    print(f"Compared {len(rows)} pending runs; {alerts} require attention")
+
+
 if __name__ == "__main__":
-    if sys.argv[1:2] == ["accept"] and len(sys.argv) == 3:
+    if sys.argv[1:] == ["pending"]:
+        asyncio.run(pending())
+    elif sys.argv[1:2] == ["accept"] and len(sys.argv) == 3:
         asyncio.run(accept(sys.argv[2]))
     elif sys.argv[1:2] == ["exclude"] and len(sys.argv) == 3:
         asyncio.run(exclude(sys.argv[2]))
