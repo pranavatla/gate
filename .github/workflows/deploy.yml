@@ -64,6 +64,9 @@ jobs:
 
       - name: Record release in compose.yaml
         run: |
+          # Rebase before creating the release commit so a concurrent release cannot
+          # make this one conflict on the same image line.
+          git pull --rebase origin main
           sed -i -E "s|(image: ${REGISTRY}/gate:)[A-Za-z0-9._-]+|\1$TAG|" deploy/app/compose.yaml
           grep -q "image: $REGISTRY/gate:$TAG" deploy/app/compose.yaml
           if git diff --quiet; then
@@ -71,8 +74,8 @@ jobs:
           else
             git config user.name "github-actions[bot]"
             git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-            git commit -am "Release gateway image $TAG to production"
-            git pull --rebase origin main
+            git add deploy/app/compose.yaml
+            git commit -m "Release gateway image $TAG to production"
             # Pushed with GITHUB_TOKEN, which does not start another workflow run.
             git push origin HEAD:main
           fi
