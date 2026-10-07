@@ -503,6 +503,14 @@ nav .links a{display:inline-block;padding:12px 4px;white-space:nowrap}
 .bs section:first-of-type{border-top:0}
 .bs .scroll-x:focus-visible,.bs .b-term:focus-visible{outline:2px solid var(--cyan)}
 
+
+.run-link{border:0;background:transparent;padding:2px 4px;color:var(--cyan);font:inherit;text-decoration:underline;text-underline-offset:4px;cursor:pointer}
+.run-dialog{width:min(680px,calc(100% - 28px));max-height:85dvh;overflow:auto;border:1px solid var(--line);border-radius:20px;padding:28px;background:var(--panel);color:var(--text);box-shadow:0 24px 80px #0006}
+.run-dialog::backdrop{background:#0007;backdrop-filter:blur(4px)}
+.run-dialog header{display:flex;align-items:center;justify-content:space-between;gap:16px}.run-dialog h2{margin:0;font-size:24px}.run-close{border:1px solid var(--line);border-radius:10px;background:var(--panel2);color:var(--text);padding:8px 14px;font:inherit;cursor:pointer}
+.run-metrics{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin:22px 0}.run-metric{border:1px solid var(--line);border-radius:12px;padding:16px}.run-metric small{display:block;color:var(--muted)}.run-metric strong{font:600 32px/1.5 var(--mono)}
+.run-dialog dl{display:grid;grid-template-columns:minmax(110px,1fr) minmax(0,2fr);gap:12px;margin:20px 0}.run-dialog dt{color:var(--muted)}.run-dialog dd{margin:0;overflow-wrap:anywhere}.run-dialog p{color:var(--muted);font-size:14px}.run-error{color:var(--red)!important}
+@media(max-width:480px){.run-dialog{padding:20px}.run-dialog dl{grid-template-columns:1fr;gap:4px}.run-dialog dd{margin-bottom:8px}}
 </style>
 <link rel="stylesheet" href="/static/landing-refinement.css">
   <link rel="stylesheet" href="/static/gate-chatbot.css">
@@ -1566,7 +1574,7 @@ nav .links a{display:inline-block;padding:12px 4px;white-space:nowrap}
     var vs=t.verdicts||{};
     $('#lv-verdicts').innerHTML=Object.keys(vs).map(function(v){return '<span><b>'+fmt(vs[v])+'</b>'+esc(v.replace(/_/g,' ').toLowerCase())+'</span>'}).join('');
     var rows=runs.slice(0,8).map(function(r){
-      return '<tr><td>'+r.run_id+'</td><td>'+esc(when(r.at))+'</td><td>'+esc(r.set)+'</td><td>'+esc(r.prompt||'')+'</td><td class="num">'+(typeof r.score==='number'?r.score.toFixed(2):'-')+'</td><td>'+pill(r.verdict,r.status)+'</td></tr>';
+      return '<tr><td><button type="button" class="run-link" data-run-id="'+r.run_id+'" aria-label="View evaluation run '+r.run_id+'" aria-haspopup="dialog">'+r.run_id+'</button></td><td>'+esc(when(r.at))+'</td><td>'+esc(r.set)+'</td><td>'+esc(r.prompt||'')+'</td><td class="num">'+(typeof r.score==='number'?r.score.toFixed(2):'-')+'</td><td>'+pill(r.verdict,r.status)+'</td></tr>';
     }).join('');
     $('#lv-runs').innerHTML=rows||'<tr><td colspan="6">No runs yet.</td></tr>';
   }
@@ -1604,5 +1612,32 @@ document.querySelectorAll('.arch-scroll,#term').forEach(function(e){e.setAttribu
 </script>
 <script src="/static/landing-ui.js" defer></script>
   <script defer src="/static/gate-chatbot.js"></script>
+<dialog class="run-dialog" id="run-dialog" aria-labelledby="run-title">
+<header><h2 id="run-title">Evaluation run</h2><button type="button" class="run-close" id="run-close" autofocus>Close</button></header>
+<div id="run-content" aria-live="polite"></div>
+</dialog>
+<script>
+(function(){
+  var dialog=document.getElementById('run-dialog'),content=document.getElementById('run-content'),title=document.getElementById('run-title'),request=0;
+  var explanations={OK:'No detected regression. This does not mean every answer passed.',IMPROVED:'The score improved beyond the comparison tolerance.',BUILDING_BASELINE:'Fewer than three earlier eligible runs exist. More history is needed for a comparison.',REGRESSION:'The score fell beyond the comparison tolerance and needs attention.',NOISY_BASELINE:'Earlier scores vary too much for a reliable comparison.',UNRELIABLE:'This run did not finish reliably. Its score is not a complete result.',ACCEPTED:'Manually accepted as the start of a new baseline.',EXCLUDED:'Manually excluded from baseline comparisons. An exclusion reason is not recorded in this public summary.'};
+  function node(tag,text){var e=document.createElement(tag);e.textContent=text;return e}
+  function value(n,suffix){return typeof n==='number'?n.toFixed(2)+(suffix||''):'Unavailable'}
+  function metric(label,text){var e=node('div','');e.className='run-metric';e.append(node('small',label),node('strong',text));return e}
+  function paint(r){
+    content.replaceChildren();var label=r.verdict==='EXCLUDED'?'Excluded from baseline':r.verdict?r.verdict.replace(/_/g,' '):r.status==='running'?'Running':'Comparison pending';
+    var badge=node('p',label);content.append(badge,node('p',explanations[r.verdict]||(r.status==='running'?'This run is still in progress.':'The comparison verdict has not been recorded.')));
+    var metrics=node('div','');metrics.className='run-metrics';metrics.append(metric('Answer quality · 0 to 1',value(r.score)),metric('Answers that passed',typeof r.pass_rate==='number'?Math.round(r.pass_rate*100)+'%':'Unavailable'));content.append(metrics);
+    var details=node('dl','');[['Test set',r.set],['Prompt version',r.prompt],['Status',r.status],['Started',r.started_at],['Finished',r.finished_at||'Not finished'],['Questions',r.cases],['Errors',r.errors],['Baseline score',r.baseline===null?'Not established':value(r.baseline)],['Average answer time',typeof r.latency_ms==='number'?value(r.latency_ms/1000,' s'):'Unavailable'],['Model cost',typeof r.cost_usd==='number'?'$'+r.cost_usd.toFixed(6):'Unavailable']].forEach(function(pair){details.append(node('dt',pair[0]),node('dd',pair[1]===null?'Unavailable':String(pair[1])))});content.append(details,node('p','Recorded summary only. Questions, answers, judge comments, and credentials are private.'));
+  }
+  document.getElementById('lv-runs').addEventListener('click',async function(event){
+    var button=event.target.closest('[data-run-id]');if(!button)return;
+    var id=button.dataset.runId,token=++request;title.textContent='Evaluation run '+id;content.replaceChildren(node('p','Loading run details…'));dialog.showModal();
+    try{var response=await fetch('/v1/stats/evals/'+encodeURIComponent(id));if(!response.ok)throw new Error('fetch');var run=await response.json();if(token===request&&dialog.open)paint(run)}
+    catch(error){if(token===request&&dialog.open){var message=node('p','Could not load this run. Close this panel and select the run again to retry.');message.className='run-error';content.replaceChildren(message)}}
+  });
+  document.getElementById('run-close').addEventListener('click',function(){dialog.close()});
+  dialog.addEventListener('click',function(event){if(event.target===dialog){var b=dialog.getBoundingClientRect();if(event.clientX<b.left||event.clientX>b.right||event.clientY<b.top||event.clientY>b.bottom)dialog.close()}});
+})();
+</script>
 </body>
 </html>

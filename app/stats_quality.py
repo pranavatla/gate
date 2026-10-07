@@ -9,7 +9,7 @@ queries a minute however often the endpoint is called.
 import time
 from datetime import datetime, timezone
 
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException, Path as PathParam
 from fastapi.responses import JSONResponse
 
 from app import db
@@ -129,3 +129,21 @@ async def eval_stats():
         _cached = (now, await collect())
     return JSONResponse(_cached[1], headers={"Cache-Control": f"public, max-age={CACHE_SECONDS}",
                                              "Access-Control-Allow-Origin": "*"})
+
+
+# Reuse the explicit public-column allowlist; do not expose raw eval records.
+RUN_DETAIL = RUNS.split("ORDER BY")[0] + "WHERE run_id = $1"
+async def public_run(run_id: int) -> dict:
+    async with db.pool.acquire() as conn:
+        row = await conn.fetchrow(RUN_DETAIL, run_id)
+    if row is None:
+        raise HTTPException(status_code=404, detail="Evaluation run not found")
+    result = _run(row)
+    result["started_at"] = iso(row["started_at"])
+    result["finished_at"] = iso(row["finished_at"])
+    return result
+
+
+@router.get("/v1/stats/evals/{run_id}")
+async def eval_run_json(run_id: int = PathParam(ge=1)):
+    return JSONResponse(await public_run(run_id), headers={"Cache-Control": "public, max-age=60"})
