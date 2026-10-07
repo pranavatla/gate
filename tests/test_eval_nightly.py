@@ -23,7 +23,7 @@ fi
             script = (root / 'deploy/app/eval-nightly.sh').read_text().replace('cd /opt/gate/app', 'cd "' + temp + '"')
             log = directory / 'calls'
             env = dict(os.environ, PATH=temp + ':' + os.environ['PATH'], NIGHTLY_TEST_LOG=str(log))
-            result = subprocess.run(['bash'], input=script, text=True, env=env, capture_output=True, timeout=10)
+            result = subprocess.run(['bash', '-c', script], text=True, env=env, capture_output=True, timeout=10)
             self.assertEqual(result.returncode, 1)
             calls = log.read_text().splitlines()
             self.assertEqual(len(calls), 3)

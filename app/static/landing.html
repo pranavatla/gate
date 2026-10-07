@@ -1550,7 +1550,7 @@ nav .links a{display:inline-block;padding:12px 4px;white-space:nowrap}
   function renderQuality(j){
     var t=j&&j.totals; if(!t||typeof t.runs!=='number') throw new Error('shape');
     var k=$('#lv-kpis-quality');
-    setK(k,'runs',fmt(t.runs)); setK(k,'runs_sub',t.last_run_at?'latest finished '+ago(t.last_run_at):'none yet');
+    setK(k,'runs',fmt(t.runs)); setK(k,'runs_sub',t.last_run_at?'latest activity '+ago(t.last_run_at):'none yet');
     setK(k,'graded',fmt(t.graded_answers)); setK(k,'cases',fmt(t.cases)); setK(k,'cases_sub','in '+fmt(t.sets)+' question sets');
     setK(k,'versions',fmt(t.prompt_versions));
     var runs=j.runs||[];
