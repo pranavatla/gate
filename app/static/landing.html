@@ -134,7 +134,7 @@ section{padding:70px 0 10px}
 .tag{font-family:var(--mono);font-size:12px;padding:2px 8px;border-radius:6px;border:1px solid var(--line);color:var(--muted);margin-right:6px}
 .result{display:inline-flex;align-items:center;gap:8px;font-family:var(--mono);font-size:13px;margin-top:10px;padding:5px 12px;border-radius:8px;border:1px solid var(--line)}
 @media(max-width:980px){.pipe{grid-template-columns:repeat(3,1fr)}.node::after{display:none}.split{grid-template-columns:1fr}.run{margin-left:0}}
-@media(max-width:900px){.hero-grid{grid-template-columns:1fr}.hero-copy{text-align:center}.lead{margin:0 auto}.cta,.providers{justify-content:center}.explainer{max-width:520px;margin:0 auto}.explainer video{aspect-ratio:9/16}.explainer-caption{display:block;text-align:center}.explainer-caption span{display:block;margin-top:3px}}
+@media(max-width:900px){.hero-grid{grid-template-columns:1fr}.hero-copy{text-align:center}.lead{margin:0 auto}.cta,.providers{justify-content:center}.explainer{max-width:520px;margin:0 auto}.explainer video{aspect-ratio:16/9}.explainer-caption{display:block;text-align:center}.explainer-caption span{display:block;margin-top:3px}}
 
 /* cards */
 .cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px}
@@ -646,11 +646,10 @@ nav .links a{display:inline-block;padding:12px 4px;white-space:nowrap}
 
       </div>
       <div class="explainer">
-        <video controls preload="metadata" playsinline poster="/static/gate-explained-poster.jpg" aria-label="What gate.atla.in is for">
-          <source src="/static/gate-explained-vertical.mp4" type="video/mp4" media="(max-width: 900px)">
-          <source src="/static/gate-explained.mp4" type="video/mp4">
+        <video controls preload="metadata" playsinline poster="/static/gateway-overview-20261007-poster.jpg" aria-label="What gate.atla.in is for">
+          <source src="/static/gateway-overview-20261007.mp4" type="video/mp4">
         </video>
-        <div class="explainer-caption"><b>What this gateway does</b><span>A one-minute walkthrough for first-time visitors</span></div>
+        <div class="explainer-caption"><b>What this gateway does</b><span>An updated walkthrough for first-time visitors</span></div>
       </div>
     </div>
   </header>
@@ -1106,9 +1105,6 @@ nav .links a{display:inline-block;padding:12px 4px;white-space:nowrap}
   "use strict";
   var reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   var $ = function(s,r){return (r||document).querySelector(s)};
-
-  /* ---------- explainer poster ---------- */
-  if(window.matchMedia && matchMedia("(max-width: 900px)").matches){ $(".explainer video").poster="/static/gate-explained-vertical-poster.jpg"; }
 
   /* ---------- live status ---------- */
   (function(){
