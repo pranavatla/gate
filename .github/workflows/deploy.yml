@@ -37,6 +37,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Test evaluation comparison logic
+        run: |
+          python3 -m venv /tmp/gate-unit-tests
+          /tmp/gate-unit-tests/bin/pip install asyncpg==0.31.0 python-dotenv==1.2.3
+          /tmp/gate-unit-tests/bin/python -m unittest discover -s tests -v
+
       - uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: ${{ env.ROLE_ARN }}
@@ -82,8 +88,9 @@ jobs:
             "aws s3 sync s3://\($b)/deploy/ /opt/gate/ --exact-timestamps --region \($region)",
             "aws ecr get-login-password --region \($region) | docker login --username AWS --password-stdin \($r)",
             "cd /opt/gate/app && bash ./render-env.sh && docker compose pull gateway && docker compose up -d gateway && docker compose exec -T gateway python -m app.evalcheck pending",
-            "systemctl is-enabled gate-eval.timer || true",
-            "systemctl is-active gate-eval.timer || true",
+            "install -m 0644 /opt/gate/app/systemd/gate-eval.service /opt/gate/app/systemd/gate-eval.timer /etc/systemd/system/",
+            "systemctl daemon-reload && systemctl enable gate-eval.timer && systemctl restart gate-eval.timer",
+            "systemctl is-active --quiet gate-eval.timer",
             "systemctl list-timers gate-eval.timer --no-pager"
           ]}')
           CMD=$(aws ssm send-command --instance-ids "$INSTANCE_ID" \
