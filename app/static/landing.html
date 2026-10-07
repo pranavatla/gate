@@ -176,14 +176,14 @@ section{padding:70px 0 10px}
 .code .k{color:var(--gold)}.code .s{color:var(--green)}.code .c{color:var(--muted)}
 .copy{position:absolute;top:10px;right:10px;font:inherit;font-size:12px;padding:5px 10px;border-radius:8px;border:1px solid var(--line);background:var(--panel);color:var(--muted);cursor:pointer}
 .copy{transition:color .15s ease,border-color .15s ease,transform .16s var(--ease-out)}
-.copy:hover{color:var(--text);border-color:var(--cyan)}
+@media(hover:hover) and (pointer:fine){.copy:hover{color:var(--text);border-color:var(--cyan)}}
 .codes{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
 .cd{font-family:var(--mono);font-size:12.5px;padding:6px 11px;border-radius:8px;border:1px solid var(--line);background:var(--panel);cursor:default}
 .cd b{margin-right:6px}
 .cd.g b{color:var(--green)}.cd.a b{color:var(--amber)}.cd.r b{color:var(--red)}
 .cd span{color:var(--muted)}
 button.cd{font:inherit;font-family:var(--mono);font-size:12.5px;color:inherit;cursor:pointer;transition:border-color .15s,background-color .15s}
-button.cd:hover{border-color:var(--cyan);background:var(--panel2)}
+@media(hover:hover) and (pointer:fine){button.cd:hover{border-color:var(--cyan);background:var(--panel2)}}
 .codes-hint{color:var(--muted);font-size:13px;margin:18px 0 0}
 @media(max-width:600px){.term .ln{white-space:pre}.term{font-size:12px}}
 @media(pointer:coarse){.sc,button.cd{padding:10px 14px}}
