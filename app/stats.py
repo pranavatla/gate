@@ -13,6 +13,8 @@ from fastapi.responses import JSONResponse
 
 from app import db
 from app.config import GATE_CHATBOT_TENANT
+from app.provider_summary import provider_summary
+from app.router import ADAPTERS
 
 router = APIRouter(tags=["Stats"])
 
@@ -54,6 +56,11 @@ GROUP BY routed_model
 ORDER BY calls DESC
 """
 
+# Every model the gateway will accept (it refuses models missing from the price table).
+CATALOG = """
+SELECT DISTINCT provider, model FROM model_prices WHERE effective_from <= now()
+"""
+
 HOURLY = """
 SELECT h.hour, count(e.id) AS calls
 FROM generate_series(date_trunc('hour', $1::timestamptz), date_trunc('hour', $2::timestamptz) - interval '1 hour',
@@ -78,9 +85,14 @@ async def collect(now: datetime | None = None) -> dict:
     async with db.pool.acquire() as conn:
         t = await conn.fetchrow(TOTALS, week, day)
         models = await conn.fetch(MODELS, week)
+        catalog = await conn.fetch(CATALOG)
         # Whole hours only, so the last bucket is never a partial one.
         hour_end = end.replace(minute=0)
         hourly = await conn.fetch(HOURLY, hour_end - timedelta(hours=24), hour_end)
+    models_7d = [
+        {"model": r["model"], "calls": r["calls"], "tokens": r["tokens"], "cost_usd": round(float(r["cost_usd"]), 6)}
+        for r in models
+    ]
     return {
         "service": "gate.atla.in",
         "generated_at": iso(end),
@@ -98,10 +110,9 @@ async def collect(now: datetime | None = None) -> dict:
             "provider_ms_p90": _num(t["provider_ms_p90"]),
             "latency_ms_p90": _num(t["latency_ms_p90"]),
         },
-        "models_7d": [
-            {"model": r["model"], "calls": r["calls"], "tokens": r["tokens"], "cost_usd": round(float(r["cost_usd"]), 6)}
-            for r in models
-        ],
+        "models_7d": models_7d,
+        # Every provider the router can reach, idle ones included, with its catalog models.
+        "providers": provider_summary(list(ADAPTERS), [(r["provider"], r["model"]) for r in catalog], models_7d),
         "calls_hourly_24h": [r["calls"] for r in hourly],
     }
 
