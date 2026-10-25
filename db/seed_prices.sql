@@ -8,3 +8,7 @@ VALUES ('openai', 'text-embedding-3-small', 0.02, 0);
 
 INSERT INTO model_prices (provider, model, input_per_mtok, output_per_mtok)
 VALUES ('bedrock', 'global.amazon.nova-2-lite-v1:0', 0.33, 2.75);
+
+-- Already live in production (added there by hand); recorded here so a fresh database matches.
+INSERT INTO model_prices (provider, model, input_per_mtok, output_per_mtok)
+VALUES ('anthropic', 'claude-sonnet-4-5-20250929', 3.00, 15.00);
